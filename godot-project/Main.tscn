@@ -1,0 +1,257 @@
+[gd_scene load_steps=36 format=2]
+
+[ext_resource path="res://lexus.obj" type="ArrayMesh" id=1]
+[ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
+[ext_resource path="res://Main.gd" type="Script" id=3]
+[ext_resource path="res://RoadSurfaceMesh.gd" type="Script" id=4]
+[ext_resource path="res://RoadMarkerMesh.gd" type="Script" id=5]
+[ext_resource path="res://PointCloudMapMesh.gd" type="Script" id=6]
+[ext_resource path="res://ObstacleSegmentationMesh.gd" type="Script" id=7]
+[ext_resource path="res://TrajectoryMesh.gd" type="Script" id=8]
+[ext_resource path="res://lexus.jpeg" type="Texture" id=9]
+[ext_resource path="res://DynamicObjectMesh.gd" type="Script" id=10]
+[ext_resource path="res://RearRightIndicatorLight.gd" type="Script" id=11]
+[ext_resource path="res://RearLeftIndicatorLight.gd" type="Script" id=12]
+[ext_resource path="res://TrafficLightMesh.gd" type="Script" id=13]
+[ext_resource path="res://HeadBeamLight.gd" type="Script" id=14]
+[ext_resource path="res://PositionLamp.gd" type="Script" id=15]
+[ext_resource path="res://TPSCamera.gd" type="Script" id=16]
+[ext_resource path="res://Menu.gd" type="Script" id=17]
+
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 2.40455, 0.804875, 1.07238 )
+
+[sub_resource type="SpatialMaterial" id=22]
+albedo_texture = ExtResource( 9 )
+metallic = 0.6
+metallic_specular = 0.0
+roughness = 0.39
+
+[sub_resource type="ProceduralSky" id=28]
+resource_name = "sky"
+sky_top_color = Color( 1, 1, 1, 1 )
+sky_horizon_color = Color( 0, 0.32549, 0.580392, 1 )
+sky_curve = 0.0811124
+ground_bottom_color = Color( 0.0941176, 0.0941176, 0.0941176, 1 )
+ground_horizon_color = Color( 0.227451, 0.227451, 0.227451, 1 )
+ground_curve = 0.0627669
+
+[sub_resource type="Environment" id=21]
+resource_name = "background"
+background_mode = 2
+background_sky = SubResource( 28 )
+background_sky_custom_fov = 71.3
+fog_color = Color( 0.501961, 0.6, 0.701961, 0.6 )
+fog_depth_enabled = false
+fog_depth_end = 1609.4
+
+[sub_resource type="SpatialMaterial" id=13]
+flags_transparent = true
+flags_unshaded = true
+flags_use_point_size = true
+params_point_size = 2.0
+albedo_color = Color( 0.964706, 1, 0, 0.219608 )
+
+[sub_resource type="ArrayMesh" id=10]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=12]
+render_priority = -2
+flags_transparent = true
+flags_use_point_size = true
+params_blend_mode = 1
+albedo_color = Color( 0.329412, 0.254902, 0.596078, 1 )
+distance_fade_mode = 1
+distance_fade_min_distance = 0.0
+distance_fade_max_distance = 150.0
+
+[sub_resource type="ArrayMesh" id=4]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=17]
+render_priority = -3
+flags_transparent = true
+vertex_color_use_as_albedo = true
+albedo_color = Color( 0.607843, 0.607843, 0.607843, 1 )
+
+[sub_resource type="ArrayMesh" id=16]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=19]
+render_priority = -2
+flags_transparent = true
+vertex_color_use_as_albedo = true
+distance_fade_mode = 1
+distance_fade_min_distance = 150.0
+distance_fade_max_distance = 0.0
+
+[sub_resource type="ArrayMesh" id=18]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=30]
+flags_transparent = true
+
+[sub_resource type="ArrayMesh" id=29]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=24]
+render_priority = -1
+flags_transparent = true
+albedo_color = Color( 0, 0.298039, 1, 0.635294 )
+distance_fade_mode = 1
+distance_fade_min_distance = 0.0
+distance_fade_max_distance = 20.0
+
+[sub_resource type="ArrayMesh" id=23]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=26]
+flags_transparent = true
+albedo_color = Color( 0, 0.909804, 1, 0.623529 )
+
+[sub_resource type="ArrayMesh" id=27]
+resource_name = "mesh"
+
+[node name="Main" type="Spatial"]
+script = ExtResource( 3 )
+
+[node name="EgoVehicle" type="Spatial" parent="."]
+script = ExtResource( 2 )
+
+[node name="EgoVehicleKinematicBody" type="KinematicBody" parent="EgoVehicle"]
+
+[node name="RearRightIndicatorLight" type="SpotLight" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform( 0.761934, 0, -0.647655, 0, 1, 0, 0.647655, 0, 0.761934, -2.48253, 1.13009, 1.10418 )
+light_color = Color( 1, 0.584314, 0, 1 )
+light_specular = 5.0
+spot_range = 1.6
+script = ExtResource( 11 )
+
+[node name="RearLeftIndicatorLight" type="SpotLight" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform( -0.761934, 0, -0.647655, 0, 1, 0, 0.647655, 0, -0.761934, -2.483, 1.13, -1.104 )
+light_color = Color( 1, 0.678431, 0, 1 )
+light_specular = 5.0
+spot_range = 1.6
+script = ExtResource( 12 )
+
+[node name="HeadBeamLight" type="SpotLight" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform( -4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.79841, 0.861473, 0 )
+light_energy = 2.0
+spot_range = 81.425
+script = ExtResource( 14 )
+
+[node name="BrakeLamp" type="Spatial" parent="EgoVehicle/EgoVehicleKinematicBody"]
+visible = false
+
+[node name="RearRightLight" type="OmniLight" parent="EgoVehicle/EgoVehicleKinematicBody/BrakeLamp"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.35, 1.1, 0.8 )
+light_color = Color( 1, 0.0588235, 0.0588235, 1 )
+light_energy = 2.0
+omni_range = 1.7
+omni_attenuation = 2.07053
+
+[node name="RearLeftLight" type="OmniLight" parent="EgoVehicle/EgoVehicleKinematicBody/BrakeLamp"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.35, 1.1, -0.8 )
+light_color = Color( 1, 0, 0, 1 )
+light_energy = 2.0
+omni_range = 1.7
+omni_attenuation = 2.07053
+
+[node name="PositionLamp" type="Spatial" parent="EgoVehicle/EgoVehicleKinematicBody"]
+script = ExtResource( 15 )
+
+[node name="PositionRightLamp" type="OmniLight" parent="EgoVehicle/EgoVehicleKinematicBody/PositionLamp"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 1, -0.8 )
+light_color = Color( 1, 0, 0, 1 )
+light_energy = 0.2
+omni_range = 1.2
+
+[node name="PositionLeftLamp" type="OmniLight" parent="EgoVehicle/EgoVehicleKinematicBody/PositionLamp"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.272, 1, 0.8 )
+light_color = Color( 1, 0, 0, 1 )
+light_energy = 0.2
+omni_range = 1.2
+
+[node name="CollisionShape" type="CollisionShape" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0179491, 0.82268, 0 )
+shape = SubResource( 1 )
+
+[node name="LexusMesh" type="MeshInstance" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform( -1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0 )
+material_override = SubResource( 22 )
+mesh = ExtResource( 1 )
+material/0 = null
+
+[node name="TPSCamera" type="Camera" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform( -4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -10, 7, 0 )
+environment = SubResource( 21 )
+size = 90.53
+far = 150.0
+script = ExtResource( 16 )
+
+[node name="ObstacleSegmentationMesh" type="MeshInstance" parent="EgoVehicle"]
+visible = false
+material_override = SubResource( 13 )
+mesh = SubResource( 10 )
+script = ExtResource( 7 )
+
+[node name="PointCloudMapMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 12 )
+mesh = SubResource( 4 )
+script = ExtResource( 6 )
+
+[node name="VectorMap" type="Spatial" parent="."]
+
+[node name="RoadSurfaceMesh" type="MeshInstance" parent="VectorMap"]
+material_override = SubResource( 17 )
+mesh = SubResource( 16 )
+skeleton = NodePath("../..")
+script = ExtResource( 4 )
+
+[node name="RoadMarkerMesh" type="MeshInstance" parent="VectorMap"]
+material_override = SubResource( 19 )
+mesh = SubResource( 18 )
+skeleton = NodePath("../RoadSurfaceMesh")
+script = ExtResource( 5 )
+
+[node name="TrafficLightMesh" type="MeshInstance" parent="VectorMap"]
+material_override = SubResource( 30 )
+mesh = SubResource( 29 )
+script = ExtResource( 13 )
+
+[node name="TrajectoryMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 24 )
+mesh = SubResource( 23 )
+script = ExtResource( 8 )
+
+[node name="DynamicObjectMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 26 )
+mesh = SubResource( 27 )
+script = ExtResource( 10 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( 1, 0, 0, 0, -0.866026, 0.5, 0, -0.5, -0.866026, 0, 1.77694, 0 )
+visible = false
+light_specular = 0.0
+
+[node name="Menu" type="Control" parent="."]
+script = ExtResource( 17 )
+
+[node name="PointCloudMapMeshCheckButton" type="CheckButton" parent="Menu"]
+margin_right = 76.0
+margin_bottom = 40.0
+focus_mode = 0
+pressed = true
+enabled_focus_mode = 0
+text = "PointCloud Map"
+
+[node name="NightModeCheckButton" type="CheckButton" parent="Menu"]
+margin_top = 40.0
+focus_mode = 0
+enabled_focus_mode = 0
+text = "Night Mode"
+
+[connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/HeadBeamLight" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/PositionLamp" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/TPSCamera" method="_on_NightModeCheckButton_toggled"]

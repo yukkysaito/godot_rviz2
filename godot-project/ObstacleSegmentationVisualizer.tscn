@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ObstacleSegmentationVisuzlier.gd" type="Script" id=1]
+
+[sub_resource type="SpatialMaterial" id=11]
+flags_unshaded = true
+flags_use_point_size = true
+vertex_color_use_as_albedo = true
+params_point_size = 3.0
+albedo_color = Color( 1, 0, 0, 1 )
+
+[node name="ObstacleSegmentation" type="PointCloudVisualizer"]
+visible = false
+material_override = SubResource( 11 )
+script = ExtResource( 1 )

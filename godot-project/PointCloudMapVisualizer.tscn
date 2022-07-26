@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="SpatialMaterial" id=2]
+flags_unshaded = true
+flags_use_point_size = true
+vertex_color_use_as_albedo = true
+params_blend_mode = 1
+params_point_size = 2.0
+albedo_color = Color( 0.219608, 0.219608, 0.219608, 1 )
+
+[node name="PointCloudMap" type="PointCloudVisualizer"]
+visible = false
+material_override = SubResource( 2 )
