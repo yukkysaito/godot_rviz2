@@ -42,7 +42,7 @@
    ```
    If you get error about console_bridge, put following command.
    ```
-   sudo ln -s /opt/ros/galactic/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0 libconsole_bridge.so
+   sudo ln -s /opt/ros/galactic/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0 /opt/ros/galactic/lib/libconsole_bridge.so
    ```
 
 4. Run Autoware and Godot
