@@ -1,0 +1,67 @@
+# SCsub
+
+Import('env')
+
+ros_distro = "galactic"
+cpp_version = "-std=c++17"
+autoware_include_path = "/home/yukky/workspace/tutorial/autoware"
+ros_include_path = "/opt/ros/" + ros_distro + "/include"
+ros_lib_path = "/opt/ros/" + ros_distro + "/lib"
+
+autoware_auto_planning_msgs_include_path = autoware_include_path + "/install/autoware_auto_planning_msgs/include"
+autoware_auto_planning_msgs_lib_path = autoware_include_path + "/install/autoware_auto_planning_msgs/lib"
+
+autoware_auto_perception_msgs_include_path = autoware_include_path + "/install/autoware_auto_perception_msgs/include"
+autoware_auto_perception_msgs_lib_path = autoware_include_path + "/install/autoware_auto_perception_msgs/lib"
+
+autoware_auto_vehicle_msgs_include_path = autoware_include_path + "/install/autoware_auto_vehicle_msgs/include"
+autoware_auto_vehicle_msgs_lib_path = autoware_include_path + "/install/autoware_auto_vehicle_msgs/lib"
+
+
+env.add_source_files(env.modules_sources, "src/*.cpp")
+env.add_source_files(env.modules_sources, "register_types.cpp")
+
+env.Append(CPPPATH=["include", ros_include_path, autoware_auto_perception_msgs_include_path, autoware_auto_planning_msgs_include_path, autoware_auto_vehicle_msgs_include_path])
+
+env.Append(LIBPATH=[ros_lib_path, autoware_auto_perception_msgs_lib_path, autoware_auto_planning_msgs_lib_path, autoware_auto_vehicle_msgs_lib_path])
+
+env.Append(CCFLAGS=[cpp_version])
+
+env.Append(
+  LIBS=[
+    'rclcpp',
+    'rcl',
+    'rcl_yaml_param_parser',
+    'rcutils',
+    'rcpputils',
+    'rmw',
+    'rmw_implementation',
+    'tracetools',
+    'ament_index_cpp',
+    'std_msgs__rosidl_typesupport_cpp',
+    'sensor_msgs__rosidl_typesupport_cpp',
+    'rosidl_typesupport_cpp',
+    'rosidl_typesupport_c',
+    'rosidl_runtime_c',
+    'console_bridge',
+    'rcl_action',
+    'rclcpp_action', 
+    'actionlib_msgs__rosidl_typesupport_cpp',
+    'action_msgs__rosidl_typesupport_cpp',
+    'tf2',
+    'tf2_ros',
+    'tf2_msgs__rosidl_typesupport_cpp',
+    'visualization_msgs__rosidl_typesupport_cpp',
+    'console_bridge',
+    'autoware_auto_planning_msgs__rosidl_typesupport_cpp',
+    'autoware_auto_perception_msgs__rosidl_typesupport_cpp',
+    'autoware_auto_vehicle_msgs__rosidl_typesupport_cpp',
+    'liblibstatistics_collector',
+    'statistics_msgs__rosidl_typesupport_cpp',
+    'rosgraph_msgs__rosidl_typesupport_cpp',
+    'rcl_interfaces__rosidl_typesupport_cpp',
+    'rcl_interfaces__rosidl_typesupport_c',
+    'rcl_interfaces__rosidl_generator_c',
+    'rcl_logging_interface',
+    'rcl_logging_spdlog',
+    'builtin_interfaces__rosidl_generator_c' ])
