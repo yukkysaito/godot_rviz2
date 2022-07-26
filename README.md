@@ -37,6 +37,7 @@
 
    2. build with ros2 component. 
    ```bash
+   # run in godot directory
    scons platform=linux -j8 custom_modules=<path>/godot_rviz2/godot_rviz2
    ```
    If you get error about console_bridge, put following command.
