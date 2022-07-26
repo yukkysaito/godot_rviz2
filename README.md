@@ -46,7 +46,10 @@
 
 4. Run Autoware and Godot
    1. Run Autoware
-   2. Run Godot and click run button on top right.
+
+   2. Run Godot and import project from `godot_rviz2/godot-project`
     ```
     ./bin/godot.x11.tools.64
     ```
+
+   3. Click run button on top right on Godot GUI.
