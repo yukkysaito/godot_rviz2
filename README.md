@@ -29,10 +29,9 @@
     ```
 
 3. Build with ros2 component
-   1. modify the path in `godot_rviz2/SCsub`
+   1. modify the path in `godot_rviz2/SCsub`. It is needed to include autoware custum msg type because build system is defferent between colcon(ROS2) and scon(Godot)
    ```
    autoware_include_path = "/home/yukky/workspace/tutorial/autoware"
-
    ```
 
    2. build with ros2 component. 
