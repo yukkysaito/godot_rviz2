@@ -35,6 +35,8 @@ public:
     {
         const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
         const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
+        if(!transform)
+            return Vector3(0, 0, 0);
 
         return Vector3(transform.value().translation.x, transform.value().translation.z, -1.0 * transform.value().translation.y);        
     }
@@ -43,6 +45,8 @@ public:
     {
         const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
         const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
+        if(!transform)
+            return Vector3(0, 0, 0);
 
         const auto &rotation = transform.value().rotation;
         double roll, pitch, yaw;
