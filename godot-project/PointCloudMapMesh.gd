@@ -2,7 +2,6 @@ extends MeshInstance
 
 var pointcloud = PointCloud.new()
 var visualize_again = false
-#var is_reseted = false
 
 func _ready():
 	pointcloud.subscribe("/map/pointcloud_map", true)
@@ -35,10 +34,6 @@ func _on_CheckButton_toggled(button_pressed):
 
 	visible = button_pressed
 	if not visible:
-#		is_reseted = true
 		mesh.clear_surfaces()
 	elif visible:
 		visualize_again = true
-#		is_reseted = false
-	print(visible)
-	print(visualize_again)
