@@ -30,8 +30,8 @@ bool VehicleStatus::is_turn_on_right()
   if (msg_ptr_ == nullptr)
     return false;
 
-    is_new_ = false;
-    return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
+  is_new_ = false;
+  return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
 }
 
 bool VehicleStatus::is_turn_on_left()
@@ -39,10 +39,9 @@ bool VehicleStatus::is_turn_on_left()
   if (msg_ptr_ == nullptr)
     return false;
 
-    is_new_ = false;
-    return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
+  is_new_ = false;
+  return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
 }
-
 
 bool VehicleStatus::is_new()
 {
@@ -65,8 +64,8 @@ void VehicleStatus::subscribe(const String &topic, const bool transient_local)
 
 void VehicleStatus::on_turn_indicators(const autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ConstSharedPtr msg)
 {
-	msg_ptr_ = msg;
-	is_new_ = true;
+  msg_ptr_ = msg;
+  is_new_ = true;
 }
 
 VehicleStatus::VehicleStatus()

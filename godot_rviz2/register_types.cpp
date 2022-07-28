@@ -25,17 +25,18 @@
 #include "dynamic_objects.hpp"
 #include "pointcloud_visualizer.h"
 
-
-void register_godot_rviz2_types() {
-    ClassDB::register_class<GodotRviz2Spinner>();
-  	ClassDB::register_class<MarkerArray>();
-  	ClassDB::register_class<PointCloud>();
-  	ClassDB::register_class<Trajectory>();
-  	ClassDB::register_class<DynamicObjects>();
-  	ClassDB::register_class<PointCloudVisualizer>();
-  	ClassDB::register_class<EgoPose>();
-  	ClassDB::register_class<VehicleStatus>();
+void register_godot_rviz2_types()
+{
+	ClassDB::register_class<GodotRviz2Spinner>();
+	ClassDB::register_class<MarkerArray>();
+	ClassDB::register_class<PointCloud>();
+	ClassDB::register_class<Trajectory>();
+	ClassDB::register_class<DynamicObjects>();
+	ClassDB::register_class<PointCloudVisualizer>();
+	ClassDB::register_class<EgoPose>();
+	ClassDB::register_class<VehicleStatus>();
 }
 
-void unregister_godot_rviz2_types() {
+void unregister_godot_rviz2_types()
+{
 }

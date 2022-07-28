@@ -19,7 +19,6 @@
 #include "core/reference.h"
 #include "godot_rviz2.hpp"
 
-
 #include "rclcpp/rclcpp.hpp"
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -35,17 +34,17 @@ public:
     {
         const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
         const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
-        if(!transform)
+        if (!transform)
             return Vector3(0, 0, 0);
 
-        return Vector3(transform.value().translation.x, transform.value().translation.z, -1.0 * transform.value().translation.y);        
+        return Vector3(transform.value().translation.x, transform.value().translation.z, -1.0 * transform.value().translation.y);
     }
 
     Vector3 get_ego_rotation()
     {
         const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
         const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
-        if(!transform)
+        if (!transform)
             return Vector3(0, 0, 0);
 
         const auto &rotation = transform.value().rotation;

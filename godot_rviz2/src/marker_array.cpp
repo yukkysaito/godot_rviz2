@@ -35,7 +35,7 @@ PoolVector3Array MarkerArray::get_triangle_marker(const String &ns)
   std::wstring ws = ns.c_str();
   std::string s(ws.begin(), ws.end());
 
-  for(const auto & marker : msg_ptr_->markers)
+  for (const auto &marker : msg_ptr_->markers)
   {
     if (s == marker.ns)
     {
@@ -71,8 +71,8 @@ void MarkerArray::subscribe(const String &topic, const bool transient_local)
 
 void MarkerArray::on_marker_array(const visualization_msgs::msg::MarkerArray::ConstSharedPtr msg)
 {
-	msg_ptr_ = msg;
-	is_new_ = true;
+  msg_ptr_ = msg;
+  is_new_ = true;
 }
 
 MarkerArray::MarkerArray()

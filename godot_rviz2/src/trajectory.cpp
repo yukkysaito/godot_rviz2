@@ -57,7 +57,6 @@ PoolVector3Array Trajectory::get_triangle_strip(const float width)
     }
   }
 
-
   is_new_ = false;
   return triangle_points;
 }
@@ -83,8 +82,8 @@ void Trajectory::subscribe(const String &topic, const bool transient_local)
 
 void Trajectory::on_trajectory(const autoware_auto_planning_msgs::msg::Trajectory::ConstSharedPtr msg)
 {
-	msg_ptr_ = msg;
-	is_new_ = true;
+  msg_ptr_ = msg;
+  is_new_ = true;
 }
 
 Trajectory::Trajectory()

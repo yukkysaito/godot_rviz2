@@ -22,8 +22,10 @@
 #include "autoware_auto_perception_msgs/msg/predicted_objects.hpp"
 #include "godot_rviz2.hpp"
 
-class DynamicObjects : public Reference {
+class DynamicObjects : public Reference
+{
 	GDCLASS(DynamicObjects, Reference);
+
 protected:
 	static void _bind_methods();
 

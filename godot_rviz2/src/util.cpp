@@ -53,27 +53,29 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
 }
 
 geometry_msgs::msg::Polygon rotatePolygon(
-  const geometry_msgs::msg::Polygon & polygon, const double angle)
+    const geometry_msgs::msg::Polygon &polygon, const double angle)
 {
-  const double cos = std::cos(angle);
-  const double sin = std::sin(angle);
-  geometry_msgs::msg::Polygon rotated_polygon;
-  for (const auto & point : polygon.points) {
-    auto rotated_point = point;
-    rotated_point.x = cos * point.x - sin * point.y;
-    rotated_point.y = sin * point.x + cos * point.y;
-    rotated_polygon.points.push_back(rotated_point);
-  }
-  return rotated_polygon;
+    const double cos = std::cos(angle);
+    const double sin = std::sin(angle);
+    geometry_msgs::msg::Polygon rotated_polygon;
+    for (const auto &point : polygon.points)
+    {
+        auto rotated_point = point;
+        rotated_point.x = cos * point.x - sin * point.y;
+        rotated_point.y = sin * point.x + cos * point.y;
+        rotated_polygon.points.push_back(rotated_point);
+    }
+    return rotated_polygon;
 }
 
-geometry_msgs::msg::Polygon inverseClockWise(const geometry_msgs::msg::Polygon & polygon)
+geometry_msgs::msg::Polygon inverseClockWise(const geometry_msgs::msg::Polygon &polygon)
 {
-  geometry_msgs::msg::Polygon inverted_polygon;
-  for (int i = polygon.points.size() - 1; 0 <= i; --i) {
-    inverted_polygon.points.push_back(polygon.points.at(i));
-  }
-  return inverted_polygon;
+    geometry_msgs::msg::Polygon inverted_polygon;
+    for (int i = polygon.points.size() - 1; 0 <= i; --i)
+    {
+        inverted_polygon.points.push_back(polygon.points.at(i));
+    }
+    return inverted_polygon;
 }
 
 bool isClockWise(const geometry_msgs::msg::Polygon &polygon)
@@ -93,8 +95,8 @@ bool isClockWise(const geometry_msgs::msg::Polygon &polygon)
 }
 
 void toPolygon2d(
-  const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
-  geometry_msgs::msg::Polygon & polygon)
+    const geometry_msgs::msg::Pose &pose, const autoware_auto_perception_msgs::msg::Shape &shape,
+    geometry_msgs::msg::Polygon &polygon)
 {
     if (shape.type == autoware_auto_perception_msgs::msg::Shape::BOUNDING_BOX)
     {
@@ -173,5 +175,5 @@ void toPolygon2d(
             polygon.points.push_back(point);
         }
     }
-  polygon = isClockWise(polygon) ? polygon : inverseClockWise(polygon);
+    polygon = isClockWise(polygon) ? polygon : inverseClockWise(polygon);
 }

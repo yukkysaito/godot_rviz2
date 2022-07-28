@@ -33,40 +33,51 @@
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include <string>
 
-void PointCloudVisualizer::begin(Mesh::PrimitiveType p_primitive, const Ref<Texture> &p_texture) {
+void PointCloudVisualizer::begin(Mesh::PrimitiveType p_primitive, const Ref<Texture> &p_texture)
+{
 	VS::get_singleton()->immediate_begin(im, (VS::PrimitiveType)p_primitive, p_texture.is_valid() ? p_texture->get_rid() : RID());
-	if (p_texture.is_valid()) {
+	if (p_texture.is_valid())
+	{
 		cached_textures.push_back(p_texture);
 	}
 }
 
-void PointCloudVisualizer::set_normal(const Vector3 &p_normal) {
+void PointCloudVisualizer::set_normal(const Vector3 &p_normal)
+{
 	VS::get_singleton()->immediate_normal(im, p_normal);
 }
 
-void PointCloudVisualizer::set_tangent(const Plane &p_tangent) {
+void PointCloudVisualizer::set_tangent(const Plane &p_tangent)
+{
 	VS::get_singleton()->immediate_tangent(im, p_tangent);
 }
 
-void PointCloudVisualizer::set_color(const Color &p_color) {
+void PointCloudVisualizer::set_color(const Color &p_color)
+{
 	VS::get_singleton()->immediate_color(im, p_color);
 }
 
-void PointCloudVisualizer::set_uv(const Vector2 &p_uv) {
+void PointCloudVisualizer::set_uv(const Vector2 &p_uv)
+{
 	VS::get_singleton()->immediate_uv(im, p_uv);
 }
 
-void PointCloudVisualizer::set_uv2(const Vector2 &p_uv2) {
+void PointCloudVisualizer::set_uv2(const Vector2 &p_uv2)
+{
 	VS::get_singleton()->immediate_uv2(im, p_uv2);
 }
 
-void PointCloudVisualizer::add_vertex(const Vector3 &p_vertex) {
+void PointCloudVisualizer::add_vertex(const Vector3 &p_vertex)
+{
 	VS::get_singleton()->immediate_vertex(im, p_vertex);
-	if (empty) {
+	if (empty)
+	{
 		aabb.position = p_vertex;
 		aabb.size = Vector3();
 		empty = false;
-	} else {
+	}
+	else
+	{
 		aabb.expand_to(p_vertex);
 	}
 }
@@ -121,20 +132,24 @@ void PointCloudVisualizer::subscribe(const String &topic, const bool transient_l
 			std::bind(&PointCloudVisualizer::on_pointcloud2, this, std::placeholders::_1));
 }
 
-void PointCloudVisualizer::end() {
+void PointCloudVisualizer::end()
+{
 	VS::get_singleton()->immediate_end(im);
 }
 
-void PointCloudVisualizer::clear() {
+void PointCloudVisualizer::clear()
+{
 	VS::get_singleton()->immediate_clear(im);
 	empty = true;
 	cached_textures.clear();
 }
 
-AABB PointCloudVisualizer::get_aabb() const {
+AABB PointCloudVisualizer::get_aabb() const
+{
 	return aabb;
 }
-PoolVector<Face3> PointCloudVisualizer::get_faces(uint32_t p_usage_flags) const {
+PoolVector<Face3> PointCloudVisualizer::get_faces(uint32_t p_usage_flags) const
+{
 	return PoolVector<Face3>();
 }
 
@@ -183,7 +198,8 @@ PoolVector<Face3> PointCloudVisualizer::get_faces(uint32_t p_usage_flags) const 
 // 	}
 // }
 
-void PointCloudVisualizer::_bind_methods() {
+void PointCloudVisualizer::_bind_methods()
+{
 	// ClassDB::bind_method(D_METHOD("begin", "primitive", "texture"), &PointCloudVisualizer::begin, DEFVAL(Ref<Texture>()));
 	ClassDB::bind_method(D_METHOD("set_normal", "normal"), &PointCloudVisualizer::set_normal);
 	ClassDB::bind_method(D_METHOD("set_tangent", "tangent"), &PointCloudVisualizer::set_tangent);
@@ -212,6 +228,7 @@ PointCloudVisualizer::PointCloudVisualizer()
 	is_new_ = false;
 }
 
-PointCloudVisualizer::~PointCloudVisualizer() {
+PointCloudVisualizer::~PointCloudVisualizer()
+{
 	VisualServer::get_singleton()->free(im);
 }

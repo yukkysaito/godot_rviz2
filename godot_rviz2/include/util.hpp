@@ -34,5 +34,5 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
     const std::string &target_frame_id, const rclcpp::Time &time);
 
 void toPolygon2d(
-  const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
-  geometry_msgs::msg::Polygon & polygon);
+    const geometry_msgs::msg::Pose &pose, const autoware_auto_perception_msgs::msg::Shape &shape,
+    geometry_msgs::msg::Polygon &polygon);

@@ -22,8 +22,10 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "godot_rviz2.hpp"
 
-class PointCloud : public Reference {
+class PointCloud : public Reference
+{
 	GDCLASS(PointCloud, Reference);
+
 protected:
 	static void _bind_methods();
 

@@ -73,8 +73,8 @@ PoolVector3Array DynamicObjects::get_triangle_points()
     }
   }
 
-    is_new_ = false;
-    return triangle_points;
+  is_new_ = false;
+  return triangle_points;
 }
 
 bool DynamicObjects::is_new()
@@ -98,8 +98,8 @@ void DynamicObjects::subscribe(const String &topic, const bool transient_local)
 
 void DynamicObjects::on_dynamic_objects(const autoware_auto_perception_msgs::msg::PredictedObjects::ConstSharedPtr msg)
 {
-	msg_ptr_ = msg;
-	is_new_ = true;
+  msg_ptr_ = msg;
+  is_new_ = true;
 }
 
 DynamicObjects::DynamicObjects()

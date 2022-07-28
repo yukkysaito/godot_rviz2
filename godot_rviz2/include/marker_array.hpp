@@ -22,8 +22,10 @@
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "godot_rviz2.hpp"
 
-class MarkerArray : public Reference {
+class MarkerArray : public Reference
+{
 	GDCLASS(MarkerArray, Reference);
+
 protected:
 	static void _bind_methods();
 

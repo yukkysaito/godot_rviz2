@@ -22,8 +22,10 @@
 #include "autoware_auto_planning_msgs/msg/trajectory.hpp"
 #include "godot_rviz2.hpp"
 
-class Trajectory : public Reference {
+class Trajectory : public Reference
+{
 	GDCLASS(Trajectory, Reference);
+
 protected:
 	static void _bind_methods();
 

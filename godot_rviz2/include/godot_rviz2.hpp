@@ -21,7 +21,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
-class GodotRviz2 
+class GodotRviz2
 {
 
 public: // for singleton

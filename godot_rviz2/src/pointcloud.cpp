@@ -65,8 +65,8 @@ void PointCloud::subscribe(const String &topic, const bool transient_local)
 
 void PointCloud::on_pointcloud2(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg)
 {
-	msg_ptr_ = msg;
-	is_new_ = true;
+  msg_ptr_ = msg;
+  is_new_ = true;
 }
 
 PointCloud::PointCloud()

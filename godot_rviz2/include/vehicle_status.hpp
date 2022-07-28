@@ -22,8 +22,10 @@
 #include "autoware_auto_vehicle_msgs/msg/turn_indicators_report.hpp"
 #include "godot_rviz2.hpp"
 
-class VehicleStatus : public Reference {
+class VehicleStatus : public Reference
+{
 	GDCLASS(VehicleStatus, Reference);
+
 protected:
 	static void _bind_methods();
 
