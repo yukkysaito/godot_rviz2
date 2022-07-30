@@ -14,10 +14,6 @@ config/name="sample"
 run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
-[debug]
-
-settings/stdout/print_fps=true
-
 [physics]
 
 common/enable_pause_aware_picking=true

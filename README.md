@@ -15,7 +15,7 @@
     
    2. clone godot_rviz2
    ```bash
-   git clone https://github.com/yukkysaito/godot_rviz2.git
+   git clone https://github.com/yukkysaito/godot_rviz2.git --recursive
    ```
 
    3. build godot with autoware and ros2 components.

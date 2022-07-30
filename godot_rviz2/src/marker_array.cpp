@@ -19,9 +19,12 @@
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include <string>
 
+using Type = visualization_msgs::msg::Marker;
+
 void MarkerArray::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_triangle_marker"), &MarkerArray::get_triangle_marker);
+  ClassDB::bind_method(D_METHOD("get_color_spheres"), &MarkerArray::get_color_spheres);
   ClassDB::bind_method(D_METHOD("subscribe"), &MarkerArray::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &MarkerArray::is_new);
 }
@@ -49,6 +52,53 @@ PoolVector3Array MarkerArray::get_triangle_marker(const String &ns)
   is_new_ = false;
   return triangle_points;
 }
+
+Array MarkerArray::get_color_spheres(const String &ns){
+  Array color_spheres;
+
+  if (msg_ptr_ == nullptr)
+    return color_spheres;
+
+  std::wstring ws = ns.c_str();
+  std::string s(ws.begin(), ws.end());
+
+  for (const auto &marker : msg_ptr_->markers)
+  {
+    if (s == marker.ns && marker.type == Type::SPHERE )
+    {
+        Array color_sphere;
+        Color color(marker.color.r, marker.color.g, marker.color.b, marker.color.a);
+        Vector3 position(marker.pose.position.x, marker.pose.position.z, -1.0 * marker.pose.position.y);
+        Vector3 rotation; // TODO add rotation
+        Vector3 size(marker.scale.x, marker.scale.z, marker.scale.y); // TODO add rotation
+        color_sphere.append(color);
+        color_sphere.append(position);
+        color_sphere.append(rotation);
+        color_sphere.append(size);
+        color_spheres.append(color_sphere);
+    }
+    // TODO implement about SPHERE_LIST
+    // else if (s == marker.ns && marker.type == Type::SPHERE_LIST)
+    // {
+    //   for (const auto &point : marker.points)
+    //   {
+    //     Array color_sphere;
+    //     Color color(marker.color.r, marker.color.g, marker.color.b, marker.color.a);
+    //     Vector3 position(marker.pose.position.x, marker.pose.position.z, -1.0 * marker.pose.position.y);
+    //     Vector3 rotation;
+    //     color_sphere.append(color);
+    //     color_sphere.append(position);
+    //     color_sphere.append(rotation);
+    //     color_spheres.append(color_sphere);
+    //   }
+    // }
+  }
+
+  is_new_ = false;
+
+  return color_spheres;
+}
+
 
 bool MarkerArray::is_new()
 {

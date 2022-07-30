@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=2]
+[gd_scene load_steps=39 format=2]
 
 [ext_resource path="res://lexus.obj" type="ArrayMesh" id=1]
 [ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
@@ -17,6 +17,7 @@
 [ext_resource path="res://PositionLamp.gd" type="Script" id=15]
 [ext_resource path="res://TPSCamera.gd" type="Script" id=16]
 [ext_resource path="res://Menu.gd" type="Script" id=17]
+[ext_resource path="res://TrafficLightRecognitionMesh.gd" type="Script" id=18]
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 2.40455, 0.804875, 1.07238 )
@@ -26,6 +27,16 @@ albedo_texture = ExtResource( 9 )
 metallic = 0.6
 metallic_specular = 0.0
 roughness = 0.39
+
+[sub_resource type="SpatialMaterial" id=13]
+flags_transparent = true
+flags_unshaded = true
+flags_use_point_size = true
+params_point_size = 2.0
+albedo_color = Color( 0.964706, 1, 0, 0.219608 )
+
+[sub_resource type="ArrayMesh" id=10]
+resource_name = "mesh"
 
 [sub_resource type="ProceduralSky" id=28]
 resource_name = "sky"
@@ -44,16 +55,6 @@ background_sky_custom_fov = 71.3
 fog_color = Color( 0.501961, 0.6, 0.701961, 0.6 )
 fog_depth_enabled = false
 fog_depth_end = 1609.4
-
-[sub_resource type="SpatialMaterial" id=13]
-flags_transparent = true
-flags_unshaded = true
-flags_use_point_size = true
-params_point_size = 2.0
-albedo_color = Color( 0.964706, 1, 0, 0.219608 )
-
-[sub_resource type="ArrayMesh" id=10]
-resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=12]
 render_priority = -2
@@ -79,7 +80,6 @@ resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=19]
 render_priority = -2
-flags_transparent = true
 vertex_color_use_as_albedo = true
 distance_fade_mode = 1
 distance_fade_min_distance = 150.0
@@ -90,13 +90,14 @@ resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=30]
 flags_transparent = true
+flags_unshaded = true
+vertex_color_use_as_albedo = true
 
 [sub_resource type="ArrayMesh" id=29]
 resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=24]
 render_priority = -1
-flags_transparent = true
 albedo_color = Color( 0, 0.298039, 1, 0.635294 )
 distance_fade_mode = 1
 distance_fade_min_distance = 0.0
@@ -110,6 +111,15 @@ flags_transparent = true
 albedo_color = Color( 0, 0.909804, 1, 0.623529 )
 
 [sub_resource type="ArrayMesh" id=27]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=32]
+render_priority = 1
+flags_transparent = true
+flags_unshaded = true
+vertex_color_use_as_albedo = true
+
+[sub_resource type="ArrayMesh" id=31]
 resource_name = "mesh"
 
 [node name="Main" type="Spatial"]
@@ -182,18 +192,18 @@ material_override = SubResource( 22 )
 mesh = ExtResource( 1 )
 material/0 = null
 
-[node name="TPSCamera" type="Camera" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform( -4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -10, 7, 0 )
-environment = SubResource( 21 )
-size = 90.53
-far = 150.0
-script = ExtResource( 16 )
-
 [node name="ObstacleSegmentationMesh" type="MeshInstance" parent="EgoVehicle"]
 visible = false
 material_override = SubResource( 13 )
 mesh = SubResource( 10 )
 script = ExtResource( 7 )
+
+[node name="TPSCamera" type="Camera" parent="EgoVehicle"]
+transform = Transform( -4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -10, 7, 0 )
+environment = SubResource( 21 )
+size = 90.53
+far = 150.0
+script = ExtResource( 16 )
 
 [node name="PointCloudMapMesh" type="MeshInstance" parent="."]
 material_override = SubResource( 12 )
@@ -229,6 +239,12 @@ material_override = SubResource( 26 )
 mesh = SubResource( 27 )
 script = ExtResource( 10 )
 
+[node name="TrafficLightRecognitionMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 32 )
+mesh = SubResource( 31 )
+skeleton = NodePath("../VectorMap")
+script = ExtResource( 18 )
+
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
 transform = Transform( 1, 0, 0, 0, -0.866026, 0.5, 0, -0.5, -0.866026, 0, 1.77694, 0 )
 visible = false
@@ -254,4 +270,4 @@ text = "Night Mode"
 [connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/HeadBeamLight" method="_on_NightModeCheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/PositionLamp" method="_on_NightModeCheckButton_toggled"]
-[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/TPSCamera" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/TPSCamera" method="_on_NightModeCheckButton_toggled"]
