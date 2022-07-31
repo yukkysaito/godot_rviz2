@@ -37,7 +37,7 @@ private:
 
 public:
 	bool is_new();
-	PoolVector3Array get_triangle_strip(const float width);
+	Array get_triangle_strip_with_velocity(const float width);
 	void subscribe(const String &topic, const bool transient_local = false);
 
 	Trajectory();

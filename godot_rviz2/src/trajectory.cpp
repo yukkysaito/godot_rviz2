@@ -22,16 +22,17 @@
 
 void Trajectory::_bind_methods()
 {
-  ClassDB::bind_method(D_METHOD("get_triangle_strip"), &Trajectory::get_triangle_strip);
+  ClassDB::bind_method(D_METHOD("get_triangle_strip_with_velocity"), &Trajectory::get_triangle_strip_with_velocity);
   ClassDB::bind_method(D_METHOD("subscribe"), &Trajectory::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &Trajectory::is_new);
 }
 
-PoolVector3Array Trajectory::get_triangle_strip(const float width)
+Array Trajectory::get_triangle_strip_with_velocity(const float width)
 {
+  Array triangle_strip_with_velocity;
   PoolVector3Array triangle_points;
   if (msg_ptr_ == nullptr)
-    return triangle_points;
+    return triangle_strip_with_velocity;
 
   for (size_t point_idx = 0; point_idx < msg_ptr_->points.size(); point_idx++)
   {
@@ -43,22 +44,28 @@ PoolVector3Array Trajectory::get_triangle_strip(const float width)
       Eigen::Vector3f vec_in, vec_out;
       vec_in << 0, -(width / 2.0), 0;
       vec_out = quat * vec_in;
-      triangle_points.append(Vector3(path_pose.position.x + vec_out.x(),
-                                     path_pose.position.z + vec_out.z(),
-                                     -1.0 * (path_pose.position.y + vec_out.y())));
+      Array point_with_velocity;
+      point_with_velocity.append(msg_ptr_->points.at(point_idx).longitudinal_velocity_mps);
+      point_with_velocity.append(Vector3(path_pose.position.x + vec_out.x(),
+                                         path_pose.position.z + vec_out.z(),
+                                         -1.0 * (path_pose.position.y + vec_out.y())));
+      triangle_strip_with_velocity.append(point_with_velocity);
     }
     {
       Eigen::Vector3f vec_in, vec_out;
       vec_in << 0, (width / 2.0), 0;
       vec_out = quat * vec_in;
-      triangle_points.append(Vector3(path_pose.position.x + vec_out.x(),
-                                     path_pose.position.z + vec_out.z(),
-                                     -1.0 * (path_pose.position.y + vec_out.y())));
+      Array point_with_velocity;
+      point_with_velocity.append(msg_ptr_->points.at(point_idx).longitudinal_velocity_mps);
+      point_with_velocity.append(Vector3(path_pose.position.x + vec_out.x(),
+                                         path_pose.position.z + vec_out.z(),
+                                         -1.0 * (path_pose.position.y + vec_out.y())));
+      triangle_strip_with_velocity.append(point_with_velocity);
     }
   }
 
   is_new_ = false;
-  return triangle_points;
+  return triangle_strip_with_velocity;
 }
 
 bool Trajectory::is_new()

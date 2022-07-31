@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=2]
+[gd_scene load_steps=41 format=2]
 
 [ext_resource path="res://lexus.obj" type="ArrayMesh" id=1]
 [ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
@@ -96,9 +96,19 @@ vertex_color_use_as_albedo = true
 [sub_resource type="ArrayMesh" id=29]
 resource_name = "mesh"
 
+[sub_resource type="Gradient" id=33]
+offsets = PoolRealArray( 0.0712468, 0.541985, 1 )
+colors = PoolColorArray( 0.695312, 0.100494, 0.100494, 1, 0.44165, 0, 0.84375, 1, 0, 0.015625, 1, 1 )
+
+[sub_resource type="GradientTexture" id=34]
+resource_name = "gradient_color"
+gradient = SubResource( 33 )
+
 [sub_resource type="SpatialMaterial" id=24]
 render_priority = -1
-albedo_color = Color( 0, 0.298039, 1, 0.635294 )
+flags_unshaded = true
+albedo_color = Color( 1, 1, 1, 0.823529 )
+albedo_texture = SubResource( 34 )
 distance_fade_mode = 1
 distance_fade_min_distance = 0.0
 distance_fade_max_distance = 20.0
