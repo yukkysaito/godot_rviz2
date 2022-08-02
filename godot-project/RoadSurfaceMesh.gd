@@ -25,14 +25,6 @@ func _process(_delta):
 
 	for i in verts.size():
 		normals.append(Vector3(0,1,0))
-#		if(i % 3 ==2):
-#			normals.append(cross_product(verts[i] - verts[i-2], verts[i-1] - verts[i-2]).normalized())
-#			normals.append(cross_product(verts[i] - verts[i-2], verts[i-1] - verts[i-2]).normalized())
-#			normals.append(cross_product(verts[i] - verts[i-2], verts[i-1] - verts[i-2]).normalized())
-#			normals.append(cross_product(verts[i-1] - verts[i-2], verts[i] - verts[i-2]).normalized())
-#			normals.append(cross_product(verts[i-1] - verts[i-2], verts[i] - verts[i-2]).normalized())
-#			normals.append(cross_product(verts[i-1] - verts[i-2], verts[i] - verts[i-2]).normalized())
-
 			
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = normals

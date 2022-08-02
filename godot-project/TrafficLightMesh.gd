@@ -26,8 +26,8 @@ func _process(_delta):
 	for i in boards_verts_size:
 		if(i % 3 ==2):
 			boards_normals.append(cross_product(boards_verts[i] - boards_verts[i-2], boards_verts[i-1] - boards_verts[i-2]).normalized())
-			boards_normals.append(cross_product(boards_verts[i] - boards_verts[i-2], boards_verts[i-1] - boards_verts[i-2]).normalized())
-			boards_normals.append(cross_product(boards_verts[i] - boards_verts[i-2], boards_verts[i-1] - boards_verts[i-2]).normalized())
+			boards_normals.append(boards_normals[boards_normals.size()-1])
+			boards_normals.append(boards_normals[boards_normals.size()-1])
 		boards_colors.append(Color(0, 0, 0, 0.7))
 	# inversed board
 	for i in boards_verts_size:
@@ -39,8 +39,8 @@ func _process(_delta):
 			boards_verts.append(boards_verts[j_1])
 			boards_verts.append(boards_verts[j_2])
 			boards_normals.append(cross_product(boards_verts[j_2] - boards_verts[j_2-2], boards_verts[j_2-1] - boards_verts[j_2-2]).normalized())
-			boards_normals.append(cross_product(boards_verts[j_2] - boards_verts[j_2-2], boards_verts[j_2-1] - boards_verts[j_2-2]).normalized())
-			boards_normals.append(cross_product(boards_verts[j_2] - boards_verts[j_2-2], boards_verts[j_2-1] - boards_verts[j_2-2]).normalized())
+			boards_normals.append(boards_normals[boards_normals.size()-1])
+			boards_normals.append(boards_normals[boards_normals.size()-1])
 		boards_colors.append(Color(0, 0, 0, 0.1))
 
 	boards_arr[Mesh.ARRAY_VERTEX] = boards_verts

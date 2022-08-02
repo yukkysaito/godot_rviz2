@@ -23,6 +23,7 @@
 #include "trajectory.hpp"
 #include "vehicle_status.hpp"
 #include "dynamic_objects.hpp"
+#include "parameter.hpp"
 #include "pointcloud_visualizer.h"
 
 void register_godot_rviz2_types()
@@ -35,6 +36,7 @@ void register_godot_rviz2_types()
 	ClassDB::register_class<PointCloudVisualizer>();
 	ClassDB::register_class<EgoPose>();
 	ClassDB::register_class<VehicleStatus>();
+	ClassDB::register_class<Parameter>();
 }
 
 void unregister_godot_rviz2_types()
