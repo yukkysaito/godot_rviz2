@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=2]
+[gd_scene load_steps=46 format=2]
 
 [ext_resource path="res://lexus.obj" type="ArrayMesh" id=1]
 [ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
@@ -18,6 +18,12 @@
 [ext_resource path="res://TPSCamera.gd" type="Script" id=16]
 [ext_resource path="res://Menu.gd" type="Script" id=17]
 [ext_resource path="res://TrafficLightRecognitionMesh.gd" type="Script" id=18]
+[ext_resource path="res://Steering.gd" type="Script" id=19]
+[ext_resource path="res://steering.png" type="Texture" id=20]
+[ext_resource path="res://console_meter.png" type="Texture" id=21]
+[ext_resource path="res://SourceCodePro-Light.otf" type="DynamicFontData" id=22]
+[ext_resource path="res://console_meter_hand.png" type="Texture" id=23]
+[ext_resource path="res://ConsoleMeter.gd" type="Script" id=24]
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 2.40455, 0.804875, 1.07238 )
@@ -56,7 +62,7 @@ fog_depth_enabled = false
 fog_depth_end = 1609.4
 
 [sub_resource type="SpatialMaterial" id=12]
-render_priority = -3
+render_priority = -2
 flags_transparent = true
 flags_use_point_size = true
 params_blend_mode = 1
@@ -122,6 +128,11 @@ vertex_color_use_as_albedo = true
 
 [sub_resource type="ArrayMesh" id=31]
 resource_name = "mesh"
+
+[sub_resource type="DynamicFont" id=33]
+size = 80
+use_filter = true
+font_data = ExtResource( 22 )
 
 [node name="Main" type="Spatial"]
 script = ExtResource( 3 )
@@ -194,6 +205,7 @@ mesh = ExtResource( 1 )
 material/0 = null
 
 [node name="ObstacleSegmentationMesh" type="MeshInstance" parent="EgoVehicle"]
+visible = false
 material_override = SubResource( 13 )
 mesh = SubResource( 10 )
 script = ExtResource( 7 )
@@ -266,6 +278,40 @@ margin_top = 40.0
 focus_mode = 0
 enabled_focus_mode = 0
 text = "Night Mode"
+
+[node name="VehicleStatus" type="HBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+alignment = 1
+
+[node name="Steering" type="Sprite" parent="VehicleStatus"]
+position = Vector2( -72, -86 )
+scale = Vector2( 0.5, 0.5 )
+texture = ExtResource( 20 )
+script = ExtResource( 19 )
+
+[node name="ConsoleMeter" type="Sprite" parent="VehicleStatus"]
+position = Vector2( 82, -108 )
+scale = Vector2( 0.5, 0.5 )
+texture = ExtResource( 21 )
+script = ExtResource( 24 )
+
+[node name="VelocityLabel" type="Label" parent="VehicleStatus/ConsoleMeter"]
+margin_left = -210.0
+margin_top = 58.0
+margin_right = 216.0
+margin_bottom = 185.0
+custom_colors/font_color = Color( 0.321569, 0.321569, 0.321569, 1 )
+custom_fonts/font = SubResource( 33 )
+text = "0Km"
+align = 1
+valign = 1
+
+[node name="Hand" type="Sprite" parent="VehicleStatus/ConsoleMeter"]
+position = Vector2( 0, 50 )
+texture = ExtResource( 23 )
 
 [connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/HeadBeamLight" method="_on_NightModeCheckButton_toggled"]
