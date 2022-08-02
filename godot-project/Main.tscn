@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=2]
+[gd_scene load_steps=39 format=2]
 
 [ext_resource path="res://lexus.obj" type="ArrayMesh" id=1]
 [ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
@@ -42,29 +42,28 @@ resource_name = "mesh"
 resource_name = "sky"
 sky_top_color = Color( 1, 1, 1, 1 )
 sky_horizon_color = Color( 0, 0.32549, 0.580392, 1 )
-sky_curve = 0.0811124
-ground_bottom_color = Color( 0.0941176, 0.0941176, 0.0941176, 1 )
-ground_horizon_color = Color( 0.227451, 0.227451, 0.227451, 1 )
+sky_curve = 0.245887
+ground_bottom_color = Color( 0.145098, 0.145098, 0.145098, 1 )
+ground_horizon_color = Color( 0, 0.138012, 0.246094, 1 )
 ground_curve = 0.0627669
 
 [sub_resource type="Environment" id=21]
 resource_name = "background"
 background_mode = 2
 background_sky = SubResource( 28 )
-background_sky_custom_fov = 71.3
 fog_color = Color( 0.501961, 0.6, 0.701961, 0.6 )
 fog_depth_enabled = false
 fog_depth_end = 1609.4
 
 [sub_resource type="SpatialMaterial" id=12]
-render_priority = -2
+render_priority = -3
 flags_transparent = true
 flags_use_point_size = true
 params_blend_mode = 1
 albedo_color = Color( 0.329412, 0.254902, 0.596078, 1 )
 distance_fade_mode = 1
 distance_fade_min_distance = 0.0
-distance_fade_max_distance = 150.0
+distance_fade_max_distance = 200.0
 
 [sub_resource type="ArrayMesh" id=4]
 resource_name = "mesh"
@@ -80,38 +79,30 @@ resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=19]
 render_priority = -2
+flags_transparent = true
 vertex_color_use_as_albedo = true
 distance_fade_mode = 1
-distance_fade_min_distance = 150.0
+distance_fade_min_distance = 200.0
 distance_fade_max_distance = 0.0
 
 [sub_resource type="ArrayMesh" id=18]
 resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=30]
-flags_transparent = true
 flags_unshaded = true
 vertex_color_use_as_albedo = true
 
 [sub_resource type="ArrayMesh" id=29]
 resource_name = "mesh"
 
-[sub_resource type="Gradient" id=33]
-offsets = PoolRealArray( 0.0712468, 0.541985, 1 )
-colors = PoolColorArray( 0.695312, 0.100494, 0.100494, 1, 0.44165, 0, 0.84375, 1, 0, 0.015625, 1, 1 )
-
-[sub_resource type="GradientTexture" id=34]
-resource_name = "gradient_color"
-gradient = SubResource( 33 )
-
 [sub_resource type="SpatialMaterial" id=24]
 render_priority = -1
 flags_unshaded = true
+vertex_color_use_as_albedo = true
 albedo_color = Color( 1, 1, 1, 0.823529 )
-albedo_texture = SubResource( 34 )
 distance_fade_mode = 1
 distance_fade_min_distance = 0.0
-distance_fade_max_distance = 20.0
+distance_fade_max_distance = 60.0
 
 [sub_resource type="ArrayMesh" id=23]
 resource_name = "mesh"
@@ -203,16 +194,15 @@ mesh = ExtResource( 1 )
 material/0 = null
 
 [node name="ObstacleSegmentationMesh" type="MeshInstance" parent="EgoVehicle"]
-visible = false
 material_override = SubResource( 13 )
 mesh = SubResource( 10 )
 script = ExtResource( 7 )
 
 [node name="TPSCamera" type="Camera" parent="EgoVehicle"]
-transform = Transform( -4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -10, 7, 0 )
+transform = Transform( -4.37114e-08, 0.529919, -0.848048, 0, 0.848048, 0.529919, 1, 2.31635e-08, -3.70694e-08, -18, 12, 0 )
 environment = SubResource( 21 )
 size = 90.53
-far = 150.0
+far = 300.0
 script = ExtResource( 16 )
 
 [node name="PointCloudMapMesh" type="MeshInstance" parent="."]
