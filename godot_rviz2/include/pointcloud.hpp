@@ -21,6 +21,7 @@
 #include "core/reference.h"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "godot_rviz2.hpp"
+#include "util.hpp"
 
 class PointCloud : public Reference
 {
@@ -37,7 +38,8 @@ private:
 
 public:
 	bool is_new();
-	PoolVector3Array get_pointcloud();
+	void set_old();
+	PoolVector3Array get_pointcloud(const String &frame_id = "map");
 	void subscribe(const String &topic, const bool transient_local = false);
 
 	PointCloud();

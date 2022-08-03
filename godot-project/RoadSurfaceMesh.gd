@@ -29,3 +29,4 @@ func _process(_delta):
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = normals
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	vector_map.set_old()

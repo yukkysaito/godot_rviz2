@@ -15,3 +15,4 @@ func _process(_delta):
 	
 	$VelocityLabel.text = str(velocity).pad_decimals(0)+"km"
 	$Hand.set_rotation(velocity * velocity_scale)
+	velocity_report.set_old()

@@ -37,6 +37,7 @@ private:
 
 public:
 	bool is_new();
+	void set_old();
 	Array get_triangle_strip_with_velocity(const float width);
 	void subscribe(const String &topic, const bool transient_local = false);
 

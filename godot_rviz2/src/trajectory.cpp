@@ -25,6 +25,7 @@ void Trajectory::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_triangle_strip_with_velocity"), &Trajectory::get_triangle_strip_with_velocity);
   ClassDB::bind_method(D_METHOD("subscribe"), &Trajectory::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &Trajectory::is_new);
+  ClassDB::bind_method(D_METHOD("set_old"), &Trajectory::set_old);
 }
 
 Array Trajectory::get_triangle_strip_with_velocity(const float width)
@@ -64,7 +65,6 @@ Array Trajectory::get_triangle_strip_with_velocity(const float width)
     }
   }
 
-  is_new_ = false;
   return triangle_strip_with_velocity;
 }
 
@@ -72,6 +72,12 @@ bool Trajectory::is_new()
 {
   return is_new_;
 }
+
+void Trajectory::set_old()
+{
+  is_new_ = false;
+}
+
 
 void Trajectory::subscribe(const String &topic, const bool transient_local)
 {

@@ -37,6 +37,7 @@ private:
 
 public:
 	bool is_new();
+	void set_old();
 	double get_velocity();
 	void subscribe(const String &topic, const bool transient_local = false);
 

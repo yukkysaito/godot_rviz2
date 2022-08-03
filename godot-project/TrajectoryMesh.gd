@@ -99,3 +99,4 @@ func _process(_delta):
 			create_wall_triangle_strip(wall_base_points[0], wall_base_points[1], 4.0, 2.0, wheelbase_to_front))
 		# Trajectory
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, traj_arr)
+	trajectory.set_old()

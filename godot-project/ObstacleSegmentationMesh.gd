@@ -16,7 +16,7 @@ func _process(_delta):
 #	var normals = PoolVector3Array()
 #	var indices = PoolIntArray()
 
-	verts = pointcloud.get_pointcloud()
+	verts = pointcloud.get_pointcloud("map")
 #	for vert in verts:
 #		uvs.append(Vector2(vert.y, 0))
 
@@ -25,3 +25,4 @@ func _process(_delta):
 	if !verts.empty():
 		mesh.clear_surfaces()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arr)
+	pointcloud.set_old()

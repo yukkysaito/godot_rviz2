@@ -23,6 +23,7 @@ void VehicleStatus::_bind_methods()
   ClassDB::bind_method(D_METHOD("is_turn_on_left"), &VehicleStatus::is_turn_on_left);
   ClassDB::bind_method(D_METHOD("subscribe"), &VehicleStatus::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &VehicleStatus::is_new);
+  ClassDB::bind_method(D_METHOD("set_old"), &VehicleStatus::set_old);
 }
 
 bool VehicleStatus::is_turn_on_right()
@@ -30,7 +31,6 @@ bool VehicleStatus::is_turn_on_right()
   if (msg_ptr_ == nullptr)
     return false;
 
-  is_new_ = false;
   return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
 }
 
@@ -39,13 +39,17 @@ bool VehicleStatus::is_turn_on_left()
   if (msg_ptr_ == nullptr)
     return false;
 
-  is_new_ = false;
   return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
 }
 
 bool VehicleStatus::is_new()
 {
   return is_new_;
+}
+
+void VehicleStatus::set_old()
+{
+  is_new_ = false;
 }
 
 void VehicleStatus::subscribe(const String &topic, const bool transient_local)

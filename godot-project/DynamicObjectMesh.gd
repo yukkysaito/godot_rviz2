@@ -1,6 +1,7 @@
 extends MeshInstance
 
 var dynamic_objects = DynamicObjects.new()
+var only_known_object = true
 
 func cross_product(a, b):
 	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
@@ -19,7 +20,7 @@ func _process(_delta):
 	var normals = PoolVector3Array()
 #	var indices = PoolIntArray()
 
-	verts = dynamic_objects.get_triangle_points()
+	verts = dynamic_objects.get_triangle_points(only_known_object)
 
 	for i in verts.size():
 		if(i % 3 ==2):
@@ -35,3 +36,8 @@ func _process(_delta):
 	if !verts.empty():
 		mesh.clear_surfaces()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	dynamic_objects.set_old()
+
+
+func _on_OnlyKnownObjectCheckButton_toggled(button_pressed):
+	only_known_object = button_pressed

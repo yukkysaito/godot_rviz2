@@ -21,6 +21,7 @@
 #include "core/reference.h"
 #include "autoware_auto_perception_msgs/msg/predicted_objects.hpp"
 #include "godot_rviz2.hpp"
+#include "util.hpp"
 
 class DynamicObjects : public Reference
 {
@@ -37,7 +38,8 @@ private:
 
 public:
 	bool is_new();
-	PoolVector3Array get_triangle_points();
+	void set_old();
+	PoolVector3Array get_triangle_points(bool only_known_objects = false);
 	void subscribe(const String &topic, const bool transient_local = false);
 
 	DynamicObjects();

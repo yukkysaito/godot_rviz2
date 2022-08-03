@@ -37,6 +37,7 @@ private:
 
 public:
 	bool is_new();
+	void set_old();
 	PoolVector3Array get_triangle_marker(const String &ns);
 	Array get_color_spheres(const String &ns);
 	void subscribe(const String &topic, const bool transient_local = false);

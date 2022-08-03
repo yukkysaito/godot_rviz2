@@ -37,6 +37,7 @@ private:
 
 public:
 	bool is_new();
+	void set_old();
 	bool is_turn_on_right();
 	bool is_turn_on_left();
 	void subscribe(const String &topic, const bool transient_local = false);

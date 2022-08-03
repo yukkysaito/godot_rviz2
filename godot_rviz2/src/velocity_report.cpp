@@ -23,6 +23,7 @@ void VelocityReport::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_velocity"), &VelocityReport::get_velocity);
   ClassDB::bind_method(D_METHOD("subscribe"), &VelocityReport::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &VelocityReport::is_new);
+  ClassDB::bind_method(D_METHOD("set_old"), &VelocityReport::set_old);
 }
 
 double VelocityReport::get_velocity()
@@ -30,14 +31,17 @@ double VelocityReport::get_velocity()
   if (msg_ptr_ == nullptr)
     return 0.0;
 
-
-  is_new_ = false;
   return msg_ptr_->longitudinal_velocity;
 }
 
 bool VelocityReport::is_new()
 {
   return is_new_;
+}
+
+void VelocityReport::set_old()
+{
+  is_new_ = false;
 }
 
 void VelocityReport::subscribe(const String &topic, const bool transient_local)

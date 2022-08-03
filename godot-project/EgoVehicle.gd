@@ -12,16 +12,19 @@ func _process(_delta):
 	set_rotation(ego_pose.get_ego_rotation())
 
 	# Indicators
-	var right_light = get_node("EgoVehicleKinematicBody/RearRightIndicatorLight")
-	if (vehicle_status.is_turn_on_right()):
-		right_light.turn_on()
-	else:
-		right_light.turn_off()
+	if(vehicle_status.is_new()):
+		var right_light = get_node("EgoVehicleKinematicBody/RearRightIndicatorLight")
+		if (vehicle_status.is_turn_on_right()):
+			right_light.turn_on()
+		else:
+			right_light.turn_off()
 
-	var left_light = get_node("EgoVehicleKinematicBody/RearLeftIndicatorLight")
-	if (vehicle_status.is_turn_on_left()):
-		left_light.turn_on()
-	else:
-		left_light.turn_off()
+		var left_light = get_node("EgoVehicleKinematicBody/RearLeftIndicatorLight")
+		if (vehicle_status.is_turn_on_left()):
+			left_light.turn_on()
+		else:
+			left_light.turn_off()
+		vehicle_status.set_old()
+			
 
 #	print(_delta)

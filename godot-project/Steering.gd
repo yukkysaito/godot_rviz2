@@ -12,3 +12,4 @@ func _process(_delta):
 		return
 	var angle = steering_report.get_angle()
 	set_rotation(-angle * angle_scale)
+	steering_report.set_old()

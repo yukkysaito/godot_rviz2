@@ -43,3 +43,4 @@ func _process(_delta):
 	spheres_arr[Mesh.ARRAY_INDEX] = sphere_indices
 	spheres_arr[Mesh.ARRAY_COLOR] = sphere_colors
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, spheres_arr)
+	traffic_light_markers.set_old()

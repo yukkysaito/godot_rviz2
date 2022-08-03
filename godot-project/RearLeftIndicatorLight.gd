@@ -4,7 +4,6 @@ var is_turn_on = false
 
 var sum_time = 0.0
 
-# Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
 
@@ -14,7 +13,6 @@ func turn_on():
 func turn_off():
 	is_turn_on = false;
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if !is_turn_on:
 		visible = false

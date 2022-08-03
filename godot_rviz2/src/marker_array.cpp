@@ -27,6 +27,7 @@ void MarkerArray::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_color_spheres"), &MarkerArray::get_color_spheres);
   ClassDB::bind_method(D_METHOD("subscribe"), &MarkerArray::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &MarkerArray::is_new);
+  ClassDB::bind_method(D_METHOD("set_old"), &MarkerArray::set_old);
 }
 
 PoolVector3Array MarkerArray::get_triangle_marker(const String &ns)
@@ -49,7 +50,6 @@ PoolVector3Array MarkerArray::get_triangle_marker(const String &ns)
     }
   }
 
-  is_new_ = false;
   return triangle_points;
 }
 
@@ -94,8 +94,6 @@ Array MarkerArray::get_color_spheres(const String &ns){
     // }
   }
 
-  is_new_ = false;
-
   return color_spheres;
 }
 
@@ -103,6 +101,11 @@ Array MarkerArray::get_color_spheres(const String &ns){
 bool MarkerArray::is_new()
 {
   return is_new_;
+}
+
+void MarkerArray::set_old()
+{
+  is_new_ = false;
 }
 
 void MarkerArray::subscribe(const String &topic, const bool transient_local)

@@ -17,6 +17,8 @@
 #pragma once
 #include <optional>
 
+#include "core/ustring.h"
+
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
@@ -36,3 +38,9 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
 void toPolygon2d(
     const geometry_msgs::msg::Pose &pose, const autoware_auto_perception_msgs::msg::Shape &shape,
     geometry_msgs::msg::Polygon &polygon);
+
+inline std::string godot_to_std(const String &godot_s)
+{
+  std::wstring ws = godot_s.c_str();
+  return std::string(ws.begin(), ws.end());
+}

@@ -17,12 +17,6 @@
 #include "parameter.hpp"
 #include <string>
 
-inline std::string godot_to_std(const String &godot_s)
-{
-  std::wstring ws = godot_s.c_str();
-  return std::string(ws.begin(), ws.end());
-}
-
 void Parameter::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_double_value"), &Parameter::get_double_value);

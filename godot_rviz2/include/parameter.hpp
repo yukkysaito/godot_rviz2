@@ -20,6 +20,8 @@
 #include "core/variant.h"
 #include "core/reference.h"
 #include "godot_rviz2.hpp"
+#include "util.hpp"
+
 
 class Parameter : public Reference
 {

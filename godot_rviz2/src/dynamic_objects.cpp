@@ -15,7 +15,6 @@
 //
 
 #include "dynamic_objects.hpp"
-#include "util.hpp"
 #include <string>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -23,14 +22,17 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+using Label = autoware_auto_perception_msgs::msg::ObjectClassification;
+
 void DynamicObjects::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_triangle_points"), &DynamicObjects::get_triangle_points);
   ClassDB::bind_method(D_METHOD("subscribe"), &DynamicObjects::subscribe);
   ClassDB::bind_method(D_METHOD("is_new"), &DynamicObjects::is_new);
+  ClassDB::bind_method(D_METHOD("set_old"), &DynamicObjects::set_old);
 }
 
-PoolVector3Array DynamicObjects::get_triangle_points()
+PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
 {
   PoolVector3Array triangle_points;
   if (msg_ptr_ == nullptr)
@@ -38,6 +40,8 @@ PoolVector3Array DynamicObjects::get_triangle_points()
 
   for (const auto &object : msg_ptr_->objects)
   {
+    if (only_known_objects && object.classification.front().label  == Label::UNKNOWN)
+      continue;
     const auto &pose = object.kinematics.initial_pose_with_covariance.pose;
     const auto &shape = object.shape;
     const auto z_offset = shape.dimensions.z * 0.5;
@@ -73,13 +77,17 @@ PoolVector3Array DynamicObjects::get_triangle_points()
     }
   }
 
-  is_new_ = false;
   return triangle_points;
 }
 
 bool DynamicObjects::is_new()
 {
   return is_new_;
+}
+
+void DynamicObjects::set_old()
+{
+  is_new_ = false;
 }
 
 void DynamicObjects::subscribe(const String &topic, const bool transient_local)

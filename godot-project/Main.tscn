@@ -34,16 +34,6 @@ metallic = 0.6
 metallic_specular = 0.0
 roughness = 0.39
 
-[sub_resource type="SpatialMaterial" id=13]
-flags_transparent = true
-flags_unshaded = true
-flags_use_point_size = true
-params_point_size = 2.0
-albedo_color = Color( 0.964706, 1, 0, 0.219608 )
-
-[sub_resource type="ArrayMesh" id=10]
-resource_name = "mesh"
-
 [sub_resource type="ProceduralSky" id=28]
 resource_name = "sky"
 sky_top_color = Color( 1, 1, 1, 1 )
@@ -72,6 +62,16 @@ distance_fade_min_distance = 0.0
 distance_fade_max_distance = 200.0
 
 [sub_resource type="ArrayMesh" id=4]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=13]
+flags_transparent = true
+flags_unshaded = true
+flags_use_point_size = true
+params_point_size = 2.0
+albedo_color = Color( 0.964706, 1, 0, 0.219608 )
+
+[sub_resource type="ArrayMesh" id=10]
 resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=17]
@@ -204,12 +204,6 @@ material_override = SubResource( 22 )
 mesh = ExtResource( 1 )
 material/0 = null
 
-[node name="ObstacleSegmentationMesh" type="MeshInstance" parent="EgoVehicle"]
-visible = false
-material_override = SubResource( 13 )
-mesh = SubResource( 10 )
-script = ExtResource( 7 )
-
 [node name="TPSCamera" type="Camera" parent="EgoVehicle"]
 transform = Transform( -4.37114e-08, 0.529919, -0.848048, 0, 0.848048, 0.529919, 1, 2.31635e-08, -3.70694e-08, -18, 12, 0 )
 environment = SubResource( 21 )
@@ -221,6 +215,12 @@ script = ExtResource( 16 )
 material_override = SubResource( 12 )
 mesh = SubResource( 4 )
 script = ExtResource( 6 )
+
+[node name="ObstacleSegmentationMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 13 )
+mesh = SubResource( 10 )
+skeleton = NodePath("../EgoVehicle")
+script = ExtResource( 7 )
 
 [node name="VectorMap" type="Spatial" parent="."]
 
@@ -279,6 +279,13 @@ focus_mode = 0
 enabled_focus_mode = 0
 text = "Night Mode"
 
+[node name="OnlyKnownObjectCheckButton" type="CheckButton" parent="Menu"]
+margin_top = 80.0
+focus_mode = 0
+pressed = true
+enabled_focus_mode = 0
+text = "Only Known Objects"
+
 [node name="VehicleStatus" type="HBoxContainer" parent="."]
 anchor_left = 0.5
 anchor_top = 1.0
@@ -317,3 +324,4 @@ texture = ExtResource( 23 )
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/HeadBeamLight" method="_on_NightModeCheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/PositionLamp" method="_on_NightModeCheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/TPSCamera" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/OnlyKnownObjectCheckButton" to="DynamicObjectMesh" method="_on_OnlyKnownObjectCheckButton_toggled"]
