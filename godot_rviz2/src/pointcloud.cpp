@@ -19,14 +19,21 @@
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "pcl_ros/transforms.hpp"
 #include "tf2_eigen/tf2_eigen.h"
-#include <string>
+#include "util.hpp"
+
 
 void PointCloud::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_pointcloud"), &PointCloud::get_pointcloud);
-  ClassDB::bind_method(D_METHOD("subscribe"), &PointCloud::subscribe);
-  ClassDB::bind_method(D_METHOD("is_new"), &PointCloud::is_new);
-  ClassDB::bind_method(D_METHOD("set_old"), &PointCloud::set_old);
+  // ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber::subscribe);
+  // ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber::is_new);
+  // ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber::set_old);
+  // ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber<sensor_msgs::msg::PointCloud2>::subscribe);
+  // ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber<sensor_msgs::msg::PointCloud2>::is_new);
+  // ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber<sensor_msgs::msg::PointCloud2>::set_old);
+  // ClassDB::bind_method(D_METHOD("subscribe"), &PointCloud::subscribe);
+  // ClassDB::bind_method(D_METHOD("is_new"), &PointCloud::is_new);
+  // ClassDB::bind_method(D_METHOD("set_old"), &PointCloud::set_old);
 }
 
 bool transformPointcloud(
@@ -54,19 +61,20 @@ bool transformPointcloud(
 PoolVector3Array PointCloud::get_pointcloud(const String &frame_id)
 {
   PoolVector3Array pointcloud;
-  if (msg_ptr_ == nullptr)
+  const auto last_msg = get_last_msg();
+  if (!last_msg)
     return pointcloud;
 
   sensor_msgs::msg::PointCloud2::ConstSharedPtr msg_ptr;
-  msg_ptr = msg_ptr_;
+  msg_ptr = last_msg.value();
 
   // Transform
   std::shared_ptr<sensor_msgs::msg::PointCloud2> transformed_msg_ptr;
   transformed_msg_ptr = std::make_shared<sensor_msgs::msg::PointCloud2>();
   const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
-  if (godot_to_std(frame_id) != msg_ptr_->header.frame_id)
+  if (godot_to_std(frame_id) != last_msg.value()->header.frame_id)
   {
-    if (!transformPointcloud(*msg_ptr_, *tf_buffer, godot_to_std(frame_id), *transformed_msg_ptr))
+    if (!transformPointcloud(*(last_msg.value()), *tf_buffer, godot_to_std(frame_id), *transformed_msg_ptr))
       return pointcloud;
     msg_ptr = transformed_msg_ptr;
   }
@@ -80,43 +88,4 @@ PoolVector3Array PointCloud::get_pointcloud(const String &frame_id)
   }
 
   return pointcloud;
-}
-
-bool PointCloud::is_new()
-{
-  return is_new_;
-}
-
-void PointCloud::set_old()
-{
-  is_new_ = false;
-}
-
-void PointCloud::subscribe(const String &topic, const bool transient_local)
-{
-  std::wstring ws = topic.c_str();
-  std::string s(ws.begin(), ws.end());
-  if (transient_local)
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<sensor_msgs::msg::PointCloud2>(
-        s, rclcpp::QoS{1}.transient_local(),
-        std::bind(&PointCloud::on_pointcloud2, this, std::placeholders::_1));
-  else
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<sensor_msgs::msg::PointCloud2>(
-        s, rclcpp::SensorDataQoS().keep_last(1),
-        std::bind(&PointCloud::on_pointcloud2, this, std::placeholders::_1));
-}
-
-void PointCloud::on_pointcloud2(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg)
-{
-  msg_ptr_ = msg;
-  is_new_ = true;
-}
-
-PointCloud::PointCloud()
-{
-  is_new_ = false;
-}
-
-PointCloud::~PointCloud()
-{
 }
