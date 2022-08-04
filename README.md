@@ -29,11 +29,17 @@
 
 3. Run Autoware and Godot
    1. Run Autoware
+   2. Run Godot
+    ```
+    ./bin/godot.x11.tools.64 --path ../godot-project
+    ```
 
-   2. Run Godot and import project from `godot_rviz2/godot-project`
+## How to customize
+   1. Run Godot and import project from `godot_rviz2/godot-project`
     ```
     ./bin/godot.x11.tools.64
     ```
+   2. Edit on Godot GUI editor
 
    3. Click run button on top right on Godot GUI.
 
