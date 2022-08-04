@@ -18,7 +18,7 @@ func _process(_delta):
 	var boards_verts = PoolVector3Array()
 #	var uvs = PoolVector2Array()
 	var boards_normals = PoolVector3Array()
-	var boards_indices = PoolIntArray()
+#	var boards_indices = PoolIntArray()
 	var boards_colors = PoolColorArray()
 
 	boards_verts.append_array(vector_map.get_triangle_marker("traffic_light_triangle"))

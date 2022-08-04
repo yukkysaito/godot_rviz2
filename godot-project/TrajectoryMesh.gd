@@ -15,7 +15,7 @@ func create_wall_triangle_strip(first_point, second_point, width, height, length
 	var wall_arr = []
 	wall_arr.resize(Mesh.ARRAY_MAX)
 	var wall_verts = PoolVector3Array()
-	var wall_uvs = PoolVector2Array()
+#	var wall_uvs = PoolVector2Array()
 	var wall_normals = PoolVector3Array()
 	var wall_colors = PoolColorArray()
 	
@@ -80,7 +80,6 @@ func _process(_delta):
 	var wall_base_points = PoolVector3Array()
 	var created_wall_first_point = false
 	var created_wall_second_point = false
-	var is_final_point = false
 	# Create triangle
 	if 1 < triangle_strip_with_velocity.size():
 		for i in triangle_strip_with_velocity.size() - 2:
