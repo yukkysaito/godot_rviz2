@@ -35,7 +35,7 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
     const tf2_ros::Buffer &tf_buffer, const std::string &source_frame_id,
     const std::string &target_frame_id, const rclcpp::Time &time);
 
-void toPolygon2d(
+void to_polygon2d(
     const geometry_msgs::msg::Pose &pose, const autoware_auto_perception_msgs::msg::Shape &shape,
     geometry_msgs::msg::Polygon &polygon);
 

@@ -68,7 +68,7 @@ geometry_msgs::msg::Polygon rotatePolygon(
     return rotated_polygon;
 }
 
-geometry_msgs::msg::Polygon inverseClockWise(const geometry_msgs::msg::Polygon &polygon)
+geometry_msgs::msg::Polygon inverse_clock_wise(const geometry_msgs::msg::Polygon &polygon)
 {
     geometry_msgs::msg::Polygon inverted_polygon;
     for (int i = polygon.points.size() - 1; 0 <= i; --i)
@@ -78,7 +78,7 @@ geometry_msgs::msg::Polygon inverseClockWise(const geometry_msgs::msg::Polygon &
     return inverted_polygon;
 }
 
-bool isClockWise(const geometry_msgs::msg::Polygon &polygon)
+bool is_clock_wise(const geometry_msgs::msg::Polygon &polygon)
 {
     const int n = polygon.points.size();
     const double x_offset = polygon.points.at(0).x;
@@ -94,7 +94,7 @@ bool isClockWise(const geometry_msgs::msg::Polygon &polygon)
     return sum < 0.0;
 }
 
-void toPolygon2d(
+void to_polygon2d(
     const geometry_msgs::msg::Pose &pose, const autoware_auto_perception_msgs::msg::Shape &shape,
     geometry_msgs::msg::Polygon &polygon)
 {
@@ -175,5 +175,5 @@ void toPolygon2d(
             polygon.points.push_back(point);
         }
     }
-    polygon = isClockWise(polygon) ? polygon : inverseClockWise(polygon);
+    polygon = is_clock_wise(polygon) ? polygon : inverse_clock_wise(polygon);
 }

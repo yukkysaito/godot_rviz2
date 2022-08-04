@@ -46,7 +46,7 @@ PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
     const auto &shape = object.shape;
     const auto z_offset = shape.dimensions.z * 0.5;
     geometry_msgs::msg::Polygon polygon;
-    toPolygon2d(pose, shape, polygon);
+    to_polygon2d(pose, shape, polygon);
     if (polygon.points.empty())
       return triangle_points;
 
