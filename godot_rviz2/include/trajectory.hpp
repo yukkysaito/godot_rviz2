@@ -16,23 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
-#include "autoware_auto_planning_msgs/msg/trajectory.hpp"
 #include "topic_subscriber.hpp"
+
+#include "autoware_auto_planning_msgs/msg/trajectory.hpp"
 
 class Trajectory : public Reference
 {
-	GDCLASS(Trajectory, Reference);
-	TOPIC_SUBSCRIBER(Trajectory, autoware_auto_planning_msgs::msg::Trajectory);
+  GDCLASS(Trajectory, Reference);
+  TOPIC_SUBSCRIBER(Trajectory, autoware_auto_planning_msgs::msg::Trajectory);
 
 public:
-	Array get_triangle_strip_with_velocity(const float width);
+  Array get_triangle_strip_with_velocity(const float width);
 
-	Trajectory() = default;
-	~Trajectory() = default;
+  Trajectory() = default;
+  ~Trajectory() = default;
 
 protected:
-	static void _bind_methods();
+  static void _bind_methods();
 };

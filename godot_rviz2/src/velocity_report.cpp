@@ -15,8 +15,8 @@
 //
 
 #include "velocity_report.hpp"
-#include <string>
 
+#include <string>
 
 void VelocityReport::_bind_methods()
 {
@@ -27,8 +27,7 @@ void VelocityReport::_bind_methods()
 double VelocityReport::get_velocity()
 {
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return 0.0;
+  if (!last_msg) return 0.0;
 
   return msg_ptr_->longitudinal_velocity;
 }

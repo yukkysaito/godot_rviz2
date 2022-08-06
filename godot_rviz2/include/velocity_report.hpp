@@ -16,23 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
-#include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
 #include "topic_subscriber.hpp"
+
+#include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
 
 class VelocityReport : public Reference
 {
-	GDCLASS(VelocityReport, Reference);
-	TOPIC_SUBSCRIBER(VelocityReport, autoware_auto_vehicle_msgs::msg::VelocityReport);
+  GDCLASS(VelocityReport, Reference);
+  TOPIC_SUBSCRIBER(VelocityReport, autoware_auto_vehicle_msgs::msg::VelocityReport);
 
 public:
-	double get_velocity();
+  double get_velocity();
 
-	VelocityReport() = default;
-	~VelocityReport() = default;
+  VelocityReport() = default;
+  ~VelocityReport() = default;
 
 protected:
-	static void _bind_methods();
+  static void _bind_methods();
 };

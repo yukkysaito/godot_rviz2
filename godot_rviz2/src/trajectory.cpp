@@ -15,6 +15,7 @@
 //
 
 #include "trajectory.hpp"
+
 #include <string>
 #define EIGEN_MPL2_ONLY
 #include <eigen3/Eigen/Core>
@@ -22,7 +23,8 @@
 
 void Trajectory::_bind_methods()
 {
-  ClassDB::bind_method(D_METHOD("get_triangle_strip_with_velocity"), &Trajectory::get_triangle_strip_with_velocity);
+  ClassDB::bind_method(
+    D_METHOD("get_triangle_strip_with_velocity"), &Trajectory::get_triangle_strip_with_velocity);
   TOPIC_SUBSCRIBER_BIND_METHODS(Trajectory);
 }
 
@@ -31,24 +33,22 @@ Array Trajectory::get_triangle_strip_with_velocity(const float width)
   Array triangle_strip_with_velocity;
   PoolVector3Array triangle_points;
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return triangle_strip_with_velocity;
+  if (!last_msg) return triangle_strip_with_velocity;
 
-  for (const auto &point: last_msg.value()->points)
-  {
-    const auto &path_pose = point.pose;
+  for (const auto & point : last_msg.value()->points) {
+    const auto & path_pose = point.pose;
     Eigen::Quaternionf quat(
-        path_pose.orientation.w, path_pose.orientation.x,
-        path_pose.orientation.y, path_pose.orientation.z);
+      path_pose.orientation.w, path_pose.orientation.x, path_pose.orientation.y,
+      path_pose.orientation.z);
     {
       Eigen::Vector3f vec_in, vec_out;
       vec_in << 0, -(width / 2.0), 0;
       vec_out = quat * vec_in;
       Array point_with_velocity;
       point_with_velocity.append(point.longitudinal_velocity_mps);
-      point_with_velocity.append(Vector3(path_pose.position.x + vec_out.x(),
-                                         path_pose.position.z + vec_out.z(),
-                                         -1.0 * (path_pose.position.y + vec_out.y())));
+      point_with_velocity.append(Vector3(
+        path_pose.position.x + vec_out.x(), path_pose.position.z + vec_out.z(),
+        -1.0 * (path_pose.position.y + vec_out.y())));
       triangle_strip_with_velocity.append(point_with_velocity);
     }
     {
@@ -57,9 +57,9 @@ Array Trajectory::get_triangle_strip_with_velocity(const float width)
       vec_out = quat * vec_in;
       Array point_with_velocity;
       point_with_velocity.append(point.longitudinal_velocity_mps);
-      point_with_velocity.append(Vector3(path_pose.position.x + vec_out.x(),
-                                         path_pose.position.z + vec_out.z(),
-                                         -1.0 * (path_pose.position.y + vec_out.y())));
+      point_with_velocity.append(Vector3(
+        path_pose.position.x + vec_out.x(), path_pose.position.z + vec_out.z(),
+        -1.0 * (path_pose.position.y + vec_out.y())));
       triangle_strip_with_velocity.append(point_with_velocity);
     }
   }

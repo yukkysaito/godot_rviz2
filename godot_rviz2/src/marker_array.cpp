@@ -15,6 +15,7 @@
 //
 
 #include "marker_array.hpp"
+
 #include <string>
 
 using Type = visualization_msgs::msg::Marker;
@@ -26,19 +27,15 @@ void MarkerArray::_bind_methods()
   TOPIC_SUBSCRIBER_BIND_METHODS(MarkerArray);
 }
 
-PoolVector3Array MarkerArray::get_triangle_marker(const String &ns)
+PoolVector3Array MarkerArray::get_triangle_marker(const String & ns)
 {
   PoolVector3Array triangle_points;
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return triangle_points;
+  if (!last_msg) return triangle_points;
 
-  for (const auto &marker : last_msg.value()->markers)
-  {
-    if (godot_to_std(ns) == marker.ns)
-    {
-      for (const auto &point : marker.points)
-      {
+  for (const auto & marker : last_msg.value()->markers) {
+    if (godot_to_std(ns) == marker.ns) {
+      for (const auto & point : marker.points) {
         triangle_points.append(Vector3(point.x, point.z, -1.0 * point.y));
       }
     }
@@ -47,25 +44,23 @@ PoolVector3Array MarkerArray::get_triangle_marker(const String &ns)
   return triangle_points;
 }
 
-Array MarkerArray::get_color_spheres(const String &ns)
+Array MarkerArray::get_color_spheres(const String & ns)
 {
   Array color_spheres;
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return color_spheres;
+  if (!last_msg) return color_spheres;
 
   std::wstring ws = ns.c_str();
   std::string s(ws.begin(), ws.end());
 
-  for (const auto &marker : last_msg.value()->markers)
-  {
-    if (godot_to_std(ns) == marker.ns && marker.type == Type::SPHERE)
-    {
+  for (const auto & marker : last_msg.value()->markers) {
+    if (godot_to_std(ns) == marker.ns && marker.type == Type::SPHERE) {
       Array color_sphere;
       Color color(marker.color.r, marker.color.g, marker.color.b, marker.color.a);
-      Vector3 position(marker.pose.position.x, marker.pose.position.z, -1.0 * marker.pose.position.y);
-      Vector3 rotation;                                             // TODO add rotation
-      Vector3 size(marker.scale.x, marker.scale.z, marker.scale.y); // TODO add rotation
+      Vector3 position(
+        marker.pose.position.x, marker.pose.position.z, -1.0 * marker.pose.position.y);
+      Vector3 rotation;                                              // TODO add rotation
+      Vector3 size(marker.scale.x, marker.scale.z, marker.scale.y);  // TODO add rotation
       color_sphere.append(color);
       color_sphere.append(position);
       color_sphere.append(rotation);
@@ -79,9 +74,8 @@ Array MarkerArray::get_color_spheres(const String &ns)
     //   {
     //     Array color_sphere;
     //     Color color(marker.color.r, marker.color.g, marker.color.b, marker.color.a);
-    //     Vector3 position(marker.pose.position.x, marker.pose.position.z, -1.0 * marker.pose.position.y);
-    //     Vector3 rotation;
-    //     color_sphere.append(color);
+    //     Vector3 position(marker.pose.position.x, marker.pose.position.z, -1.0 *
+    //     marker.pose.position.y); Vector3 rotation; color_sphere.append(color);
     //     color_sphere.append(position);
     //     color_sphere.append(rotation);
     //     color_spheres.append(color_sphere);

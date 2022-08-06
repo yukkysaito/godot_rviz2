@@ -16,25 +16,23 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
 #include "godot_rviz2.hpp"
 #include "util.hpp"
 
-
 class Parameter : public Reference
 {
-	GDCLASS(Parameter, Reference);
+  GDCLASS(Parameter, Reference);
 
 protected:
-	static void _bind_methods();
+  static void _bind_methods();
 
 private:
-
 public:
-	bool has_parameter(const String &name);
-	double get_double_value(const String &name);
-	Parameter() = default;
-	~Parameter() = default;
+  bool has_parameter(const String & name);
+  double get_double_value(const String & name);
+  Parameter() = default;
+  ~Parameter() = default;
 };

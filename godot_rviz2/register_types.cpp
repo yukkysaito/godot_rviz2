@@ -15,32 +15,31 @@
 //
 
 #include "register_types.h"
+
 #include "core/class_db.h"
-#include "spinner.hpp"
+#include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
-#include "pointcloud.hpp"
 #include "marker_array.hpp"
+#include "parameter.hpp"
+#include "pointcloud.hpp"
+#include "spinner.hpp"
+#include "steering_report.hpp"
 #include "trajectory.hpp"
 #include "vehicle_status.hpp"
-#include "dynamic_objects.hpp"
-#include "steering_report.hpp"
 #include "velocity_report.hpp"
-#include "parameter.hpp"
 
 void register_godot_rviz2_types()
 {
-	ClassDB::register_class<GodotRviz2Spinner>();
-	ClassDB::register_class<MarkerArray>();
-	ClassDB::register_class<PointCloud>();
-	ClassDB::register_class<Trajectory>();
-	ClassDB::register_class<DynamicObjects>();
-	ClassDB::register_class<EgoPose>();
-	ClassDB::register_class<VehicleStatus>();
-	ClassDB::register_class<SteeringReport>();
-	ClassDB::register_class<VelocityReport>();
-	ClassDB::register_class<Parameter>();
+  ClassDB::register_class<GodotRviz2Spinner>();
+  ClassDB::register_class<MarkerArray>();
+  ClassDB::register_class<PointCloud>();
+  ClassDB::register_class<Trajectory>();
+  ClassDB::register_class<DynamicObjects>();
+  ClassDB::register_class<EgoPose>();
+  ClassDB::register_class<VehicleStatus>();
+  ClassDB::register_class<SteeringReport>();
+  ClassDB::register_class<VelocityReport>();
+  ClassDB::register_class<Parameter>();
 }
 
-void unregister_godot_rviz2_types()
-{
-}
+void unregister_godot_rviz2_types() {}

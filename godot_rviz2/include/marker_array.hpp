@@ -16,24 +16,25 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
-#include "visualization_msgs/msg/marker_array.hpp"
 #include "topic_subscriber.hpp"
+
+#include "visualization_msgs/msg/marker_array.hpp"
 
 class MarkerArray : public Reference
 {
-	GDCLASS(MarkerArray, Reference);
-	TOPIC_SUBSCRIBER(MarkerArray, visualization_msgs::msg::MarkerArray);
+  GDCLASS(MarkerArray, Reference);
+  TOPIC_SUBSCRIBER(MarkerArray, visualization_msgs::msg::MarkerArray);
 
 public:
-	PoolVector3Array get_triangle_marker(const String &ns);
-	Array get_color_spheres(const String &ns);
+  PoolVector3Array get_triangle_marker(const String & ns);
+  Array get_color_spheres(const String & ns);
 
-	MarkerArray() = default;
-	~MarkerArray() = default;
+  MarkerArray() = default;
+  ~MarkerArray() = default;
 
 protected:
-	static void _bind_methods();
+  static void _bind_methods();
 };

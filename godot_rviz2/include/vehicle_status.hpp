@@ -16,24 +16,25 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
-#include "autoware_auto_vehicle_msgs/msg/turn_indicators_report.hpp"
 #include "topic_subscriber.hpp"
+
+#include "autoware_auto_vehicle_msgs/msg/turn_indicators_report.hpp"
 
 class VehicleStatus : public Reference
 {
-	GDCLASS(VehicleStatus, Reference);
-	TOPIC_SUBSCRIBER(VehicleStatus, autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport);
+  GDCLASS(VehicleStatus, Reference);
+  TOPIC_SUBSCRIBER(VehicleStatus, autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport);
 
 public:
-	bool is_turn_on_right();
-	bool is_turn_on_left();
+  bool is_turn_on_right();
+  bool is_turn_on_left();
 
-	VehicleStatus() = default;
-	~VehicleStatus() = default;
+  VehicleStatus() = default;
+  ~VehicleStatus() = default;
 
 protected:
-	static void _bind_methods();
+  static void _bind_methods();
 };

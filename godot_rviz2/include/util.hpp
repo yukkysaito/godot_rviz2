@@ -15,31 +15,31 @@
 //
 
 #pragma once
-#include <optional>
-
 #include "core/ustring.h"
-
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
 #include "autoware_auto_perception_msgs/msg/shape.hpp"
-#include "geometry_msgs/msg/transform.hpp"
-#include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/polygon.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/transform.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
+#include <optional>
 #define EIGEN_MPL2_ONLY
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
 std::optional<geometry_msgs::msg::Transform> get_transform(
-    const tf2_ros::Buffer &tf_buffer, const std::string &source_frame_id,
-    const std::string &target_frame_id, const rclcpp::Time &time);
+  const tf2_ros::Buffer & tf_buffer, const std::string & source_frame_id,
+  const std::string & target_frame_id, const rclcpp::Time & time);
 
 void to_polygon2d(
-    const geometry_msgs::msg::Pose &pose, const autoware_auto_perception_msgs::msg::Shape &shape,
-    geometry_msgs::msg::Polygon &polygon);
+  const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
+  geometry_msgs::msg::Polygon & polygon);
 
-inline std::string godot_to_std(const String &godot_s)
+inline std::string godot_to_std(const String & godot_s)
 {
   std::wstring ws = godot_s.c_str();
   return std::string(ws.begin(), ws.end());

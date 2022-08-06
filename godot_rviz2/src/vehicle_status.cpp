@@ -15,6 +15,7 @@
 //
 
 #include "vehicle_status.hpp"
+
 #include <string>
 
 void VehicleStatus::_bind_methods()
@@ -27,17 +28,17 @@ void VehicleStatus::_bind_methods()
 bool VehicleStatus::is_turn_on_right()
 {
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return false;
+  if (!last_msg) return false;
 
-  return last_msg.value()->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
+  return last_msg.value()->report ==
+         autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
 }
 
 bool VehicleStatus::is_turn_on_left()
 {
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return false;
+  if (!last_msg) return false;
 
-  return last_msg.value()->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
+  return last_msg.value()->report ==
+         autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
 }

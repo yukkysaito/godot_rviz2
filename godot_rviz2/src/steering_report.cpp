@@ -15,6 +15,7 @@
 //
 
 #include "steering_report.hpp"
+
 #include <string>
 
 void SteeringReport::_bind_methods()
@@ -26,8 +27,7 @@ void SteeringReport::_bind_methods()
 double SteeringReport::get_angle()
 {
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return 0.0;
+  if (!last_msg) return 0.0;
 
   return last_msg.value()->steering_tire_angle;
 }

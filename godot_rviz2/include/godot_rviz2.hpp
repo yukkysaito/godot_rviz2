@@ -17,34 +17,29 @@
 #pragma once
 
 #include "rclcpp/rclcpp.hpp"
+
 #include "sensor_msgs/msg/point_cloud2.hpp"
+
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
 class GodotRviz2
 {
-
-public: // for singleton
+public:  // for singleton
   GodotRviz2(const GodotRviz2 &) = delete;
-  GodotRviz2 &operator=(const GodotRviz2 &) = default;
+  GodotRviz2 & operator=(const GodotRviz2 &) = default;
   GodotRviz2(GodotRviz2 &&) = delete;
-  GodotRviz2 &operator=(GodotRviz2 &&) = delete;
-  static GodotRviz2 &get_instance()
+  GodotRviz2 & operator=(GodotRviz2 &&) = delete;
+  static GodotRviz2 & get_instance()
   {
     static GodotRviz2 instance;
 
     return instance;
   }
 
-  std::shared_ptr<rclcpp::Node> get_node()
-  {
-    return node_;
-  }
+  std::shared_ptr<rclcpp::Node> get_node() { return node_; }
 
-  std::shared_ptr<tf2_ros::Buffer> get_tf_buffer()
-  {
-    return tf_buffer_;
-  }
+  std::shared_ptr<tf2_ros::Buffer> get_tf_buffer() { return tf_buffer_; }
 
 private:
   std::shared_ptr<rclcpp::Node> node_;
@@ -62,8 +57,5 @@ private:
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   }
 
-  ~GodotRviz2()
-  {
-    rclcpp::shutdown();
-  }
+  ~GodotRviz2() { rclcpp::shutdown(); }
 };

@@ -15,11 +15,13 @@
 //
 
 #include "pointcloud.hpp"
-#include "sensor_msgs/msg/point_field.hpp"
-#include "sensor_msgs/point_cloud2_iterator.hpp"
+
 #include "pcl_ros/transforms.hpp"
 #include "tf2_eigen/tf2_eigen.h"
 #include "util.hpp"
+
+#include "sensor_msgs/msg/point_field.hpp"
+#include "sensor_msgs/point_cloud2_iterator.hpp"
 
 void PointCloud::_bind_methods()
 {
@@ -28,20 +30,16 @@ void PointCloud::_bind_methods()
 }
 
 bool transformPointcloud(
-    const sensor_msgs::msg::PointCloud2 &input, const tf2_ros::Buffer &tf2,
-    const std::string &target_frame, sensor_msgs::msg::PointCloud2 &output)
+  const sensor_msgs::msg::PointCloud2 & input, const tf2_ros::Buffer & tf2,
+  const std::string & target_frame, sensor_msgs::msg::PointCloud2 & output)
 {
   rclcpp::Clock clock{RCL_ROS_TIME};
   geometry_msgs::msg::TransformStamped tf_stamped{};
-  try
-  {
+  try {
     tf_stamped = tf2.lookupTransform(
-        target_frame, input.header.frame_id, input.header.stamp, rclcpp::Duration::from_seconds(0.5));
-  }
-  catch (const tf2::TransformException &ex)
-  {
-    RCLCPP_WARN_THROTTLE(
-        rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
+      target_frame, input.header.frame_id, input.header.stamp, rclcpp::Duration::from_seconds(0.5));
+  } catch (const tf2::TransformException & ex) {
+    RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
     return false;
   }
   // transform pointcloud
@@ -52,12 +50,11 @@ bool transformPointcloud(
   return true;
 }
 
-PoolVector3Array PointCloud::get_pointcloud(const String &frame_id)
+PoolVector3Array PointCloud::get_pointcloud(const String & frame_id)
 {
   PoolVector3Array pointcloud;
   const auto last_msg = get_last_msg();
-  if (!last_msg)
-    return pointcloud;
+  if (!last_msg) return pointcloud;
 
   sensor_msgs::msg::PointCloud2::ConstSharedPtr msg_ptr;
   msg_ptr = last_msg.value();
@@ -66,18 +63,17 @@ PoolVector3Array PointCloud::get_pointcloud(const String &frame_id)
   std::shared_ptr<sensor_msgs::msg::PointCloud2> transformed_msg_ptr;
   transformed_msg_ptr = std::make_shared<sensor_msgs::msg::PointCloud2>();
   const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
-  if (godot_to_std(frame_id) != last_msg.value()->header.frame_id)
-  {
-    if (!transformPointcloud(*(last_msg.value()), *tf_buffer, godot_to_std(frame_id), *transformed_msg_ptr))
+  if (godot_to_std(frame_id) != last_msg.value()->header.frame_id) {
+    if (!transformPointcloud(
+          *(last_msg.value()), *tf_buffer, godot_to_std(frame_id), *transformed_msg_ptr))
       return pointcloud;
     msg_ptr = transformed_msg_ptr;
   }
 
   // Convert to godot array
-  sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg_ptr, "x"),
-      iter_y(*msg_ptr, "y"), iter_z(*msg_ptr, "z");
-  for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z)
-  {
+  sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg_ptr, "x"), iter_y(*msg_ptr, "y"),
+    iter_z(*msg_ptr, "z");
+  for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
     pointcloud.append(Vector3(*iter_x, *iter_z, -1.0 * (*iter_y)));
   }
 

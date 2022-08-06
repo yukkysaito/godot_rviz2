@@ -16,23 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
-#include "autoware_auto_vehicle_msgs/msg/steering_report.hpp"
 #include "topic_subscriber.hpp"
+
+#include "autoware_auto_vehicle_msgs/msg/steering_report.hpp"
 
 class SteeringReport : public Reference
 {
-	GDCLASS(SteeringReport, Reference);
-	TOPIC_SUBSCRIBER(SteeringReport, autoware_auto_vehicle_msgs::msg::SteeringReport);
+  GDCLASS(SteeringReport, Reference);
+  TOPIC_SUBSCRIBER(SteeringReport, autoware_auto_vehicle_msgs::msg::SteeringReport);
 
 public:
-	double get_angle();
+  double get_angle();
 
-	SteeringReport() = default;
-	~SteeringReport() = default;
+  SteeringReport() = default;
+  ~SteeringReport() = default;
 
 protected:
-	static void _bind_methods();
+  static void _bind_methods();
 };
