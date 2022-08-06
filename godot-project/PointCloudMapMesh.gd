@@ -9,7 +9,6 @@ func _ready():
 func _process(_delta):
 	if not (pointcloud.has_new() or visualize_again):
 		return
-
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
 	var verts = PoolVector3Array()

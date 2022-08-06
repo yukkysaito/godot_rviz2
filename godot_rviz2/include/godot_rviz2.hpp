@@ -43,7 +43,6 @@ public:  // for singleton
 
 private:
   std::shared_ptr<rclcpp::Node> node_;
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
