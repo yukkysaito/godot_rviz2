@@ -50,7 +50,7 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
   }
 }
 
-geometry_msgs::msg::Polygon rotatePolygon(
+geometry_msgs::msg::Polygon rotate_polygon(
   const geometry_msgs::msg::Polygon & polygon, const double angle)
 {
   const double cos = std::cos(angle);
@@ -154,7 +154,7 @@ void to_polygon2d(
     }
   } else if (shape.type == autoware_auto_perception_msgs::msg::Shape::POLYGON) {
     const double yaw = tf2::getYaw(pose.orientation);
-    const auto rotated_footprint = rotatePolygon(shape.footprint, yaw);
+    const auto rotated_footprint = rotate_polygon(shape.footprint, yaw);
     for (const auto & footprint_point : rotated_footprint.points) {
       geometry_msgs::msg::Point32 point;
 
