@@ -29,13 +29,13 @@
 private:                                                                                            \
 	using ConstSharedPtr = typename TYPE::ConstSharedPtr;                                           \
 	ConstSharedPtr msg_ptr_;                                                                        \
-	bool has_new_ = false;                                                                           \
+	bool has_new_ = false;                                                                          \
 	typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                                   \
                                                                                                     \
 	void on_callback(const ConstSharedPtr msg)                                                      \
 	{                                                                                               \
 		msg_ptr_ = msg;                                                                             \
-		has_new_ = true;                                                                             \
+		has_new_ = true;                                                                            \
 	}                                                                                               \
 	std::optional<ConstSharedPtr> get_last_msg()                                                    \
 	{                                                                                               \
@@ -45,10 +45,10 @@ private:                                                                        
 	}                                                                                               \
                                                                                                     \
 public:                                                                                             \
-	bool has_new() { return has_new_; }                                                               \
+	bool has_new() { return has_new_; }                                                             \
 	void set_old()                                                                                  \
 	{                                                                                               \
-		has_new_ = false;                                                                            \
+		has_new_ = false;                                                                           \
 	}                                                                                               \
                                                                                                     \
 	void subscribe(const String &topic, const bool transient_local = false)                         \
@@ -62,7 +62,7 @@ public:                                                                         
 
 #define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)                        \
 	ClassDB::bind_method(D_METHOD("subscribe"), &TYPE::subscribe); \
-	ClassDB::bind_method(D_METHOD("has_new"), &TYPE::has_new);       \
+	ClassDB::bind_method(D_METHOD("has_new"), &TYPE::has_new);     \
 	ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old)
 
 #else
@@ -116,6 +116,7 @@ public:
 		is_new_ = false;
 	}
 	virtual ~TopicSubscriber() = default;
+
 protected:
 	static void _bind_methods()
 	{

@@ -28,7 +28,6 @@ void DynamicObjects::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_triangle_points"), &DynamicObjects::get_triangle_points);
   TOPIC_SUBSCRIBER_BIND_METHODS(DynamicObjects);
-
 }
 
 PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
@@ -40,7 +39,7 @@ PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
 
   for (const auto &object : last_msg.value()->objects)
   {
-    if (only_known_objects && object.classification.front().label  == Label::UNKNOWN)
+    if (only_known_objects && object.classification.front().label == Label::UNKNOWN)
       continue;
     const auto &pose = object.kinematics.initial_pose_with_covariance.pose;
     const auto &shape = object.shape;

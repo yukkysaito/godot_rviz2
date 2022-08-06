@@ -21,7 +21,6 @@
 #include "tf2_eigen/tf2_eigen.h"
 #include "util.hpp"
 
-
 void PointCloud::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_pointcloud"), &PointCloud::get_pointcloud);
@@ -29,17 +28,20 @@ void PointCloud::_bind_methods()
 }
 
 bool transformPointcloud(
-  const sensor_msgs::msg::PointCloud2 & input, const tf2_ros::Buffer & tf2,
-  const std::string & target_frame, sensor_msgs::msg::PointCloud2 & output)
+    const sensor_msgs::msg::PointCloud2 &input, const tf2_ros::Buffer &tf2,
+    const std::string &target_frame, sensor_msgs::msg::PointCloud2 &output)
 {
   rclcpp::Clock clock{RCL_ROS_TIME};
   geometry_msgs::msg::TransformStamped tf_stamped{};
-  try {
+  try
+  {
     tf_stamped = tf2.lookupTransform(
-      target_frame, input.header.frame_id, input.header.stamp, rclcpp::Duration::from_seconds(0.5));
-  } catch (const tf2::TransformException & ex) {
-      RCLCPP_WARN_THROTTLE(
-      rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
+        target_frame, input.header.frame_id, input.header.stamp, rclcpp::Duration::from_seconds(0.5));
+  }
+  catch (const tf2::TransformException &ex)
+  {
+    RCLCPP_WARN_THROTTLE(
+        rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
     return false;
   }
   // transform pointcloud
