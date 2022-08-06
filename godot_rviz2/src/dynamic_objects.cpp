@@ -27,18 +27,18 @@ using Label = autoware_auto_perception_msgs::msg::ObjectClassification;
 void DynamicObjects::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_triangle_points"), &DynamicObjects::get_triangle_points);
-  ClassDB::bind_method(D_METHOD("subscribe"), &DynamicObjects::subscribe);
-  ClassDB::bind_method(D_METHOD("is_new"), &DynamicObjects::is_new);
-  ClassDB::bind_method(D_METHOD("set_old"), &DynamicObjects::set_old);
+  TOPIC_SUBSCRIBER_BIND_METHODS(DynamicObjects);
+
 }
 
 PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
 {
   PoolVector3Array triangle_points;
-  if (msg_ptr_ == nullptr)
+  const auto last_msg = get_last_msg();
+  if (!last_msg)
     return triangle_points;
 
-  for (const auto &object : msg_ptr_->objects)
+  for (const auto &object : last_msg.value()->objects)
   {
     if (only_known_objects && object.classification.front().label  == Label::UNKNOWN)
       continue;
@@ -78,43 +78,4 @@ PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
   }
 
   return triangle_points;
-}
-
-bool DynamicObjects::is_new()
-{
-  return is_new_;
-}
-
-void DynamicObjects::set_old()
-{
-  is_new_ = false;
-}
-
-void DynamicObjects::subscribe(const String &topic, const bool transient_local)
-{
-  std::wstring ws = topic.c_str();
-  std::string s(ws.begin(), ws.end());
-  if (transient_local)
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<autoware_auto_perception_msgs::msg::PredictedObjects>(
-        s, rclcpp::QoS{1}.transient_local(),
-        std::bind(&DynamicObjects::on_dynamic_objects, this, std::placeholders::_1));
-  else
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<autoware_auto_perception_msgs::msg::PredictedObjects>(
-        s, rclcpp::SensorDataQoS().keep_last(1),
-        std::bind(&DynamicObjects::on_dynamic_objects, this, std::placeholders::_1));
-}
-
-void DynamicObjects::on_dynamic_objects(const autoware_auto_perception_msgs::msg::PredictedObjects::ConstSharedPtr msg)
-{
-  msg_ptr_ = msg;
-  is_new_ = true;
-}
-
-DynamicObjects::DynamicObjects()
-{
-  is_new_ = false;
-}
-
-DynamicObjects::~DynamicObjects()
-{
 }

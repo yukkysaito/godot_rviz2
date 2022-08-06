@@ -25,15 +25,7 @@
 void PointCloud::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("get_pointcloud"), &PointCloud::get_pointcloud);
-  // ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber::subscribe);
-  // ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber::is_new);
-  // ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber::set_old);
-  // ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber<sensor_msgs::msg::PointCloud2>::subscribe);
-  // ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber<sensor_msgs::msg::PointCloud2>::is_new);
-  // ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber<sensor_msgs::msg::PointCloud2>::set_old);
-  // ClassDB::bind_method(D_METHOD("subscribe"), &PointCloud::subscribe);
-  // ClassDB::bind_method(D_METHOD("is_new"), &PointCloud::is_new);
-  // ClassDB::bind_method(D_METHOD("set_old"), &PointCloud::set_old);
+  TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
 
 bool transformPointcloud(

@@ -8,7 +8,5 @@ func _ready():
 func _process(_delta):
 	spinner.spin_some()
 
-
-
 func _on_TextureButton_pressed():
 	pass # Replace with function body.

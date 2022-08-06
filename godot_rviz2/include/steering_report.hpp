@@ -20,27 +20,19 @@
 #include "core/variant.h"
 #include "core/reference.h"
 #include "autoware_auto_vehicle_msgs/msg/steering_report.hpp"
-#include "godot_rviz2.hpp"
+#include "topic_subscriber.hpp"
 
 class SteeringReport : public Reference
 {
 	GDCLASS(SteeringReport, Reference);
+	TOPIC_SUBSCRIBER(SteeringReport, autoware_auto_vehicle_msgs::msg::SteeringReport);
+
+public:
+	double get_angle();
+
+	SteeringReport() = default;
+	~SteeringReport() = default;
 
 protected:
 	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_vehicle_msgs::msg::SteeringReport>::SharedPtr subscription_;
-	void on_steering_report(const autoware_auto_vehicle_msgs::msg::SteeringReport::ConstSharedPtr msg);
-	autoware_auto_vehicle_msgs::msg::SteeringReport::ConstSharedPtr msg_ptr_;
-	bool is_new_;
-
-public:
-	bool is_new();
-	void set_old();
-	double get_angle();
-	void subscribe(const String &topic, const bool transient_local = false);
-
-	SteeringReport();
-	~SteeringReport();
 };

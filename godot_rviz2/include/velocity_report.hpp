@@ -20,27 +20,19 @@
 #include "core/variant.h"
 #include "core/reference.h"
 #include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
-#include "godot_rviz2.hpp"
+#include "topic_subscriber.hpp"
 
 class VelocityReport : public Reference
 {
 	GDCLASS(VelocityReport, Reference);
+	TOPIC_SUBSCRIBER(VelocityReport, autoware_auto_vehicle_msgs::msg::VelocityReport);
+
+public:
+	double get_velocity();
+
+	VelocityReport() = default;
+	~VelocityReport() = default;
 
 protected:
 	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_vehicle_msgs::msg::VelocityReport>::SharedPtr subscription_;
-	void on_velocity_report(const autoware_auto_vehicle_msgs::msg::VelocityReport::ConstSharedPtr msg);
-	autoware_auto_vehicle_msgs::msg::VelocityReport::ConstSharedPtr msg_ptr_;
-	bool is_new_;
-
-public:
-	bool is_new();
-	void set_old();
-	double get_velocity();
-	void subscribe(const String &topic, const bool transient_local = false);
-
-	VelocityReport();
-	~VelocityReport();
 };

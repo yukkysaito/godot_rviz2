@@ -16,20 +16,64 @@
 
 #pragma once
 
-#include "core/ustring.h"
-#include "core/variant.h"
-#include "core/reference.h"
 #include "godot_rviz2.hpp"
 #include "util.hpp"
 #include <optional>
 #include "rclcpp/qos.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+
+// Because template class cannot work to bind_methods and register_class. https://godotengine.org/qa/136574/how-to-implement-object-using-template-class
+#if 1
+
+#define TOPIC_SUBSCRIBER(CLASS, TYPE)                                                               \
+private:                                                                                            \
+	using ConstSharedPtr = typename TYPE::ConstSharedPtr;                                           \
+	ConstSharedPtr msg_ptr_;                                                                        \
+	bool has_new_ = false;                                                                           \
+	typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                                   \
+                                                                                                    \
+	void on_callback(const ConstSharedPtr msg)                                                      \
+	{                                                                                               \
+		msg_ptr_ = msg;                                                                             \
+		has_new_ = true;                                                                             \
+	}                                                                                               \
+	std::optional<ConstSharedPtr> get_last_msg()                                                    \
+	{                                                                                               \
+		if (!msg_ptr_)                                                                              \
+			return std::nullopt;                                                                    \
+		return msg_ptr_;                                                                            \
+	}                                                                                               \
+                                                                                                    \
+public:                                                                                             \
+	bool has_new() { return has_new_; }                                                               \
+	void set_old()                                                                                  \
+	{                                                                                               \
+		has_new_ = false;                                                                            \
+	}                                                                                               \
+                                                                                                    \
+	void subscribe(const String &topic, const bool transient_local = false)                         \
+	{                                                                                               \
+		rclcpp::QoS qos = rclcpp::SensorDataQoS().keep_last(1);                                     \
+		if (transient_local)                                                                        \
+			qos = rclcpp::QoS{1}.transient_local();                                                 \
+		subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<TYPE>(           \
+			godot_to_std(topic), qos, std::bind(&CLASS::on_callback, this, std::placeholders::_1)); \
+	}
+
+#define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)                        \
+	ClassDB::bind_method(D_METHOD("subscribe"), &TYPE::subscribe); \
+	ClassDB::bind_method(D_METHOD("has_new"), &TYPE::has_new);       \
+	ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old)
+
+#else
+#include "core/ustring.h"
+#include "core/variant.h"
+#include "core/reference.h"
 
 template <class T>
 class TopicSubscriber : public Reference
-// class TopicSubscriber
 {
-	GDCLASS(TopicSubscriber, Reference);
-	// GDCLASS(TopicSubscriber<T>, Reference);
+	GDCLASS(TopicSubscriber<T>, Reference);
 
 private:
 	using ConstSharedPtr = typename T::ConstSharedPtr;
@@ -75,11 +119,9 @@ public:
 protected:
 	static void _bind_methods()
 	{
-		ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber::subscribe);
-		ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber::is_new);
-		ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber::set_old);
-		// ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber<T>::subscribe);
-		// ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber<T>::is_new);
-		// ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber<T>::set_old);
+		ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber<T>::subscribe);
+		ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber<T>::is_new);
+		ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber<T>::set_old);
 	}
 };
+#endif

@@ -25,7 +25,6 @@
 #include "dynamic_objects.hpp"
 #include "steering_report.hpp"
 #include "velocity_report.hpp"
-// #include "topic_subscriber.hpp"
 #include "parameter.hpp"
 
 void register_godot_rviz2_types()
@@ -39,8 +38,6 @@ void register_godot_rviz2_types()
 	ClassDB::register_class<VehicleStatus>();
 	ClassDB::register_class<SteeringReport>();
 	ClassDB::register_class<VelocityReport>();
-	// ClassDB::register_class<TopicSubscriber<sensor_msgs::msg::PointCloud2>>();
-	// ClassDB::register_class<TopicSubscriber>();
 	ClassDB::register_class<Parameter>();
 }
 

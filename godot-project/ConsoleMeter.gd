@@ -7,9 +7,8 @@ var velocity_scale = 2.96706/180.0
 func _ready():
 	velocity_report.subscribe("/vehicle/status/velocity_status", false)
 
-
 func _process(_delta):
-	if !velocity_report.is_new():
+	if !velocity_report.has_new():
 		return
 	var velocity = velocity_report.get_velocity() * 3.6
 	

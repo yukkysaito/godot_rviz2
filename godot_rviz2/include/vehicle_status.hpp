@@ -20,28 +20,20 @@
 #include "core/variant.h"
 #include "core/reference.h"
 #include "autoware_auto_vehicle_msgs/msg/turn_indicators_report.hpp"
-#include "godot_rviz2.hpp"
+#include "topic_subscriber.hpp"
 
 class VehicleStatus : public Reference
 {
 	GDCLASS(VehicleStatus, Reference);
+	TOPIC_SUBSCRIBER(VehicleStatus, autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport);
+
+public:
+	bool is_turn_on_right();
+	bool is_turn_on_left();
+
+	VehicleStatus() = default;
+	~VehicleStatus() = default;
 
 protected:
 	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport>::SharedPtr subscription_;
-	void on_turn_indicators(const autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ConstSharedPtr msg);
-	autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ConstSharedPtr msg_ptr_;
-	bool is_new_;
-
-public:
-	bool is_new();
-	void set_old();
-	bool is_turn_on_right();
-	bool is_turn_on_left();
-	void subscribe(const String &topic, const bool transient_local = false);
-
-	VehicleStatus();
-	~VehicleStatus();
 };

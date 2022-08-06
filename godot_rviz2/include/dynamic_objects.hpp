@@ -20,28 +20,19 @@
 #include "core/variant.h"
 #include "core/reference.h"
 #include "autoware_auto_perception_msgs/msg/predicted_objects.hpp"
-#include "godot_rviz2.hpp"
-#include "util.hpp"
+#include "topic_subscriber.hpp"
 
 class DynamicObjects : public Reference
 {
 	GDCLASS(DynamicObjects, Reference);
+	TOPIC_SUBSCRIBER(DynamicObjects, autoware_auto_perception_msgs::msg::PredictedObjects);
+
+public:
+	PoolVector3Array get_triangle_points(bool only_known_objects = false);
+
+	DynamicObjects() = default;
+	~DynamicObjects() = default;
 
 protected:
 	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_perception_msgs::msg::PredictedObjects>::SharedPtr subscription_;
-	void on_dynamic_objects(const autoware_auto_perception_msgs::msg::PredictedObjects::ConstSharedPtr msg);
-	autoware_auto_perception_msgs::msg::PredictedObjects::ConstSharedPtr msg_ptr_;
-	bool is_new_;
-
-public:
-	bool is_new();
-	void set_old();
-	PoolVector3Array get_triangle_points(bool only_known_objects = false);
-	void subscribe(const String &topic, const bool transient_local = false);
-
-	DynamicObjects();
-	~DynamicObjects();
 };

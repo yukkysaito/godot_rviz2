@@ -16,13 +16,16 @@
 
 #pragma once
 
+#include "core/ustring.h"
+#include "core/variant.h"
+#include "core/reference.h"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "topic_subscriber.hpp"
 
-// class PointCloud : public TopicSubscriber<sensor_msgs::msg::PointCloud2>, public Reference
-class PointCloud : public TopicSubscriber<sensor_msgs::msg::PointCloud2>
+class PointCloud : public Reference
 {
 	GDCLASS(PointCloud, Reference);
+	TOPIC_SUBSCRIBER(PointCloud, sensor_msgs::msg::PointCloud2);
 
 public:
 	PoolVector3Array get_pointcloud(const String &frame_id = "map");
