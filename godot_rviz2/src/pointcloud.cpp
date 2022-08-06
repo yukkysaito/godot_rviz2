@@ -29,7 +29,7 @@ void PointCloud::_bind_methods()
   TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
 
-bool transformPointcloud(
+bool transform_pointcloud(
   const sensor_msgs::msg::PointCloud2 & input, const tf2_ros::Buffer & tf2,
   const std::string & target_frame, sensor_msgs::msg::PointCloud2 & output)
 {
@@ -64,7 +64,7 @@ PoolVector3Array PointCloud::get_pointcloud(const String & frame_id)
   transformed_msg_ptr = std::make_shared<sensor_msgs::msg::PointCloud2>();
   const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
   if (to_std(frame_id) != last_msg.value()->header.frame_id) {
-    if (!transformPointcloud(
+    if (!transform_pointcloud(
           *(last_msg.value()), *tf_buffer, to_std(frame_id), *transformed_msg_ptr))
       return pointcloud;
     msg_ptr = transformed_msg_ptr;
