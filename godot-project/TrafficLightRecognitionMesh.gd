@@ -2,9 +2,6 @@ extends MeshInstance
 
 var traffic_light_markers = MarkerArray.new()
 
-func cross_product(a, b):
-	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
-
 func _ready():
 	traffic_light_markers.subscribe("/perception/traffic_light_recognition/traffic_signals/markers", false)
 

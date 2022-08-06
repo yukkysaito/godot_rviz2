@@ -1,27 +1,19 @@
 extends MeshInstance
 
-var vector_map = MarkerArray.new()
-
 func cross_product(a, b):
 	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
 
-func _ready():
-	vector_map.subscribe("/map/vector_map_marker", true)
-
-func _process(_delta):
-	if !vector_map.has_new():
-		return
+func visualize_mesh(boards_verts, traffic_lights):
 	mesh.clear_surfaces()
 
+	# Traffic Board
 	var boards_arr = []
 	boards_arr.resize(Mesh.ARRAY_MAX)
-	var boards_verts = PoolVector3Array()
 #	var uvs = PoolVector2Array()
 	var boards_normals = PoolVector3Array()
 #	var boards_indices = PoolIntArray()
 	var boards_colors = PoolColorArray()
 
-	boards_verts.append_array(vector_map.get_triangle_marker("traffic_light_triangle"))
 	var boards_verts_size = boards_verts.size()
 	for i in boards_verts_size:
 		if(i % 3 ==2):
@@ -48,7 +40,7 @@ func _process(_delta):
 	boards_arr[Mesh.ARRAY_COLOR] = boards_colors
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, boards_arr)
 
-	var traffic_lights = vector_map.get_color_spheres("traffic_light")
+	# Traffic Light
 	var spheres_arr = []
 	var sphere_verts = PoolVector3Array()
 	var sphere_normals = PoolVector3Array()
@@ -78,4 +70,3 @@ func _process(_delta):
 	spheres_arr[Mesh.ARRAY_INDEX] = sphere_indices
 	spheres_arr[Mesh.ARRAY_COLOR] = sphere_colors
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, spheres_arr)
-	vector_map.set_old()
