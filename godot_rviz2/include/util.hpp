@@ -16,6 +16,7 @@
 
 #pragma once
 #include "core/ustring.h"
+#include "core/variant.h"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
@@ -27,6 +28,8 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include <optional>
+#include <string>
+
 #define EIGEN_MPL2_ONLY
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -39,8 +42,23 @@ void to_polygon2d(
   const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
   geometry_msgs::msg::Polygon & polygon);
 
-inline std::string godot_to_std(const String & godot_s)
+inline std::string to_std(const String & godot_s)
 {
   std::wstring ws = godot_s.c_str();
   return std::string(ws.begin(), ws.end());
+}
+
+inline Vector3 ros2_to_godot(const geometry_msgs::msg::Point & p)
+{
+  return Vector3(p.x, p.z, -p.y);
+}
+
+inline Vector3 ros2_to_godot(const geometry_msgs::msg::Vector3 & p)
+{
+  return Vector3(p.x, p.z, -p.y);
+}
+
+inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
+{
+  return Vector3(x, z, -y);
 }

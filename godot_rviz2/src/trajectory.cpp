@@ -46,9 +46,9 @@ Array Trajectory::get_triangle_strip_with_velocity(const float width)
       vec_out = quat * vec_in;
       Array point_with_velocity;
       point_with_velocity.append(point.longitudinal_velocity_mps);
-      point_with_velocity.append(Vector3(
-        path_pose.position.x + vec_out.x(), path_pose.position.z + vec_out.z(),
-        -1.0 * (path_pose.position.y + vec_out.y())));
+      point_with_velocity.append(ros2_to_godot(
+        path_pose.position.x + vec_out.x(), path_pose.position.y + vec_out.y(),
+        path_pose.position.z + vec_out.z()));
       triangle_strip_with_velocity.append(point_with_velocity);
     }
     {
@@ -57,9 +57,9 @@ Array Trajectory::get_triangle_strip_with_velocity(const float width)
       vec_out = quat * vec_in;
       Array point_with_velocity;
       point_with_velocity.append(point.longitudinal_velocity_mps);
-      point_with_velocity.append(Vector3(
-        path_pose.position.x + vec_out.x(), path_pose.position.z + vec_out.z(),
-        -1.0 * (path_pose.position.y + vec_out.y())));
+      point_with_velocity.append(ros2_to_godot(
+        path_pose.position.x + vec_out.x(), path_pose.position.y + vec_out.y(),
+        path_pose.position.z + vec_out.z()));
       triangle_strip_with_velocity.append(point_with_velocity);
     }
   }

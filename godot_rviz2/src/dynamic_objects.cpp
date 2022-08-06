@@ -43,48 +43,38 @@ PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
     const auto & pose = object.kinematics.initial_pose_with_covariance.pose;
     const auto & shape = object.shape;
     const auto z_offset = shape.dimensions.z * 0.5;
+
     geometry_msgs::msg::Polygon polygon;
     to_polygon2d(pose, shape, polygon);
     if (polygon.points.empty()) return triangle_points;
 
+    const auto & points = polygon.points;
     // upper
-    for (size_t i = 2; i < polygon.points.size(); ++i) {
-      triangle_points.append(Vector3(
-        polygon.points.at(0).x, polygon.points.at(0).z + z_offset, -polygon.points.at(0).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(i - 1).x, polygon.points.at(i - 1).z + z_offset,
-        -polygon.points.at(i - 1).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(i).x, polygon.points.at(i).z + z_offset, -polygon.points.at(i).y));
+    for (size_t i = 2; i < points.size(); ++i) {
+      triangle_points.append(ros2_to_godot(points[0].x, points[0].y, points[0].z + z_offset));
+      triangle_points.append(
+        ros2_to_godot(points[i - 1].x, points[i - 1].y, points[i - 1].z + z_offset));
+      triangle_points.append(ros2_to_godot(points[i].x, points[i].y, points[i].z + z_offset));
     }
     // lower
     for (size_t i = 2; i < polygon.points.size(); ++i) {
-      triangle_points.append(Vector3(
-        polygon.points.at(0).x, polygon.points.at(0).z - z_offset, -polygon.points.at(0).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(i).x, polygon.points.at(i).z - z_offset, -polygon.points.at(i).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(i - 1).x, polygon.points.at(i - 1).z - z_offset,
-        -polygon.points.at(i - 1).y));
+      triangle_points.append(ros2_to_godot(points[0].x, points[0].y, points[0].z - z_offset));
+      triangle_points.append(ros2_to_godot(points[i].x, points[i].y, points[i].z - z_offset));
+      triangle_points.append(
+        ros2_to_godot(points[i - 1].x, points[i - 1].y, points[i - 1].z - z_offset));
     }
     // side
     for (size_t i = 1; i <= polygon.points.size(); ++i) {
       size_t j = (i == polygon.points.size()) ? 0 : i;
-      triangle_points.append(Vector3(
-        polygon.points.at(i - 1).x, polygon.points.at(i - 1).z + z_offset,
-        -polygon.points.at(i - 1).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(i - 1).x, polygon.points.at(i - 1).z - z_offset,
-        -polygon.points.at(i - 1).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(j).x, polygon.points.at(j).z + z_offset, -polygon.points.at(j).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(i - 1).x, polygon.points.at(i - 1).z - z_offset,
-        -polygon.points.at(i - 1).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(j).x, polygon.points.at(j).z - z_offset, -polygon.points.at(j).y));
-      triangle_points.append(Vector3(
-        polygon.points.at(j).x, polygon.points.at(j).z + z_offset, -polygon.points.at(j).y));
+      triangle_points.append(
+        ros2_to_godot(points[i - 1].x, points[i - 1].y, points[i - 1].z + z_offset));
+      triangle_points.append(
+        ros2_to_godot(points[i - 1].x, points[i - 1].y, points[i - 1].z - z_offset));
+      triangle_points.append(ros2_to_godot(points[j].x, points[j].y, points[j].z + z_offset));
+      triangle_points.append(
+        ros2_to_godot(points[i - 1].x, points[i - 1].y, points[i - 1].z - z_offset));
+      triangle_points.append(ros2_to_godot(points[j].x, points[j].y, points[j].z - z_offset));
+      triangle_points.append(ros2_to_godot(points[j].x, points[j].y, points[j].z + z_offset));
     }
   }
 

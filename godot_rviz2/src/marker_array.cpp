@@ -34,7 +34,7 @@ PoolVector3Array MarkerArray::get_triangle_marker(const String & ns)
   if (!last_msg) return triangle_points;
 
   for (const auto & marker : last_msg.value()->markers) {
-    if (godot_to_std(ns) == marker.ns) {
+    if (to_std(ns) == marker.ns) {
       for (const auto & point : marker.points) {
         triangle_points.append(Vector3(point.x, point.z, -1.0 * point.y));
       }
@@ -54,11 +54,10 @@ Array MarkerArray::get_color_spheres(const String & ns)
   std::string s(ws.begin(), ws.end());
 
   for (const auto & marker : last_msg.value()->markers) {
-    if (godot_to_std(ns) == marker.ns && marker.type == Type::SPHERE) {
+    if (to_std(ns) == marker.ns && marker.type == Type::SPHERE) {
       Array color_sphere;
       Color color(marker.color.r, marker.color.g, marker.color.b, marker.color.a);
-      Vector3 position(
-        marker.pose.position.x, marker.pose.position.z, -1.0 * marker.pose.position.y);
+      Vector3 position(ros2_to_godot(marker.pose.position));
       Vector3 rotation;                                              // TODO add rotation
       Vector3 size(marker.scale.x, marker.scale.z, marker.scale.y);  // TODO add rotation
       color_sphere.append(color);

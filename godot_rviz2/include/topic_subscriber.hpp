@@ -27,34 +27,34 @@
 // Because template class cannot work to bind_methods and register_class.
 // https://godotengine.org/qa/136574/how-to-implement-object-using-template-class
 #if 1
-#define TOPIC_SUBSCRIBER(CLASS, TYPE)                                                         \
-private:                                                                                      \
-  using ConstSharedPtr = typename TYPE::ConstSharedPtr;                                       \
-  ConstSharedPtr msg_ptr_;                                                                    \
-  bool has_new_ = false;                                                                      \
-  typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                               \
-                                                                                              \
-  void on_callback(const ConstSharedPtr msg)                                                  \
-  {                                                                                           \
-    msg_ptr_ = msg;                                                                           \
-    has_new_ = true;                                                                          \
-  }                                                                                           \
-  std::optional<ConstSharedPtr> get_last_msg()                                                \
-  {                                                                                           \
-    if (!msg_ptr_) return std::nullopt;                                                       \
-    return msg_ptr_;                                                                          \
-  }                                                                                           \
-                                                                                              \
-public:                                                                                       \
-  bool has_new() { return has_new_; }                                                         \
-  void set_old() { has_new_ = false; }                                                        \
-                                                                                              \
-  void subscribe(const String & topic, const bool transient_local = false)                    \
-  {                                                                                           \
-    rclcpp::QoS qos = rclcpp::SensorDataQoS().keep_last(1);                                   \
-    if (transient_local) qos = rclcpp::QoS{1}.transient_local();                              \
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<TYPE>(         \
-      godot_to_std(topic), qos, std::bind(&CLASS::on_callback, this, std::placeholders::_1)); \
+#define TOPIC_SUBSCRIBER(CLASS, TYPE)                                                   \
+private:                                                                                \
+  using ConstSharedPtr = typename TYPE::ConstSharedPtr;                                 \
+  ConstSharedPtr msg_ptr_;                                                              \
+  bool has_new_ = false;                                                                \
+  typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                         \
+                                                                                        \
+  void on_callback(const ConstSharedPtr msg)                                            \
+  {                                                                                     \
+    msg_ptr_ = msg;                                                                     \
+    has_new_ = true;                                                                    \
+  }                                                                                     \
+  std::optional<ConstSharedPtr> get_last_msg()                                          \
+  {                                                                                     \
+    if (!msg_ptr_) return std::nullopt;                                                 \
+    return msg_ptr_;                                                                    \
+  }                                                                                     \
+                                                                                        \
+public:                                                                                 \
+  bool has_new() { return has_new_; }                                                   \
+  void set_old() { has_new_ = false; }                                                  \
+                                                                                        \
+  void subscribe(const String & topic, const bool transient_local = false)              \
+  {                                                                                     \
+    rclcpp::QoS qos = rclcpp::SensorDataQoS().keep_last(1);                             \
+    if (transient_local) qos = rclcpp::QoS{1}.transient_local();                        \
+    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<TYPE>(   \
+      to_std(topic), qos, std::bind(&CLASS::on_callback, this, std::placeholders::_1)); \
   }
 
 #define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)                      \
@@ -104,8 +104,7 @@ public:
     }
 
     subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<T>(
-      godot_to_std(topic), qos,
-      std::bind(&TopicSubscriber::on_callback, this, std::placeholders::_1));
+      to_std(topic), qos, std::bind(&TopicSubscriber::on_callback, this, std::placeholders::_1));
   }
 
   TopicSubscriber() { is_new_ = false; }

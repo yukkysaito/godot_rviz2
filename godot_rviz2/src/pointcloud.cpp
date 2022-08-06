@@ -63,9 +63,9 @@ PoolVector3Array PointCloud::get_pointcloud(const String & frame_id)
   std::shared_ptr<sensor_msgs::msg::PointCloud2> transformed_msg_ptr;
   transformed_msg_ptr = std::make_shared<sensor_msgs::msg::PointCloud2>();
   const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
-  if (godot_to_std(frame_id) != last_msg.value()->header.frame_id) {
+  if (to_std(frame_id) != last_msg.value()->header.frame_id) {
     if (!transformPointcloud(
-          *(last_msg.value()), *tf_buffer, godot_to_std(frame_id), *transformed_msg_ptr))
+          *(last_msg.value()), *tf_buffer, to_std(frame_id), *transformed_msg_ptr))
       return pointcloud;
     msg_ptr = transformed_msg_ptr;
   }
@@ -74,7 +74,7 @@ PoolVector3Array PointCloud::get_pointcloud(const String & frame_id)
   sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg_ptr, "x"), iter_y(*msg_ptr, "y"),
     iter_z(*msg_ptr, "z");
   for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-    pointcloud.append(Vector3(*iter_x, *iter_z, -1.0 * (*iter_y)));
+    pointcloud.append(ros2_to_godot(*iter_x, *iter_y, *iter_z));
   }
 
   return pointcloud;
