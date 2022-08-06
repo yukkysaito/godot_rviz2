@@ -16,31 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
+#include "topic_subscriber.hpp"
+
 #include "autoware_auto_vehicle_msgs/msg/steering_report.hpp"
-#include "godot_rviz2.hpp"
 
 class SteeringReport : public Reference
 {
-	GDCLASS(SteeringReport, Reference);
-
-protected:
-	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_vehicle_msgs::msg::SteeringReport>::SharedPtr subscription_;
-	void on_steering_report(const autoware_auto_vehicle_msgs::msg::SteeringReport::ConstSharedPtr msg);
-	autoware_auto_vehicle_msgs::msg::SteeringReport::ConstSharedPtr msg_ptr_;
-	bool is_new_;
+  GDCLASS(SteeringReport, Reference);
+  TOPIC_SUBSCRIBER(SteeringReport, autoware_auto_vehicle_msgs::msg::SteeringReport);
 
 public:
-	bool is_new();
-	void set_old();
-	double get_angle();
-	void subscribe(const String &topic, const bool transient_local = false);
+  double get_angle();
 
-	SteeringReport();
-	~SteeringReport();
+  SteeringReport() = default;
+  ~SteeringReport() = default;
+
+protected:
+  static void _bind_methods();
 };

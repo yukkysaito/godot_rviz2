@@ -16,32 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
+#include "topic_subscriber.hpp"
+
 #include "sensor_msgs/msg/point_cloud2.hpp"
-#include "godot_rviz2.hpp"
-#include "util.hpp"
 
 class PointCloud : public Reference
 {
-	GDCLASS(PointCloud, Reference);
-
-protected:
-	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
-	void on_pointcloud2(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg);
-	sensor_msgs::msg::PointCloud2::ConstSharedPtr msg_ptr_;
-	bool is_new_;
+  GDCLASS(PointCloud, Reference);
+  TOPIC_SUBSCRIBER(PointCloud, sensor_msgs::msg::PointCloud2);
 
 public:
-	bool is_new();
-	void set_old();
-	PoolVector3Array get_pointcloud(const String &frame_id = "map");
-	void subscribe(const String &topic, const bool transient_local = false);
+  PoolVector3Array get_pointcloud(const String & frame_id = "map");
 
-	PointCloud();
-	~PointCloud();
+  PointCloud() = default;
+  ~PointCloud() = default;
+
+protected:
+  static void _bind_methods();
 };

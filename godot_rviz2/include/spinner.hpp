@@ -17,21 +17,17 @@
 #pragma once
 #include "core/reference.h"
 #include "godot_rviz2.hpp"
-
 #include "rclcpp/rclcpp.hpp"
 
 class GodotRviz2Spinner : public Reference
 {
-    GDCLASS(GodotRviz2Spinner, Reference);
+  GDCLASS(GodotRviz2Spinner, Reference);
 
 public:
-    GodotRviz2Spinner(){};
-    ~GodotRviz2Spinner(){};
-    inline void spin_some()
-    {
-        rclcpp::spin_some(GodotRviz2::get_instance().get_node());
-    }
+  GodotRviz2Spinner(){};
+  ~GodotRviz2Spinner(){};
+  inline void spin_some() { rclcpp::spin_some(GodotRviz2::get_instance().get_node()); }
 
 protected:
-    static void _bind_methods();
+  static void _bind_methods();
 };

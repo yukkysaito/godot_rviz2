@@ -6,7 +6,7 @@ func _ready():
 	pointcloud.subscribe("/perception/obstacle_segmentation/pointcloud", false)
 
 func _process(_delta):
-	if !pointcloud.is_new():
+	if !pointcloud.has_new():
 		return
 
 	var arr = []

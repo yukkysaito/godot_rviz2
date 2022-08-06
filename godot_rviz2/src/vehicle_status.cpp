@@ -15,68 +15,30 @@
 //
 
 #include "vehicle_status.hpp"
+
 #include <string>
 
 void VehicleStatus::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("is_turn_on_right"), &VehicleStatus::is_turn_on_right);
   ClassDB::bind_method(D_METHOD("is_turn_on_left"), &VehicleStatus::is_turn_on_left);
-  ClassDB::bind_method(D_METHOD("subscribe"), &VehicleStatus::subscribe);
-  ClassDB::bind_method(D_METHOD("is_new"), &VehicleStatus::is_new);
-  ClassDB::bind_method(D_METHOD("set_old"), &VehicleStatus::set_old);
+  TOPIC_SUBSCRIBER_BIND_METHODS(VehicleStatus);
 }
 
 bool VehicleStatus::is_turn_on_right()
 {
-  if (msg_ptr_ == nullptr)
-    return false;
+  const auto last_msg = get_last_msg();
+  if (!last_msg) return false;
 
-  return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
+  return last_msg.value()->report ==
+         autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
 }
 
 bool VehicleStatus::is_turn_on_left()
 {
-  if (msg_ptr_ == nullptr)
-    return false;
+  const auto last_msg = get_last_msg();
+  if (!last_msg) return false;
 
-  return msg_ptr_->report == autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
-}
-
-bool VehicleStatus::is_new()
-{
-  return is_new_;
-}
-
-void VehicleStatus::set_old()
-{
-  is_new_ = false;
-}
-
-void VehicleStatus::subscribe(const String &topic, const bool transient_local)
-{
-  std::wstring ws = topic.c_str();
-  std::string s(ws.begin(), ws.end());
-  if (transient_local)
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport>(
-        s, rclcpp::QoS{1}.transient_local(),
-        std::bind(&VehicleStatus::on_turn_indicators, this, std::placeholders::_1));
-  else
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport>(
-        s, rclcpp::SensorDataQoS().keep_last(1),
-        std::bind(&VehicleStatus::on_turn_indicators, this, std::placeholders::_1));
-}
-
-void VehicleStatus::on_turn_indicators(const autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ConstSharedPtr msg)
-{
-  msg_ptr_ = msg;
-  is_new_ = true;
-}
-
-VehicleStatus::VehicleStatus()
-{
-  is_new_ = false;
-}
-
-VehicleStatus::~VehicleStatus()
-{
+  return last_msg.value()->report ==
+         autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
 }

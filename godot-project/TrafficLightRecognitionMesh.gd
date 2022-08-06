@@ -9,7 +9,7 @@ func _ready():
 	traffic_light_markers.subscribe("/perception/traffic_light_recognition/traffic_signals/markers", false)
 
 func _process(_delta):
-	if !traffic_light_markers.is_new():
+	if !traffic_light_markers.has_new():
 		return
 	mesh.clear_surfaces()
 

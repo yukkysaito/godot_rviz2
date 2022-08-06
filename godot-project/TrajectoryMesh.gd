@@ -51,7 +51,7 @@ func _ready():
 	trajectory.subscribe("/planning/scenario_planning/trajectory", false)
 	
 func _process(_delta):
-	if !trajectory.is_new():
+	if !trajectory.has_new():
 		return
 
 	# Trajectory

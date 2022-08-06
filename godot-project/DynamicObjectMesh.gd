@@ -10,7 +10,7 @@ func _ready():
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
 
 func _process(_delta):
-	if !dynamic_objects.is_new():
+	if !dynamic_objects.has_new():
 		return
 
 	var arr = []

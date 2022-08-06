@@ -12,7 +12,7 @@ func _process(_delta):
 	set_rotation(ego_pose.get_ego_rotation())
 
 	# Indicators
-	if(vehicle_status.is_new()):
+	if(vehicle_status.has_new()):
 		var right_light = get_node("EgoVehicleKinematicBody/RearRightIndicatorLight")
 		if (vehicle_status.is_turn_on_right()):
 			right_light.turn_on()
@@ -25,6 +25,4 @@ func _process(_delta):
 		else:
 			left_light.turn_off()
 		vehicle_status.set_old()
-			
 
-#	print(_delta)

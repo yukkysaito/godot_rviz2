@@ -15,6 +15,7 @@
 //
 
 #include "parameter.hpp"
+
 #include <string>
 
 void Parameter::_bind_methods()
@@ -23,10 +24,12 @@ void Parameter::_bind_methods()
   ClassDB::bind_method(D_METHOD("has_parameter"), &Parameter::has_parameter);
 }
 
-bool Parameter::has_parameter(const String &name) {
-  return GodotRviz2::get_instance().get_node()->has_parameter(godot_to_std(name));
+bool Parameter::has_parameter(const String & name)
+{
+  return GodotRviz2::get_instance().get_node()->has_parameter(to_std(name));
 }
 
-double Parameter::get_double_value(const String &name) {
-  return GodotRviz2::get_instance().get_node()->get_parameter(godot_to_std(name)).get_value<double>();
+double Parameter::get_double_value(const String & name)
+{
+  return GodotRviz2::get_instance().get_node()->get_parameter(to_std(name)).get_value<double>();
 }

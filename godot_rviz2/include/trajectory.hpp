@@ -16,31 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
+#include "topic_subscriber.hpp"
+
 #include "autoware_auto_planning_msgs/msg/trajectory.hpp"
-#include "godot_rviz2.hpp"
 
 class Trajectory : public Reference
 {
-	GDCLASS(Trajectory, Reference);
-
-protected:
-	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_planning_msgs::msg::Trajectory>::SharedPtr subscription_;
-	void on_trajectory(const autoware_auto_planning_msgs::msg::Trajectory::ConstSharedPtr msg);
-	autoware_auto_planning_msgs::msg::Trajectory::ConstSharedPtr msg_ptr_;
-	bool is_new_;
+  GDCLASS(Trajectory, Reference);
+  TOPIC_SUBSCRIBER(Trajectory, autoware_auto_planning_msgs::msg::Trajectory);
 
 public:
-	bool is_new();
-	void set_old();
-	Array get_triangle_strip_with_velocity(const float width);
-	void subscribe(const String &topic, const bool transient_local = false);
+  Array get_triangle_strip_with_velocity(const float width);
 
-	Trajectory();
-	~Trajectory();
+  Trajectory() = default;
+  ~Trajectory() = default;
+
+protected:
+  static void _bind_methods();
 };

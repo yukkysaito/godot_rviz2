@@ -16,32 +16,25 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
+#include "topic_subscriber.hpp"
+
 #include "visualization_msgs/msg/marker_array.hpp"
-#include "godot_rviz2.hpp"
 
 class MarkerArray : public Reference
 {
-	GDCLASS(MarkerArray, Reference);
-
-protected:
-	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<visualization_msgs::msg::MarkerArray>::SharedPtr subscription_;
-	void on_marker_array(const visualization_msgs::msg::MarkerArray::ConstSharedPtr msg);
-	visualization_msgs::msg::MarkerArray::ConstSharedPtr msg_ptr_;
-	bool is_new_;
+  GDCLASS(MarkerArray, Reference);
+  TOPIC_SUBSCRIBER(MarkerArray, visualization_msgs::msg::MarkerArray);
 
 public:
-	bool is_new();
-	void set_old();
-	PoolVector3Array get_triangle_marker(const String &ns);
-	Array get_color_spheres(const String &ns);
-	void subscribe(const String &topic, const bool transient_local = false);
+  PoolVector3Array get_triangle_marker(const String & ns);
+  Array get_color_spheres(const String & ns);
 
-	MarkerArray();
-	~MarkerArray();
+  MarkerArray() = default;
+  ~MarkerArray() = default;
+
+protected:
+  static void _bind_methods();
 };

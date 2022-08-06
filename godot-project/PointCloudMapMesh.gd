@@ -7,9 +7,8 @@ func _ready():
 	pointcloud.subscribe("/map/pointcloud_map", true)
 
 func _process(_delta):
-	if not (pointcloud.is_new() or visualize_again):
+	if not (pointcloud.has_new() or visualize_again):
 		return
-
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
 	var verts = PoolVector3Array()
@@ -18,8 +17,6 @@ func _process(_delta):
 #	var indices = PoolIntArray()
 
 	verts = pointcloud.get_pointcloud("map")
-#	for vert in verts:
-#		uvs.append(Vector2(clamp(vert.y*10.0,0,2000), 0))
 
 	arr[Mesh.ARRAY_VERTEX] = verts
 #	arr[Mesh.ARRAY_TEX_UV] = uvs
@@ -27,8 +24,6 @@ func _process(_delta):
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arr)
 	visualize_again = false
 	pointcloud.set_old()
-
-
 
 func _on_CheckButton_toggled(button_pressed):
 

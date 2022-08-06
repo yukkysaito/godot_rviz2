@@ -16,31 +16,24 @@
 
 #pragma once
 
+#include "core/reference.h"
 #include "core/ustring.h"
 #include "core/variant.h"
-#include "core/reference.h"
+#include "topic_subscriber.hpp"
+
 #include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
-#include "godot_rviz2.hpp"
 
 class VelocityReport : public Reference
 {
-	GDCLASS(VelocityReport, Reference);
-
-protected:
-	static void _bind_methods();
-
-private:
-	rclcpp::Subscription<autoware_auto_vehicle_msgs::msg::VelocityReport>::SharedPtr subscription_;
-	void on_velocity_report(const autoware_auto_vehicle_msgs::msg::VelocityReport::ConstSharedPtr msg);
-	autoware_auto_vehicle_msgs::msg::VelocityReport::ConstSharedPtr msg_ptr_;
-	bool is_new_;
+  GDCLASS(VelocityReport, Reference);
+  TOPIC_SUBSCRIBER(VelocityReport, autoware_auto_vehicle_msgs::msg::VelocityReport);
 
 public:
-	bool is_new();
-	void set_old();
-	double get_velocity();
-	void subscribe(const String &topic, const bool transient_local = false);
+  double get_velocity();
 
-	VelocityReport();
-	~VelocityReport();
+  VelocityReport() = default;
+  ~VelocityReport() = default;
+
+protected:
+  static void _bind_methods();
 };
