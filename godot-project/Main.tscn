@@ -15,7 +15,7 @@
 [ext_resource path="res://TrafficLightMesh.gd" type="Script" id=13]
 [ext_resource path="res://HeadBeamLight.gd" type="Script" id=14]
 [ext_resource path="res://PositionLamp.gd" type="Script" id=15]
-[ext_resource path="res://TPSCamera.gd" type="Script" id=16]
+[ext_resource path="res://ViewCamera.gd" type="Script" id=16]
 [ext_resource path="res://Menu.gd" type="Script" id=17]
 [ext_resource path="res://TrafficLightRecognitionMesh.gd" type="Script" id=18]
 [ext_resource path="res://Steering.gd" type="Script" id=19]
@@ -206,8 +206,8 @@ material_override = SubResource( 22 )
 mesh = ExtResource( 1 )
 material/0 = null
 
-[node name="TPSCamera" type="Camera" parent="EgoVehicle"]
-transform = Transform( -4.37114e-08, 0.529919, -0.848048, 0, 0.848048, 0.529919, 1, 2.31635e-08, -3.70694e-08, -18, 12, 0 )
+[node name="ViewCamera" type="Camera" parent="EgoVehicle"]
+transform = Transform( -4.37114e-08, 0.529919, -0.848048, 0, 0.848048, 0.529919, 1, 2.31635e-08, -3.70693e-08, -18, 12, 0 )
 environment = SubResource( 21 )
 size = 90.53
 far = 300.0
@@ -326,5 +326,5 @@ texture = ExtResource( 23 )
 [connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/HeadBeamLight" method="_on_NightModeCheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/EgoVehicleKinematicBody/PositionLamp" method="_on_NightModeCheckButton_toggled"]
-[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/TPSCamera" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/ViewCamera" method="_on_NightModeCheckButton_toggled"]
 [connection signal="toggled" from="Menu/OnlyKnownObjectCheckButton" to="DynamicObjectMesh" method="_on_OnlyKnownObjectCheckButton_toggled"]

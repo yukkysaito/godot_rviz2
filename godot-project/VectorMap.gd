@@ -5,7 +5,7 @@ func _ready():
 	vector_map.subscribe("/map/vector_map_marker", true)
 
 
-func _process(delta):
+func _process(_delta):
 	if !vector_map.has_new():
 		return
 	# Road Surface
