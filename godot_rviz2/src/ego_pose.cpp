@@ -16,8 +16,8 @@
 
 #include "ego_pose.hpp"
 
-void EgoPose::_bind_methods()
+void EgoPose::_register_methods()
 {
-  ClassDB::bind_method(D_METHOD("get_ego_position"), &EgoPose::get_ego_position);
-  ClassDB::bind_method(D_METHOD("get_ego_rotation"), &EgoPose::get_ego_rotation);
+  register_method("get_ego_position", &EgoPose::get_ego_position);
+  register_method("get_ego_rotation", &EgoPose::get_ego_rotation);
 }

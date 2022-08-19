@@ -16,11 +16,10 @@
 
 #pragma once
 
+#include "String.hpp"
 #include "godot_rviz2.hpp"
 #include "rclcpp/qos.hpp"
 #include "util.hpp"
-
-#include "sensor_msgs/msg/point_cloud2.hpp"
 
 #include <optional>
 
@@ -49,7 +48,7 @@ public:                                                                         
   bool has_new() { return has_new_; }                                                   \
   void set_old() { has_new_ = false; }                                                  \
                                                                                         \
-  void subscribe(const String & topic, const bool transient_local = false)              \
+  void subscribe(const godot::String & topic, const bool transient_local = false)       \
   {                                                                                     \
     rclcpp::QoS qos = rclcpp::SensorDataQoS().keep_last(1);                             \
     if (transient_local) qos = rclcpp::QoS{1}.transient_local();                        \
@@ -57,10 +56,10 @@ public:                                                                         
       to_std(topic), qos, std::bind(&CLASS::on_callback, this, std::placeholders::_1)); \
   }
 
-#define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)                      \
-  ClassDB::bind_method(D_METHOD("subscribe"), &TYPE::subscribe); \
-  ClassDB::bind_method(D_METHOD("has_new"), &TYPE::has_new);     \
-  ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old)
+#define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)       \
+  register_method("subscribe", &TYPE::subscribe); \
+  register_method("has_new", &TYPE::has_new);     \
+  register_method("set_old", &TYPE::set_old)
 
 #else
 #include "core/reference.h"

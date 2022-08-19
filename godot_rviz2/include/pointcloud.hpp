@@ -16,24 +16,23 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "Godot.hpp"
+#include "Reference.hpp"
+#include "String.hpp"
+#include "Variant.hpp"
 #include "topic_subscriber.hpp"
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
-class PointCloud : public Reference
+class PointCloud : public godot::Reference
 {
-  GDCLASS(PointCloud, Reference);
+  GODOT_CLASS(PointCloud, godot::Reference);
   TOPIC_SUBSCRIBER(PointCloud, sensor_msgs::msg::PointCloud2);
 
 public:
-  PoolVector3Array get_pointcloud(const String & frame_id = "map");
+  godot::PoolVector3Array get_pointcloud(const godot::String & frame_id = "map");
+  static void _register_methods();
 
   PointCloud() = default;
   ~PointCloud() = default;
-
-protected:
-  static void _bind_methods();
 };

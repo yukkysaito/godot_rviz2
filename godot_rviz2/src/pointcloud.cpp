@@ -23,9 +23,9 @@
 #include "sensor_msgs/msg/point_field.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 
-void PointCloud::_bind_methods()
+void PointCloud::_register_methods()
 {
-  ClassDB::bind_method(D_METHOD("get_pointcloud"), &PointCloud::get_pointcloud);
+  register_method("get_pointcloud", &PointCloud::get_pointcloud);
   TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
 
@@ -50,9 +50,9 @@ bool transform_pointcloud(
   return true;
 }
 
-PoolVector3Array PointCloud::get_pointcloud(const String & frame_id)
+godot::PoolVector3Array PointCloud::get_pointcloud(const godot::String & frame_id)
 {
-  PoolVector3Array pointcloud;
+  godot::PoolVector3Array pointcloud;
   const auto last_msg = get_last_msg();
   if (!last_msg) return pointcloud;
 

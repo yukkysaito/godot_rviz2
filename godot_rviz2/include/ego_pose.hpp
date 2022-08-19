@@ -15,7 +15,9 @@
 //
 
 #pragma once
-#include "core/reference.h"
+#include "Godot.hpp"
+#include "Reference.hpp"
+#include "Variant.hpp"
 #include "godot_rviz2.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "util.hpp"
@@ -23,27 +25,27 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
-class EgoPose : public Reference
+class EgoPose : public godot::Reference
 {
-  GDCLASS(EgoPose, Reference);
+  GODOT_CLASS(EgoPose, godot::Reference);
 
 public:
   EgoPose() = default;
   ~EgoPose() = default;
-  Vector3 get_ego_position()
+  godot::Vector3 get_ego_position()
   {
     const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
     const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
-    if (!transform) return Vector3(0, 0, 0);
+    if (!transform) return godot::Vector3(0, 0, 0);
 
     return ros2_to_godot(transform.value().translation);
   }
 
-  Vector3 get_ego_rotation()
+  godot::Vector3 get_ego_rotation()
   {
     const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
     const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
-    if (!transform) return Vector3(0, 0, 0);
+    if (!transform) return godot::Vector3(0, 0, 0);
 
     const auto & rotation = transform.value().rotation;
     double roll, pitch, yaw;
@@ -53,6 +55,5 @@ public:
     return ros2_to_godot(roll, pitch, yaw);
   }
 
-protected:
-  static void _bind_methods();
+  static void _register_methods();
 };
