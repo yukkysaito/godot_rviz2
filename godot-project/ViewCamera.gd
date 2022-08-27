@@ -22,3 +22,5 @@ func _input(_event):
 		current_view_mode = (current_view_mode + 1) % view_mode.size()
 		set_translation(view_mode[current_view_mode][1])
 		set_rotation(view_mode[current_view_mode][2])
+
+
