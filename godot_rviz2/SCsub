@@ -15,8 +15,8 @@ ros_libs = ["rclcpp",
              "rcutils",
              "rcpputils",
              "rmw",
-             "tracetools",
              "rmw_implementation",
+             "tracetools",
              "ament_index_cpp",
              "rosidl_typesupport_cpp",
              "rosidl_typesupport_c",
@@ -26,7 +26,6 @@ ros_libs = ["rclcpp",
              "rclcpp_action",
              "tf2",
              "tf2_ros",
-             "console_bridge",
              "liblibstatistics_collector",
              "pcl_ros_tf", 
              "rcl_interfaces__rosidl_typesupport_c",
@@ -38,7 +37,6 @@ msg_pkgs = ["tf2_msgs",
             "actionlib_msgs",
             "action_msgs",
             "rcl_interfaces",
-            "unique_identifier_msgs",
             "visualization_msgs",
             "statistics_msgs",
             "sensor_msgs",
@@ -51,11 +49,11 @@ msg_pkgs = ["tf2_msgs",
 pcl_include_path = "/usr/include/pcl-1.12"
 eigen3_include_path = "/usr/include/eigen3"
 
-
 env.add_source_files(env.modules_sources, "src/*.cpp")
 env.add_source_files(env.modules_sources, "register_types.cpp")
 
-ros_pkgs = [f for f in os.listdir(ros_path+"/include") if os.path.isdir(os.path.join(ros_path+"/include", f))]
+ros_blacklist_pkgs = ["idl", "dds"]
+ros_pkgs = set([f for f in os.listdir(ros_path+"/include") if os.path.isdir(os.path.join(ros_path+"/include", f))]) ^ set(ros_blacklist_pkgs)
 ros_include_paths = list(map(lambda pkg: ros_path +"/include/" + pkg, ros_pkgs))
 ros_lib_path = ros_path +"/lib"
 autoware_pkgs = [f for f in os.listdir(autoware_path) if os.path.isdir(os.path.join(autoware_path, f))]
@@ -79,6 +77,6 @@ env.Append(CCFLAGS=[cpp_version])
 msg_gen_prefix = "__rosidl_typesupport_cpp"
 msg_libs = list(map(lambda pkg: pkg + msg_gen_prefix, msg_pkgs))
 
-env.Append(LIBS=[ros_libs
-                 +['pcl_common']
-                 +msg_libs])
+env.Append(LIBS=ros_libs
+                +['pcl_common']
+                +msg_libs)
