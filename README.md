@@ -40,8 +40,10 @@
    1. Run Godot
 
       ```bash
-      ./bin/godot.x11.tools.64 --path ../godot-project
+      ./bin/godot.x11.tools.64
       ```
+   1. Click run button on top right on Godot GUI.
+
 ## Key Config
 
 | key   | action           |
