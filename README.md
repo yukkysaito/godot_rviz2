@@ -1,4 +1,4 @@
-# godot_rviz2
+# godot_rviz2 (ROS2 humble)
 
 [![](http://img.youtube.com/vi/LPzkEC5hBMo/0.jpg)](https://www.youtube.com/watch?v=LPzkEC5hBMo)
 [![](http://img.youtube.com/vi/7udy3QDXQBk/0.jpg)](https://www.youtube.com/watch?v=7udy3QDXQBk)
@@ -6,9 +6,9 @@
 
 ## Environment
 
-- Ubuntu 20.04
+- Ubuntu 22.04
 - GPU
-- Autoware (step1 in How to use )
+- Autoware (step1 in How to use)
 
 ## How to use
 
