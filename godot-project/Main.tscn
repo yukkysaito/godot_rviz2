@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=2]
+[gd_scene load_steps=50 format=2]
 
 [ext_resource path="res://lexus.obj" type="ArrayMesh" id=1]
 [ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
@@ -25,6 +25,7 @@
 [ext_resource path="res://console_meter_hand.png" type="Texture" id=23]
 [ext_resource path="res://ConsoleMeter.gd" type="Script" id=24]
 [ext_resource path="res://VectorMap.gd" type="Script" id=25]
+[ext_resource path="res://PathMesh.gd" type="Script" id=26]
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 2.40455, 0.804875, 1.07238 )
@@ -100,6 +101,15 @@ flags_unshaded = true
 vertex_color_use_as_albedo = true
 
 [sub_resource type="ArrayMesh" id=29]
+resource_name = "mesh"
+
+[sub_resource type="SpatialMaterial" id=34]
+render_priority = -1
+flags_transparent = true
+flags_unshaded = true
+vertex_color_use_as_albedo = true
+
+[sub_resource type="ArrayMesh" id=35]
 resource_name = "mesh"
 
 [sub_resource type="SpatialMaterial" id=24]
@@ -243,6 +253,11 @@ script = ExtResource( 5 )
 material_override = SubResource( 30 )
 mesh = SubResource( 29 )
 script = ExtResource( 13 )
+
+[node name="PathDrivableAreaMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 34 )
+mesh = SubResource( 35 )
+script = ExtResource( 26 )
 
 [node name="TrajectoryMesh" type="MeshInstance" parent="."]
 material_override = SubResource( 24 )

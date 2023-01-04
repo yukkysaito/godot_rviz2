@@ -48,17 +48,17 @@ inline std::string to_std(const String & godot_s)
   return std::string(ws.begin(), ws.end());
 }
 
+inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
+{
+  return Vector3(x, z, -y);
+}
+
 inline Vector3 ros2_to_godot(const geometry_msgs::msg::Point & p)
 {
-  return Vector3(p.x, p.z, -p.y);
+  return ros2_to_godot(p.x, p.y, p.z);
 }
 
 inline Vector3 ros2_to_godot(const geometry_msgs::msg::Vector3 & p)
 {
-  return Vector3(p.x, p.z, -p.y);
-}
-
-inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
-{
-  return Vector3(x, z, -y);
+  return ros2_to_godot(p.x, p.y, p.z);
 }

@@ -16,6 +16,7 @@
 
 #include "register_types.h"
 
+#include "behavior_path.hpp"
 #include "core/class_db.h"
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
@@ -33,6 +34,7 @@ void register_godot_rviz2_types()
   ClassDB::register_class<GodotRviz2Spinner>();
   ClassDB::register_class<MarkerArray>();
   ClassDB::register_class<PointCloud>();
+  ClassDB::register_class<BehaviorPath>();
   ClassDB::register_class<Trajectory>();
   ClassDB::register_class<DynamicObjects>();
   ClassDB::register_class<EgoPose>();
