@@ -307,6 +307,6 @@ texture = ExtResource( 23 )
 
 [connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle" method="_on_NightModeCheckButton_toggled"]
-[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/Camera/Horizon/Vertical/ViewCamera" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/Camera" method="_on_NightModeCheckButton_toggled"]
 [connection signal="toggled" from="Menu/OnlyKnownObjectCheckButton" to="DynamicObjectMesh" method="_on_OnlyKnownObjectCheckButton_toggled"]
 [connection signal="value_changed" from="Menu/RenderingQuality/MSAASlider" to="." method="_on_MSAASlider_value_changed"]

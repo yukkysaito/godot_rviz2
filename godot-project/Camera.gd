@@ -53,3 +53,10 @@ func _input(event):
 			camera_zoom_ratio *= 2.0 - camera_zoom_change_ratio
 		if event.button_index == BUTTON_LEFT:
 			enable_camera_rotation = event.pressed
+
+
+func _on_NightModeCheckButton_toggled(button_pressed):
+	if (button_pressed):
+		$Horizon/Vertical/ViewCamera.environment.background_sky.set_sky_top_color(Color(0.2,0.2,0.2,1))
+	else:
+		$Horizon/Vertical/ViewCamera.environment.background_sky.set_sky_top_color(Color(1,1,1,1))
