@@ -68,3 +68,4 @@
 - [font](https://github.com/adobe-fonts/source-code-pro)
 - [steering icon](https://icooon-mono.com/13897-%E3%83%8F%E3%83%B3%E3%83%89%E3%83%AB%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B31/)
 - [meter icon](https://icooon-mono.com/13350-%E3%83%A1%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B37/)
+- [vehicle 3D model](https://github.com/tier4/AWSIM/tree/v1.0.1/Assets/AWSIM/Models/Vehicles/Lexus%20RX450h%202015)

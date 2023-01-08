@@ -1,7 +1,7 @@
 extends MeshInstance
 
 var trajectory = Trajectory.new()
-var wheelbase_to_front = 2.78
+var wheelbase_to_front = 2.78 + 1.0
 
 func cross_product(a, b):
 	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
@@ -78,17 +78,12 @@ func _process(_delta):
 
 	# Wall
 	var wall_base_points = PoolVector3Array()
-	var created_wall_first_point = false
-	var created_wall_second_point = false
-	# Create triangle
 	if 1 < triangle_strip_with_velocity.size():
 		for i in triangle_strip_with_velocity.size() - 2:
-			if (not created_wall_first_point || not created_wall_second_point) and (triangle_strip_with_velocity[i][0] == 0.0):
-				if not created_wall_first_point: 
-					created_wall_first_point = true
-				elif not created_wall_second_point: 
-					created_wall_second_point = true
+			if (triangle_strip_with_velocity[i][0] == 0.0):
 				wall_base_points.append(Vector3(triangle_strip_with_velocity[i][1]))
+				wall_base_points.append(Vector3(triangle_strip_with_velocity[i+1][1]))
+				break
 	
 	if !traj_verts.empty():
 		mesh.clear_surfaces()

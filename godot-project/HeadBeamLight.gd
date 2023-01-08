@@ -3,6 +3,11 @@ extends SpotLight
 func _ready():
 	visible = false
 
-func _on_NightModeCheckButton_toggled(button_pressed):
-	visible = button_pressed
-	pass # Replace with function body.
+func turn_on():
+	visible = true
+
+func turn_off():
+	visible = false
+	
+func _process(_delta):
+	pass
