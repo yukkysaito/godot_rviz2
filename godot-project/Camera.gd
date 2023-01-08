@@ -40,7 +40,7 @@ func _input(event):
 		$Horizon/Vertical/ViewCamera.set_translation(view_mode[current_view_mode][1])
 		$Horizon/Vertical/ViewCamera.set_rotation(view_mode[current_view_mode][2])
 		init_camera_rotation()
-		set_camera_translation()
+		init_camera_translation()
 
 	if event is InputEventMouseMotion:
 		if enable_camera_rotation:
