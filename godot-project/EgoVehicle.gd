@@ -13,17 +13,17 @@ func _process(_delta):
 
 	# Indicators
 	if(vehicle_status.has_new()):
-		var rear_light = get_node("EgoVehicleKinematicBody/rx450h/TurnSignalR")
-		var right_small_light = get_node("EgoVehicleKinematicBody/rx450h/BodyCar/TurnSignalR002")
+		var right_light = get_node("EgoVehicleKinematicBody/VehicleBody/TurnSignalR")
+		var right_small_light = get_node("EgoVehicleKinematicBody/VehicleBody/FrontTurnSignalR")
 		if (vehicle_status.is_turn_on_right()):
-			rear_light.turn_on()
+			right_light.turn_on()
 			right_small_light.turn_on()
 		else:
-			rear_light.turn_off()
+			right_light.turn_off()
 			right_small_light.turn_off()
 
-		var left_light = get_node("EgoVehicleKinematicBody/rx450h/TurnSignalL")
-		var left_small_light = get_node("EgoVehicleKinematicBody/rx450h/BodyCar/TurnSignalL002")
+		var left_light = get_node("EgoVehicleKinematicBody/VehicleBody/TurnSignalL")
+		var left_small_light = get_node("EgoVehicleKinematicBody/VehicleBody/FrontTurnSignalL")
 		if (vehicle_status.is_turn_on_left()):
 			left_light.turn_on()
 			left_small_light.turn_on()
@@ -35,17 +35,17 @@ func _process(_delta):
 
 
 func _on_NightModeCheckButton_toggled(button_pressed):
-	var head_light = get_node("EgoVehicleKinematicBody/rx450h/HeadLight")
-	var head_small_light = get_node("EgoVehicleKinematicBody/rx450h/BodyCar/HeadLight002")
-	var break_light = get_node("EgoVehicleKinematicBody/rx450h/BreakLight")
+	var head_light = get_node("EgoVehicleKinematicBody/VehicleBody/HeadLight")
+	var head_small_light = get_node("EgoVehicleKinematicBody/VehicleBody/HeadSmallLight")
+	var brake_light = get_node("EgoVehicleKinematicBody/VehicleBody/BrakeLight")
 	var head_beam_light = get_node("EgoVehicleKinematicBody/HeadBeamLight")
 	if (button_pressed):
 		head_light.turn_on()
 		head_small_light.turn_on()
-		break_light.night_light_turn_on()
+		brake_light.night_light_turn_on()
 		head_beam_light.turn_on()
 	else:
 		head_light.turn_off()
 		head_small_light.turn_off()
-		break_light.night_light_turn_off()
+		brake_light.night_light_turn_off()
 		head_beam_light.turn_off()

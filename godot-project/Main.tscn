@@ -1,6 +1,6 @@
 [gd_scene load_steps=45 format=2]
 
-[ext_resource path="res://rx450h.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Vehicle/RX450h/RX450h.tscn" type="PackedScene" id=1]
 [ext_resource path="res://EgoVehicle.gd" type="Script" id=2]
 [ext_resource path="res://Main.gd" type="Script" id=3]
 [ext_resource path="res://RoadSurfaceMesh.gd" type="Script" id=4]
@@ -11,7 +11,7 @@
 [ext_resource path="res://Camera.gd" type="Script" id=9]
 [ext_resource path="res://DynamicObjectMesh.gd" type="Script" id=10]
 [ext_resource path="res://TrafficLightMesh.gd" type="Script" id=13]
-[ext_resource path="res://HeadBeamLight.gd" type="Script" id=14]
+[ext_resource path="res://Vehicle/HeadBeamLight.gd" type="Script" id=14]
 [ext_resource path="res://Menu.gd" type="Script" id=17]
 [ext_resource path="res://TrafficLightRecognitionMesh.gd" type="Script" id=18]
 [ext_resource path="res://Steering.gd" type="Script" id=19]
@@ -154,8 +154,8 @@ script = ExtResource( 14 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0 )
 shape = SubResource( 1 )
 
-[node name="rx450h" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource( 1 )]
-transform = Transform( 0.00673678, 0, 0.999977, 0, 1, 0, -0.999977, 0, 0.00673678, 1.40617, 0, 0 )
+[node name="VehicleBody" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource( 1 )]
+transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.41167, 0, 0 )
 
 [node name="Camera" type="Spatial" parent="EgoVehicle"]
 script = ExtResource( 9 )
