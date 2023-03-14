@@ -155,7 +155,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0 )
 shape = SubResource( 1 )
 
 [node name="VehicleBody" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource( 1 )]
-transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.41167, 0, 0 )
+transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.41018, 0, 0 )
 
 [node name="Camera" type="Spatial" parent="EgoVehicle"]
 script = ExtResource( 9 )
