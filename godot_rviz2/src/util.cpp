@@ -41,11 +41,13 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
 {
   try {
     geometry_msgs::msg::TransformStamped transform_stamped;
+    if (!tf_buffer.canTransform(
+          target_frame_id, source_frame_id, time, rclcpp::Duration::from_seconds(0.5)))
+      return std::nullopt;
     transform_stamped = tf_buffer.lookupTransform(
-      /*target*/ target_frame_id, /*src*/ source_frame_id, time,
-      rclcpp::Duration::from_seconds(0.5));
+      target_frame_id, source_frame_id, time, rclcpp::Duration::from_seconds(0.5));
     return transform_stamped.transform;
-  } catch (tf2::TransformException & ex) {
+  } catch (...) {
     return std::nullopt;
   }
 }
