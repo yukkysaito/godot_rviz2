@@ -18,6 +18,7 @@ func _process(_delta):
 	road_marker_verts.append_array(vector_map.get_triangle_marker("left_lane_bound"))
 	road_marker_verts.append_array(vector_map.get_triangle_marker("pedestrian_marking"))
 	road_marker_verts.append_array(vector_map.get_triangle_marker("stop_lines"))
+	road_marker_verts.append_array(vector_map.get_triangle_marker("intersection_area"))
 	road_marker.visualize_mesh(road_marker_verts)
 	# Traffic Light
 	var traffic_light = get_node("TrafficLightMesh")

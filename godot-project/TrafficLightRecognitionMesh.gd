@@ -29,7 +29,7 @@ func _process(_delta):
 		var sphere_arr = sphere_mesh.get_mesh_arrays()
 		for sphere_vert in sphere_arr[Mesh.ARRAY_VERTEX]: 
 			sphere_verts.append(sphere_vert + Vector3(traffic_light[1].x, traffic_light[1].y, traffic_light[1].z))
-			sphere_colors.append(Color(traffic_light[0].r, traffic_light[0].g, traffic_light[0].b, traffic_light[0].a))
+			sphere_colors.append(Color(traffic_light[0].r, traffic_light[0].g, traffic_light[0].b, 1.0))
 		for sphere_normal in sphere_arr[Mesh.ARRAY_NORMAL]: 
 			sphere_normals.append(sphere_normal)
 		for sphere_index in sphere_arr[Mesh.ARRAY_INDEX]: 

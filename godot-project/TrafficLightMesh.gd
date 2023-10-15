@@ -15,13 +15,15 @@ func visualize_mesh(boards_verts, traffic_lights):
 	var boards_colors = PoolColorArray()
 
 	var boards_verts_size = boards_verts.size()
+	# back board
 	for i in boards_verts_size:
 		if(i % 3 ==2):
 			boards_normals.append(cross_product(boards_verts[i] - boards_verts[i-2], boards_verts[i-1] - boards_verts[i-2]).normalized())
 			boards_normals.append(boards_normals[boards_normals.size()-1])
 			boards_normals.append(boards_normals[boards_normals.size()-1])
-		boards_colors.append(Color(0, 0, 0, 0.7))
-	# inversed board
+		boards_colors.append(Color(0.1, 0.1, 0.1, 1.0))
+
+	# front board
 	for i in boards_verts_size:
 		if(i % 3 ==2):
 			var j_0 = i-1
@@ -33,12 +35,12 @@ func visualize_mesh(boards_verts, traffic_lights):
 			boards_normals.append(cross_product(boards_verts[j_2] - boards_verts[j_2-2], boards_verts[j_2-1] - boards_verts[j_2-2]).normalized())
 			boards_normals.append(boards_normals[boards_normals.size()-1])
 			boards_normals.append(boards_normals[boards_normals.size()-1])
-		boards_colors.append(Color(0, 0, 0, 0.1))
+		boards_colors.append(Color(0.5, 0.5, 0.5, 1.0))
+
 
 	boards_arr[Mesh.ARRAY_VERTEX] = boards_verts
 	boards_arr[Mesh.ARRAY_NORMAL] = boards_normals
 	boards_arr[Mesh.ARRAY_COLOR] = boards_colors
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, boards_arr)
 
 	# Traffic Light
 	var spheres_arr = []
@@ -49,6 +51,7 @@ func visualize_mesh(boards_verts, traffic_lights):
 	spheres_arr.resize(Mesh.ARRAY_MAX)
 
 	var index_offset = 0
+	var rgb_scale = 0.05
 	for traffic_light in traffic_lights:
 		var sphere_mesh = SphereMesh.new()
 		sphere_mesh.set_height(traffic_light[3].x)
@@ -59,7 +62,7 @@ func visualize_mesh(boards_verts, traffic_lights):
 		var sphere_arr = sphere_mesh.get_mesh_arrays()
 		for sphere_vert in sphere_arr[Mesh.ARRAY_VERTEX]: 
 			sphere_verts.append(sphere_vert + Vector3(traffic_light[1].x, traffic_light[1].y, traffic_light[1].z))
-			sphere_colors.append(Color(traffic_light[0].r, traffic_light[0].g, traffic_light[0].b, traffic_light[0].a))
+			sphere_colors.append(Color(traffic_light[0].r * rgb_scale, traffic_light[0].g * rgb_scale, traffic_light[0].b * rgb_scale, 1.0))
 		for sphere_normal in sphere_arr[Mesh.ARRAY_NORMAL]: 
 			sphere_normals.append(sphere_normal)
 		for sphere_index in sphere_arr[Mesh.ARRAY_INDEX]: 
@@ -69,4 +72,7 @@ func visualize_mesh(boards_verts, traffic_lights):
 	spheres_arr[Mesh.ARRAY_NORMAL] = sphere_normals
 	spheres_arr[Mesh.ARRAY_INDEX] = sphere_indices
 	spheres_arr[Mesh.ARRAY_COLOR] = sphere_colors
+	
+	# visualize
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, spheres_arr)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, boards_arr)
