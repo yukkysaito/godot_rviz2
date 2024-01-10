@@ -52,7 +52,7 @@ eigen3_include_path = "/usr/include/eigen3"
 env.add_source_files(env.modules_sources, "src/*.cpp")
 env.add_source_files(env.modules_sources, "register_types.cpp")
 
-ros_blacklist_pkgs = ["idl", "dds"]
+ros_blacklist_pkgs = ["idl", "dds", "mimick"]
 ros_pkgs = set([f for f in os.listdir(ros_path+"/include") if os.path.isdir(os.path.join(ros_path+"/include", f))]) ^ set(ros_blacklist_pkgs)
 ros_include_paths = list(map(lambda pkg: ros_path +"/include/" + pkg, ros_pkgs))
 ros_lib_path = ros_path +"/lib"
