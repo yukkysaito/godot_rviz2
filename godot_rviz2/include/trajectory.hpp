@@ -23,13 +23,36 @@
 
 #include "autoware_auto_planning_msgs/msg/trajectory.hpp"
 
+/**
+ * @class Trajectory
+ * @brief The Trajectory class processes trajectory data for autonomous vehicles.
+ *
+ * This class converts Autoware trajectory messages into a format suitable for the Godot Engine.
+ */
 class Trajectory : public Reference
 {
   GDCLASS(Trajectory, Reference);
   TOPIC_SUBSCRIBER(Trajectory, autoware_auto_planning_msgs::msg::Trajectory);
 
 public:
+  /**
+   * @brief Generates a triangle strip for the trajectory.
+   *
+   * @param width Width of the trajectory
+   * @return Array of triangle strips
+   */
   Array get_trajectory_triangle_strip(const float width);
+
+  /**
+   * @brief Generates a triangle strip for the wall.
+   *
+   * @param width Width of the wall
+   * @param height Height of the wall
+   * @param length_offset Offset along the length of the wall
+   * @param ignore_start_point Whether to ignore the start point
+   * @param ignore_end_point Whether to ignore the end point
+   * @return Array of triangle strips
+   */
   Array get_wall_triangle_strip(
     const float width, const float height, const float length_offset, const bool ignore_start_point,
     const bool ignore_end_point);
@@ -38,9 +61,24 @@ public:
   ~Trajectory() = default;
 
 protected:
+  /**
+   * @brief Binds methods to the Godot system.
+   */
   static void _bind_methods();
 
 private:
+  /**
+   * @brief Creates a dictionary representing a point in the trajectory.
+   *
+   * This method calculates the rotated offset and normal for a given position and quaternion,
+   * and then converts these to a Godot-friendly format.
+   *
+   * @param quat Quaternion representing the orientation
+   * @param position Position vector
+   * @param width_offset Offset applied to the width
+   * @param velocity Velocity at this point
+   * @return A Dictionary containing position, normal, and velocity
+   */
   Dictionary create_point_dict(
     const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
     const float velocity);
