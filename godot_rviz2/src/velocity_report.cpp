@@ -18,16 +18,32 @@
 
 #include <string>
 
+/**
+ * @brief Binds methods of the VelocityReport class to the Godot system.
+ */
 void VelocityReport::_bind_methods()
 {
+  // Bind the get_velocity method to Godot
   ClassDB::bind_method(D_METHOD("get_velocity"), &VelocityReport::get_velocity);
+  // Additional method bindings for the TOPIC_SUBSCRIBER
   TOPIC_SUBSCRIBER_BIND_METHODS(VelocityReport);
 }
 
+/**
+ * @brief Retrieves the current velocity from the latest VelocityReport message.
+ *
+ * This method checks the latest VelocityReport message and returns the longitudinal
+ * velocity of the vehicle. If no message is available, it returns 0.0.
+ *
+ * @return double Current longitudinal velocity of the vehicle, or 0.0 if no message is available.
+ */
 double VelocityReport::get_velocity()
 {
+  // Retrieve the last VelocityReport message
   const auto last_msg = get_last_msg();
+  // Return 0.0 if no message is found
   if (!last_msg) return 0.0;
 
-  return msg_ptr_->longitudinal_velocity;
+  // Return the longitudinal velocity from the message
+  return last_msg.value()->longitudinal_velocity;
 }

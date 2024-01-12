@@ -18,27 +18,55 @@
 
 #include <string>
 
+/**
+ * @brief Binds methods of VehicleStatus class to the Godot system.
+ */
 void VehicleStatus::_bind_methods()
 {
+  // Bind the is_turn_on_right method to Godot
   ClassDB::bind_method(D_METHOD("is_turn_on_right"), &VehicleStatus::is_turn_on_right);
+  // Bind the is_turn_on_left method to Godot
   ClassDB::bind_method(D_METHOD("is_turn_on_left"), &VehicleStatus::is_turn_on_left);
+  // Additional method bindings for the TOPIC_SUBSCRIBER
   TOPIC_SUBSCRIBER_BIND_METHODS(VehicleStatus);
 }
 
+/**
+ * @brief Checks if the right turn indicator is on.
+ *
+ * This method checks the latest TurnIndicatorsReport message and returns true if
+ * the right turn indicator is enabled.
+ *
+ * @return true if the right turn indicator is active, false otherwise.
+ */
 bool VehicleStatus::is_turn_on_right()
 {
+  // Retrieve the last TurnIndicatorsReport message
   const auto last_msg = get_last_msg();
+  // Return false if no message is found
   if (!last_msg) return false;
 
+  // Check if the right turn indicator is enabled in the message
   return last_msg.value()->report ==
          autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_RIGHT;
 }
 
+/**
+ * @brief Checks if the left turn indicator is on.
+ *
+ * This method checks the latest TurnIndicatorsReport message and returns true if
+ * the left turn indicator is enabled.
+ *
+ * @return true if the left turn indicator is active, false otherwise.
+ */
 bool VehicleStatus::is_turn_on_left()
 {
+  // Retrieve the last TurnIndicatorsReport message
   const auto last_msg = get_last_msg();
+  // Return false if no message is found
   if (!last_msg) return false;
 
+  // Check if the left turn indicator is enabled in the message
   return last_msg.value()->report ==
          autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport::ENABLE_LEFT;
 }

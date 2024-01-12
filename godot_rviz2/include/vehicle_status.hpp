@@ -23,18 +23,40 @@
 
 #include "autoware_auto_vehicle_msgs/msg/turn_indicators_report.hpp"
 
+/**
+ * @class VehicleStatus
+ * @brief The VehicleStatus class provides an interface to check the status of vehicle turn
+ * indicators.
+ *
+ * This class subscribes to the TurnIndicatorsReport message and provides methods to check if either
+ * the left or right turn indicators are active.
+ */
 class VehicleStatus : public RefCounted
 {
   GDCLASS(VehicleStatus, RefCounted);
   TOPIC_SUBSCRIBER(VehicleStatus, autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport);
 
 public:
+  /**
+   * @brief Check if the right turn indicator is active.
+   *
+   * @return true if the right turn indicator is active, false otherwise.
+   */
   bool is_turn_on_right();
+
+  /**
+   * @brief Check if the left turn indicator is active.
+   *
+   * @return true if the left turn indicator is active, false otherwise.
+   */
   bool is_turn_on_left();
 
   VehicleStatus() = default;
   ~VehicleStatus() = default;
 
 protected:
+  /**
+   * @brief Binds methods to the Godot system.
+   */
   static void _bind_methods();
 };
