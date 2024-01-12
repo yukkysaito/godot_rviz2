@@ -23,17 +23,33 @@
 
 #include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
 
+/**
+ * @class VelocityReport
+ * @brief The VelocityReport class provides an interface to obtain the current velocity of the
+ * vehicle.
+ *
+ * This class subscribes to the VelocityReport message from Autoware and provides a method to
+ * retrieve the current longitudinal velocity of the vehicle.
+ */
 class VelocityReport : public Reference
 {
   GDCLASS(VelocityReport, Reference);
   TOPIC_SUBSCRIBER(VelocityReport, autoware_auto_vehicle_msgs::msg::VelocityReport);
 
 public:
+  /**
+   * @brief Retrieves the current vehicle velocity.
+   *
+   * @return double Current longitudinal velocity of the vehicle.
+   */
   double get_velocity();
 
   VelocityReport() = default;
   ~VelocityReport() = default;
 
 protected:
+  /**
+   * @brief Binds methods to the Godot system.
+   */
   static void _bind_methods();
 };
