@@ -15,7 +15,7 @@
 //
 
 #pragma once
-#include "core/reference.h"
+#include "core/object/ref_counted.h"
 #include "godot_rviz2.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "util.hpp"
@@ -23,9 +23,9 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
-class EgoPose : public Reference
+class EgoPose : public RefCounted
 {
-  GDCLASS(EgoPose, Reference);
+  GDCLASS(EgoPose, RefCounted);
 
 public:
   EgoPose() = default;

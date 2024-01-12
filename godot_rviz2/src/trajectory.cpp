@@ -31,7 +31,7 @@ void Trajectory::_bind_methods()
 Array Trajectory::get_triangle_strip_with_velocity(const float width)
 {
   Array triangle_strip_with_velocity;
-  PoolVector3Array triangle_points;
+  PackedVector3Array triangle_points;
   const auto last_msg = get_last_msg();
   if (!last_msg) return triangle_strip_with_velocity;
 

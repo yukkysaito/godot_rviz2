@@ -27,9 +27,9 @@ void MarkerArray::_bind_methods()
   TOPIC_SUBSCRIBER_BIND_METHODS(MarkerArray);
 }
 
-PoolVector3Array MarkerArray::get_triangle_marker(const String & ns)
+PackedVector3Array MarkerArray::get_triangle_marker(const String & ns)
 {
-  PoolVector3Array triangle_points;
+  PackedVector3Array triangle_points;
   const auto last_msg = get_last_msg();
   if (!last_msg) return triangle_points;
 
@@ -49,9 +49,6 @@ Array MarkerArray::get_color_spheres(const String & ns)
   Array color_spheres;
   const auto last_msg = get_last_msg();
   if (!last_msg) return color_spheres;
-
-  std::wstring ws = ns.c_str();
-  std::string s(ws.begin(), ws.end());
 
   for (const auto & marker : last_msg.value()->markers) {
     if (to_std(ns) == marker.ns && marker.type == Type::SPHERE) {

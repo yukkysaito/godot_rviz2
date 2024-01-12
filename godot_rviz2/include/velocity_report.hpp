@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
 
-class VelocityReport : public Reference
+class VelocityReport : public RefCounted
 {
-  GDCLASS(VelocityReport, Reference);
+  GDCLASS(VelocityReport, RefCounted);
   TOPIC_SUBSCRIBER(VelocityReport, autoware_auto_vehicle_msgs::msg::VelocityReport);
 
 public:

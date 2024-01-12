@@ -17,7 +17,7 @@
 #include "register_types.h"
 
 #include "behavior_path.hpp"
-#include "core/class_db.h"
+#include "core/object/class_db.h"
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
 #include "marker_array.hpp"
@@ -29,8 +29,11 @@
 #include "vehicle_status.hpp"
 #include "velocity_report.hpp"
 
-void register_godot_rviz2_types()
+void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
 {
+  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+    return;
+  }
   ClassDB::register_class<GodotRviz2Spinner>();
   ClassDB::register_class<MarkerArray>();
   ClassDB::register_class<PointCloud>();
@@ -44,4 +47,9 @@ void register_godot_rviz2_types()
   ClassDB::register_class<Parameter>();
 }
 
-void unregister_godot_rviz2_types() {}
+void uninitialize_godot_rviz2_module(ModuleInitializationLevel p_level)
+{
+  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+    return;
+  }
+}

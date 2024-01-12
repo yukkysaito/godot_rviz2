@@ -34,7 +34,7 @@ void BehaviorPath::_bind_methods()
 Array BehaviorPath::get_triangle_strip_with_velocity(const float width)
 {
   Array triangle_strip_with_velocity;
-  PoolVector3Array triangle_points;
+  PackedVector3Array triangle_points;
   const auto last_msg = get_last_msg();
   if (!last_msg) return triangle_strip_with_velocity;
 
@@ -73,7 +73,7 @@ Array BehaviorPath::get_triangle_strip_with_velocity(const float width)
 Array BehaviorPath::get_drivable_area_triangle_strips(const float width)
 {
   Array drivable_area_lines;
-  PoolVector3Array left_line_triangle_points, right_line_triangle_points;
+  PackedVector3Array left_line_triangle_points, right_line_triangle_points;
   const auto last_msg = get_last_msg();
   if (!last_msg) return drivable_area_lines;
 

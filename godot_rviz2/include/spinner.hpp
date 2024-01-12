@@ -15,13 +15,13 @@
 //
 
 #pragma once
-#include "core/reference.h"
+#include "core/object/ref_counted.h"
 #include "godot_rviz2.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-class GodotRviz2Spinner : public Reference
+class GodotRviz2Spinner : public RefCounted
 {
-  GDCLASS(GodotRviz2Spinner, Reference);
+  GDCLASS(GodotRviz2Spinner, RefCounted);
 
 public:
   GodotRviz2Spinner(){};

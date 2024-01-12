@@ -16,20 +16,20 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "autoware_auto_perception_msgs/msg/predicted_objects.hpp"
 
-class DynamicObjects : public Reference
+class DynamicObjects : public RefCounted
 {
-  GDCLASS(DynamicObjects, Reference);
+  GDCLASS(DynamicObjects, RefCounted);
   TOPIC_SUBSCRIBER(DynamicObjects, autoware_auto_perception_msgs::msg::PredictedObjects);
 
 public:
-  PoolVector3Array get_triangle_points(bool only_known_objects = false);
+  PackedVector3Array get_triangle_points(bool only_known_objects = false);
 
   DynamicObjects() = default;
   ~DynamicObjects() = default;

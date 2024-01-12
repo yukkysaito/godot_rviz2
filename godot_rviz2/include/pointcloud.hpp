@@ -16,20 +16,20 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
-class PointCloud : public Reference
+class PointCloud : public RefCounted
 {
-  GDCLASS(PointCloud, Reference);
+  GDCLASS(PointCloud, RefCounted);
   TOPIC_SUBSCRIBER(PointCloud, sensor_msgs::msg::PointCloud2);
 
 public:
-  PoolVector3Array get_pointcloud(const String & frame_id = "map");
+  PackedVector3Array get_pointcloud(const String & frame_id = "map");
 
   PointCloud() = default;
   ~PointCloud() = default;
