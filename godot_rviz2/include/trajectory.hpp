@@ -29,11 +29,19 @@ class Trajectory : public Reference
   TOPIC_SUBSCRIBER(Trajectory, autoware_auto_planning_msgs::msg::Trajectory);
 
 public:
-  Array get_triangle_strip_with_velocity(const float width);
+  Array get_trajectory_triangle_strip(const float width);
+  Array get_wall_triangle_strip(
+    const float width, const float height, const float length_offset, const bool ignore_start_point,
+    const bool ignore_end_point);
 
   Trajectory() = default;
   ~Trajectory() = default;
 
 protected:
   static void _bind_methods();
+
+private:
+  Dictionary create_point_dict(
+    const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
+    const float velocity);
 };

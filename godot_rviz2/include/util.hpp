@@ -62,3 +62,5 @@ inline Vector3 ros2_to_godot(const geometry_msgs::msg::Vector3 & p)
 {
   return ros2_to_godot(p.x, p.y, p.z);
 }
+
+Eigen::Vector3f cross_product(const Eigen::Vector3f & a, const Eigen::Vector3f & b);

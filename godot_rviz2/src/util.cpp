@@ -169,3 +169,9 @@ void to_polygon2d(
   }
   polygon = is_clock_wise(polygon) ? polygon : inverse_clock_wise(polygon);
 }
+
+Eigen::Vector3f cross_product(const Eigen::Vector3f & a, const Eigen::Vector3f & b)
+{
+  return Eigen::Vector3f(
+    a.y() * b.z() - a.z() * b.y(), a.z() * b.x() - a.x() * b.z(), a.x() * b.y() - a.y() * b.x());
+}
