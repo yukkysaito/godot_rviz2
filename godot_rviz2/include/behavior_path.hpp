@@ -29,12 +29,32 @@ class BehaviorPath : public Reference
   TOPIC_SUBSCRIBER(BehaviorPath, autoware_auto_planning_msgs::msg::Path);
 
 public:
-  Array get_triangle_strip_with_velocity(const float width);
+  Array get_path_triangle_strip(const float width);
   Array get_drivable_area_triangle_strips(const float width);
 
   BehaviorPath() = default;
   ~BehaviorPath() = default;
 
 protected:
+  /**
+   * @brief Binds methods to the Godot system.
+   */
   static void _bind_methods();
+
+private:
+  /**
+   * @brief Creates a dictionary representing a point in the trajectory.
+   *
+   * This method calculates the rotated offset and normal for a given position and quaternion,
+   * and then converts these to a Godot-friendly format.
+   *
+   * @param quat Quaternion representing the orientation
+   * @param position Position vector
+   * @param width_offset Offset applied to the width
+   * @param velocity Velocity at this point
+   * @return A Dictionary containing position, normal, and velocity
+   */
+  Dictionary create_point_dict(
+    const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
+    const float velocity);
 };

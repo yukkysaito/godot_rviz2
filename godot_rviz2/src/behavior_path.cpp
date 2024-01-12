@@ -23,51 +23,66 @@
 
 void BehaviorPath::_bind_methods()
 {
-  ClassDB::bind_method(
-    D_METHOD("get_triangle_strip_with_velocity"), &BehaviorPath::get_triangle_strip_with_velocity);
+  ClassDB::bind_method(D_METHOD("get_path_triangle_strip"), &BehaviorPath::get_path_triangle_strip);
   ClassDB::bind_method(
     D_METHOD("get_drivable_area_triangle_strips"),
     &BehaviorPath::get_drivable_area_triangle_strips);
   TOPIC_SUBSCRIBER_BIND_METHODS(BehaviorPath);
 }
 
-Array BehaviorPath::get_triangle_strip_with_velocity(const float width)
+Dictionary BehaviorPath::create_point_dict(
+  const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
+  const float velocity)
 {
-  Array triangle_strip_with_velocity;
-  PoolVector3Array triangle_points;
-  const auto last_msg = get_last_msg();
-  if (!last_msg) return triangle_strip_with_velocity;
+  // Calculation of the rotated offset
+  Eigen::Vector3f local_offset, rotated_offset;
+  local_offset << 0, width_offset, 0;
+  rotated_offset = quat * local_offset;
 
+  // Conversion to Godot's coordinate system
+  Vector3 godot_position = ros2_to_godot(
+    position.x() + rotated_offset.x(), position.y() + rotated_offset.y(),
+    position.z() + rotated_offset.z());
+
+  // Calculation of the rotated normal
+  Eigen::Vector3f local_normal, rotated_normal;
+  local_normal << 0, 0, 1;
+  rotated_normal = quat * local_normal;
+  Vector3 godot_normal = ros2_to_godot(rotated_normal.x(), rotated_normal.y(), rotated_normal.z());
+
+  // Creating the dictionary with calculated values
+  Dictionary point_dict;
+  point_dict["velocity"] = velocity;
+  point_dict["position"] = godot_position;
+  point_dict["normal"] = godot_normal;
+  return point_dict;
+}
+
+Array BehaviorPath::get_path_triangle_strip(const float width)
+{
+  // Initialize an empty array for the triangle strip
+  Array triangle_strip;
+  // Retrieve the last path message
+  const auto last_msg = get_last_msg();
+  // If no message is found, return the empty array
+  if (!last_msg) return triangle_strip;
+
+  // Iterate over each point in the path message
   for (const auto & point : last_msg.value()->points) {
-    const auto & path_pose = point.pose;
+    // Extract pose information from the point
+    const auto & pose = point.pose;
     Eigen::Quaternionf quat(
-      path_pose.orientation.w, path_pose.orientation.x, path_pose.orientation.y,
-      path_pose.orientation.z);
-    {
-      Eigen::Vector3f vec_in, vec_out;
-      vec_in << 0, -(width / 2.0), 0;
-      vec_out = quat * vec_in;
-      Array point_with_velocity;
-      point_with_velocity.append(point.longitudinal_velocity_mps);
-      point_with_velocity.append(ros2_to_godot(
-        path_pose.position.x + vec_out.x(), path_pose.position.y + vec_out.y(),
-        path_pose.position.z + vec_out.z()));
-      triangle_strip_with_velocity.append(point_with_velocity);
-    }
-    {
-      Eigen::Vector3f vec_in, vec_out;
-      vec_in << 0, (width / 2.0), 0;
-      vec_out = quat * vec_in;
-      Array point_with_velocity;
-      point_with_velocity.append(point.longitudinal_velocity_mps);
-      point_with_velocity.append(ros2_to_godot(
-        path_pose.position.x + vec_out.x(), path_pose.position.y + vec_out.y(),
-        path_pose.position.z + vec_out.z()));
-      triangle_strip_with_velocity.append(point_with_velocity);
-    }
+      pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+    Eigen::Vector3f position(pose.position.x, pose.position.y, pose.position.z);
+
+    // Append two points for each path point to form a strip
+    triangle_strip.append(
+      create_point_dict(quat, position, -(width / 2.0), point.longitudinal_velocity_mps));
+    triangle_strip.append(
+      create_point_dict(quat, position, (width / 2.0), point.longitudinal_velocity_mps));
   }
 
-  return triangle_strip_with_velocity;
+  return triangle_strip;
 }
 
 Array BehaviorPath::get_drivable_area_triangle_strips(const float width)
