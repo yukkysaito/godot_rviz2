@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var pointcloud = PointCloud.new()
 
@@ -11,7 +11,7 @@ func _process(_delta):
 
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
-	var verts = PoolVector3Array()
+	var verts = PackedVector3Array()
 #	var uvs = PoolVector2Array()
 #	var normals = PoolVector3Array()
 #	var indices = PoolIntArray()
@@ -22,7 +22,7 @@ func _process(_delta):
 
 	arr[Mesh.ARRAY_VERTEX] = verts
 #	arr[Mesh.ARRAY_TEX_UV] = uvs
-	if !verts.empty():
+	if !verts.is_empty():
 		mesh.clear_surfaces()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arr)
 	pointcloud.set_old()

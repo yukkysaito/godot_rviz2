@@ -1,4 +1,4 @@
-extends Sprite
+extends Sprite2D
 
 var angle_scale = 17.0
 var steering_report = SteeringReport.new()

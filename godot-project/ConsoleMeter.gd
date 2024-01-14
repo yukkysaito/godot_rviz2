@@ -1,4 +1,4 @@
-extends Sprite
+extends Sprite2D
 
 
 var velocity_report = VelocityReport.new()
@@ -13,5 +13,6 @@ func _process(_delta):
 	var velocity = velocity_report.get_velocity() * 3.6
 	
 	$VelocityLabel.text = str(velocity).pad_decimals(0)+"km"
+
 	$Hand.set_rotation(velocity * velocity_scale)
 	velocity_report.set_old()

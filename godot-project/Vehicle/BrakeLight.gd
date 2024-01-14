@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var night_light = false
 var default_emission_energey = 0.0

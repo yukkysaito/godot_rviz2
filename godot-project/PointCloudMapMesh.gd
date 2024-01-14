@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var pointcloud = PointCloud.new()
 var visualize_again = false
@@ -11,7 +11,7 @@ func _process(_delta):
 		return
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
-	var verts = PoolVector3Array()
+	var verts = PackedVector3Array()
 #	var uvs = PoolVector2Array()
 #	var normals = PoolVector3Array()
 #	var indices = PoolIntArray()

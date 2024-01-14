@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var is_turn_on = false
 

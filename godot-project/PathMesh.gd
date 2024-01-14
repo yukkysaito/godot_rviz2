@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var path = BehaviorPath.new()
 
@@ -15,9 +15,9 @@ func _process(_delta):
 	# Left line
 	var left_line_arr = []
 	left_line_arr.resize(Mesh.ARRAY_MAX)
-	var left_line_verts = PoolVector3Array()
-	var left_line_normals = PoolVector3Array()
-	var left_line_colors = PoolColorArray()
+	var left_line_verts = PackedVector3Array()
+	var left_line_normals = PackedVector3Array()
+	var left_line_colors = PackedColorArray()
 	for left_line_point in drivable_area_triangle_strips[0]:
 		left_line_verts.append(left_line_point)
 		left_line_normals.append(Vector3(0,1,0))
@@ -29,9 +29,9 @@ func _process(_delta):
 	# Right line
 	var right_line_arr = []
 	right_line_arr.resize(Mesh.ARRAY_MAX)
-	var right_line_verts = PoolVector3Array()
-	var right_line_normals = PoolVector3Array()
-	var right_line_colors = PoolColorArray()
+	var right_line_verts = PackedVector3Array()
+	var right_line_normals = PackedVector3Array()
+	var right_line_colors = PackedColorArray()
 	for right_line_point in drivable_area_triangle_strips[1]:
 		right_line_verts.append(right_line_point)
 		right_line_normals.append(Vector3(0,1,0))
@@ -40,7 +40,7 @@ func _process(_delta):
 	right_line_arr[Mesh.ARRAY_NORMAL] = right_line_normals
 	right_line_arr[Mesh.ARRAY_COLOR] = right_line_colors
 
-	if !left_line_verts.empty():
+	if !left_line_verts.is_empty():
 		mesh.clear_surfaces()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, left_line_arr)
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, right_line_arr)

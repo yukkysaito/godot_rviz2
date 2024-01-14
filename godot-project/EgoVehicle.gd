@@ -1,4 +1,4 @@
-extends Spatial
+extends Node3D
 
 var ego_pose = EgoPose.new()
 var vehicle_status = VehicleStatus.new()
@@ -8,18 +8,18 @@ func _ready():
 
 func _process(_delta):
 	# Ego pose
-	set_translation(ego_pose.get_ego_position())
+	set_position(ego_pose.get_ego_position())
 	set_rotation(ego_pose.get_ego_rotation())
 
 	# Indicators
 	if(vehicle_status.has_new()):
-		var right_light = get_node("EgoVehicleKinematicBody/VehicleBody/RootNode/TurnSignalR")
+		var right_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/TurnSignalR")
 		if (vehicle_status.is_turn_on_right()):
 			right_light.turn_on()
 		else:
 			right_light.turn_off()
 
-		var left_light = get_node("EgoVehicleKinematicBody/VehicleBody/RootNode/TurnSignalL")
+		var left_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/TurnSignalL")
 		if (vehicle_status.is_turn_on_left()):
 			left_light.turn_on()
 		else:
@@ -29,10 +29,10 @@ func _process(_delta):
 
 
 func _on_NightModeCheckButton_toggled(button_pressed):
-	var head_light = get_node("EgoVehicleKinematicBody/VehicleBody/RootNode/HeadLight")
-	var head_small_light = get_node("EgoVehicleKinematicBody/VehicleBody/RootNode/HeadSmallLight")
-	var fog_light = get_node("EgoVehicleKinematicBody/VehicleBody/RootNode/FogLight")
-	var brake_light = get_node("EgoVehicleKinematicBody/VehicleBody/RootNode/BrakeLight")
+	var head_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/HeadLight")
+	var head_small_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/HeadSmallLight")
+	var fog_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/FogLight")
+	var brake_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/BrakeLight")
 	var head_beam_light = get_node("EgoVehicleKinematicBody/HeadBeamLight")
 	if (button_pressed):
 		head_light.turn_on()

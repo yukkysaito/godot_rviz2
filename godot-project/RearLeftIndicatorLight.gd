@@ -1,4 +1,4 @@
-extends SpotLight
+extends SpotLight3D
 
 var is_turn_on = false
 

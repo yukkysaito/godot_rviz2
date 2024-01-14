@@ -2,7 +2,7 @@
 
 [ext_resource path="res://ObstacleSegmentationVisuzlier.gd" type="Script" id=1]
 
-[sub_resource type="SpatialMaterial" id=11]
+[sub_resource type="StandardMaterial3D" id=11]
 flags_unshaded = true
 flags_use_point_size = true
 vertex_color_use_as_albedo = true

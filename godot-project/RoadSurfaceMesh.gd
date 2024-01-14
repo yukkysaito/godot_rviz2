@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 func visualize_mesh(verts):
 	mesh.clear_surfaces()
@@ -6,7 +6,7 @@ func visualize_mesh(verts):
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
 #	var uvs = PoolVector2Array()
-	var normals = PoolVector3Array()
+	var normals = PackedVector3Array()
 #	var indices = PoolIntArray()
 #	var colors = PoolColorArray()
 	
