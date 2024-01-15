@@ -1,7 +1,8 @@
 res://default_env.tres
 res://Main.tscn
-res://BackGround.gd
-res://Camera.gd
-res://EgoVehicle.gd
-res://Sun.gd
 res://Vehicle/RX450h/RX450h.tscn
+res://EgoVehicle.gd
+res://Vehicle/TurnSignal.gd
+res://TrajectoryMesh.gd
+res://Vehicle/BrakeLight.gd
+res://Vehicle/Light.gd

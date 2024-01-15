@@ -1,29 +1,113 @@
-[gd_scene load_steps=5 format=3 uid="uid://clv5ace8lkrv8"]
+[gd_scene load_steps=17 format=3 uid="uid://c12wli2xky3ja"]
 
-[ext_resource type="PackedScene" uid="uid://d4id3gk63ar0u" path="res://Vehicle/RX450h/RX450h.fbx" id="1"]
+[ext_resource type="PackedScene" uid="uid://5ayw2a03ou6w" path="res://Vehicle/RX450h/RX450h.glb" id="1_qgkfj"]
 [ext_resource type="Script" path="res://Vehicle/BrakeLight.gd" id="22"]
 [ext_resource type="Script" path="res://Vehicle/TurnSignal.gd" id="23"]
 [ext_resource type="Script" path="res://Vehicle/Light.gd" id="28"]
 
-[node name="RX450h" instance=ExtResource("1")]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xu21l"]
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 10.0
 
-[node name="FogLight" parent="RootNode" index="0"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l86j3"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0.0784314)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ky6s"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0qcm1"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ongr3"]
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 10.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t2674"]
+albedo_color = Color(0.853367, 0.193881, 0.0197067, 1)
+emission_enabled = true
+emission = Color(0.853367, 0.193881, 0.0197067, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gbyvr"]
+albedo_color = Color(0.853367, 0.193881, 0.0197067, 1)
+emission_enabled = true
+emission = Color(0.853367, 0.193881, 0.0197067, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gyqh1"]
+albedo_color = Color(0.921569, 0.372549, 0, 1)
+emission_enabled = true
+emission = Color(0.922424, 0.373809, 7.70092e-07, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yup73"]
+albedo_color = Color(0.996078, 0.745098, 0.717647, 0.14902)
+emission_enabled = true
+emission = Color(0.854902, 0.192157, 0.0196078, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i47qh"]
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 10.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fuxn2"]
+albedo_color = Color(1, 0.498039, 0.388235, 1)
+emission = Color(1, 0.12549, 0.0862745, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wtn4r"]
+albedo_color = Color(0.921569, 0.372549, 0, 1)
+emission_enabled = true
+emission = Color(0.922424, 0.373809, 7.70092e-07, 1)
+emission_energy_multiplier = 6.0
+backlight = Color(0.6, 0.172549, 0.12549, 1)
+refraction_scale = 0.1
+grow_amount = 0.481
+
+[node name="RX450h" instance=ExtResource("1_qgkfj")]
+
+[node name="FogLight" parent="." index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_xu21l")
 script = ExtResource("28")
 
-[node name="HeadSmallLight" parent="RootNode" index="1"]
+[node name="BodyCar" parent="." index="1"]
+surface_material_override/7 = SubResource("StandardMaterial3D_l86j3")
+surface_material_override/8 = SubResource("StandardMaterial3D_6ky6s")
+surface_material_override/9 = SubResource("StandardMaterial3D_0qcm1")
+
+[node name="HeadLight_002" parent="BodyCar" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_ongr3")
 script = ExtResource("28")
 
-[node name="TurnSignalR" parent="RootNode" index="10"]
+[node name="TurnSignalL_002" parent="BodyCar" index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_t2674")
 script = ExtResource("23")
 
-[node name="BrakeLight" parent="RootNode" index="11"]
+[node name="TurnSignalR_002" parent="BodyCar" index="2"]
+surface_material_override/0 = SubResource("StandardMaterial3D_gbyvr")
+script = ExtResource("23")
+
+[node name="TurnSignalR" parent="." index="9"]
+surface_material_override/0 = SubResource("StandardMaterial3D_gyqh1")
+script = ExtResource("23")
+
+[node name="BreakLight" parent="." index="10"]
+surface_material_override/0 = SubResource("StandardMaterial3D_yup73")
 script = ExtResource("22")
 
-[node name="HeadLight" parent="RootNode" index="12"]
+[node name="HeadLight" parent="." index="11"]
+surface_material_override/0 = SubResource("StandardMaterial3D_i47qh")
 script = ExtResource("28")
 
-[node name="ReverseLight" parent="RootNode" index="13"]
-script = ExtResource("28")
+[node name="ReverseLight" parent="." index="12"]
+surface_material_override/0 = SubResource("StandardMaterial3D_fuxn2")
 
-[node name="TurnSignalL" parent="RootNode" index="18"]
+[node name="TurnSignalL" parent="." index="17"]
+surface_material_override/0 = SubResource("StandardMaterial3D_wtn4r")
 script = ExtResource("23")

@@ -1,6 +1,6 @@
 [gd_scene load_steps=48 format=3 uid="uid://cwhqdw3ex4dso"]
 
-[ext_resource type="PackedScene" uid="uid://clv5ace8lkrv8" path="res://Vehicle/RX450h/RX450h.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://Sun.gd" id="2_6kmdb"]
 [ext_resource type="Script" path="res://BackGround.gd" id="2_mywyw"]
@@ -5390,7 +5390,10 @@ script = ExtResource("3")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+light_energy = 0.6
 shadow_enabled = true
+directional_shadow_mode = 0
+sky_mode = 1
 script = ExtResource("2_6kmdb")
 
 [node name="BackGround" type="WorldEnvironment" parent="."]
@@ -5403,7 +5406,7 @@ script = ExtResource("2")
 [node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="EgoVehicle"]
 
 [node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.79841, 1.10939, 0)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 3.84072, 1.10939, 0)
 light_energy = 10.0
 light_specular = 3.0
 spot_range = 200.0
@@ -5415,7 +5418,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0)
 shape = SubResource("1")
 
 [node name="VehicleBody3D" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource("1")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.41018, 0, 0)
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
 
 [node name="Camera3D" type="Node3D" parent="EgoVehicle"]
 script = ExtResource("9")

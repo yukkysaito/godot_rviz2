@@ -61,5 +61,6 @@ func _process(_delta):
 		# Trajectory
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, traj_arr)
 		# Wall
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, wall_arr)
+		if !wall_triangle_strip.is_empty():
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, wall_arr)
 	trajectory.set_old()
