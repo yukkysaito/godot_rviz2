@@ -26,15 +26,13 @@ func _process(_delta):
 			left_light.turn_off()
 		vehicle_status.set_old()
 
-
-
-func _on_NightModeCheckButton_toggled(button_pressed):
+func _on_night_mode_check_button_toggled(toggled_on):
 	var head_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/HeadLight")
 	var head_small_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/HeadSmallLight")
 	var fog_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/FogLight")
 	var brake_light = get_node("EgoVehicleKinematicBody/VehicleBody3D/RootNode/BrakeLight")
 	var head_beam_light = get_node("EgoVehicleKinematicBody/HeadBeamLight")
-	if (button_pressed):
+	if (toggled_on):
 		head_light.turn_on()
 		head_small_light.turn_on()
 		fog_light.turn_on()

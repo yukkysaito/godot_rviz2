@@ -1,7 +1,9 @@
-[gd_scene load_steps=46 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=48 format=3 uid="uid://cwhqdw3ex4dso"]
 
-[ext_resource type="PackedScene" path="res://Vehicle/RX450h/RX450h.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://clv5ace8lkrv8" path="res://Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://EgoVehicle.gd" id="2"]
+[ext_resource type="Script" path="res://Sun.gd" id="2_6kmdb"]
+[ext_resource type="Script" path="res://BackGround.gd" id="2_mywyw"]
 [ext_resource type="Script" path="res://Main.gd" id="3"]
 [ext_resource type="Script" path="res://RoadSurfaceMesh.gd" id="4"]
 [ext_resource type="Script" path="res://RoadMarkerMesh.gd" id="5"]
@@ -23,23 +25,22 @@
 [ext_resource type="Script" path="res://VectorMap.gd" id="25"]
 [ext_resource type="Script" path="res://PathMesh.gd" id="26"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ttygr"]
-sky_top_color = Color(0.439216, 0.666667, 1, 1)
-sky_horizon_color = Color(1, 1, 1, 1)
-sky_curve = 0.0362226
-ground_bottom_color = Color(0.141176, 0.117647, 0.0901961, 1)
-ground_horizon_color = Color(1, 1, 1, 1)
-sun_curve = 0.0445952
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
+sky_top_color = Color(1, 1, 1, 1)
+sky_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
+sky_curve = 0.060919
+ground_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
 
 [sub_resource type="Sky" id="Sky_fb0c3"]
-sky_material = SubResource("ProceduralSkyMaterial_ttygr")
+sky_material = SubResource("ProceduralSkyMaterial_m8ng5")
+process_mode = 3
 radiance_size = 0
 
 [sub_resource type="Environment" id="Environment_hn68x"]
+resource_name = "environment"
 background_mode = 2
 background_color = Color(1, 1, 1, 1)
 sky = SubResource("Sky_fb0c3")
-ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 
 [sub_resource type="BoxShape3D" id="1"]
@@ -5387,8 +5388,14 @@ cache/0/71/0/kerning_overrides/71/0 = Vector2(0, 0)
 [node name="Main" type="Node3D"]
 script = ExtResource("3")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+script = ExtResource("2_6kmdb")
+
+[node name="BackGround" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_hn68x")
+script = ExtResource("2_mywyw")
 
 [node name="EgoVehicle" type="Node3D" parent="."]
 script = ExtResource("2")
@@ -5396,9 +5403,11 @@ script = ExtResource("2")
 [node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="EgoVehicle"]
 
 [node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.79841, 0.861473, 0)
-light_energy = 2.0
-spot_range = 81.425
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.79841, 1.10939, 0)
+light_energy = 10.0
+light_specular = 3.0
+spot_range = 200.0
+spot_angle = 54.1078
 script = ExtResource("14")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
@@ -5472,10 +5481,6 @@ mesh = SubResource("31")
 skeleton = NodePath("../VectorMap")
 script = ExtResource("18")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -0.866026, 0.5, 0, -0.5, -0.866026, 0, 1.77694, 0)
-visible = false
-
 [node name="Menu" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
@@ -5486,6 +5491,7 @@ layout_mode = 0
 offset_right = 76.0
 offset_bottom = 40.0
 focus_mode = 0
+button_pressed = true
 text = "PointCloud Map"
 
 [node name="NightModeCheckButton" type="CheckButton" parent="Menu"]
@@ -5555,7 +5561,8 @@ position = Vector2(0, 50)
 texture = ExtResource("23")
 
 [connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
-[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle" method="_on_NightModeCheckButton_toggled"]
-[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle/Camera3D" method="_on_NightModeCheckButton_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="Sun" method="_on_night_mode_check_button_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="BackGround" method="_on_night_mode_check_button_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle" method="_on_night_mode_check_button_toggled"]
 [connection signal="toggled" from="Menu/OnlyKnownObjectCheckButton" to="DynamicObjectMesh" method="_on_OnlyKnownObjectCheckButton_toggled"]
 [connection signal="value_changed" from="Menu/RenderingQuality/MSAASlider" to="." method="_on_MSAASlider_value_changed"]
