@@ -14,6 +14,15 @@
 //  limitations under the License.
 //
 
+#pragma once
+
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
+#include "topic_subscriber.hpp"
+
+#include "autoware_auto_vehicle_msgs/msg/steering_report.hpp"
+
 /**
  * @class SteeringReport
  * @brief The SteeringReport class provides an interface to obtain the steering angle from

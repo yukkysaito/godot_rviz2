@@ -14,6 +14,15 @@
 //  limitations under the License.
 //
 
+#pragma once
+#include "core/object/ref_counted.h"
+#include "godot_rviz2.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "util.hpp"
+
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+
 /**
  * @class EgoPose
  * @brief The EgoPose class provides methods to obtain the position and orientation (pose) of the
