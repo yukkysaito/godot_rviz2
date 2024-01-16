@@ -69,6 +69,33 @@
 
 1. Click run button on top right on Godot GUI.
 
+## How to run from ROS2 launch
+
+1. Create godot_rviz2.py and modify path in `cmd`.
+
+```python
+from launch_ros.actions import Node
+ 
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.substitutions import LaunchConfiguration
+
+def generate_launch_description():
+    godot_rviz2 = ExecuteProcess(
+        cmd=[[
+            '~/workspace/godot_rviz2/godot/bin/godot.linuxbsd.editor.x86_64 --path ~/workspace/godot_rviz2/godot-project'
+        ]],
+        shell=True
+    )
+    return LaunchDescription([godot_rviz2])
+```
+
+1. Run ros2 command.
+
+```bash
+ros2 launch <path>/godot_rviz2.py
+```
+
 ## TODO
 - Refactor codes
 - Simplified description of ros dependencies on SCon build system
