@@ -42,7 +42,13 @@
       ```bash
       ./bin/godot.linuxbsd.editor.x86_64
       ```
-   1. Click run button on top right on Godot GUI.
+   2. Import project and run.
+      1. Import and select the project.godot file. ![image](https://github.com/yukkysaito/godot_rviz2/assets/8327598/6f88317c-2d20-4853-9bbd-c171ab30d576)![image](https://github.com/yukkysaito/godot_rviz2/assets/8327598/19eabb4f-d78a-49f5-a8c0-eb1dabd6613a)
+
+
+      2. Click run button. ![image](https://github.com/yukkysaito/godot_rviz2/assets/8327598/54c56efe-0355-4228-94f7-55f585e9f544)
+
+
 
 ## Key Config
 
@@ -56,12 +62,16 @@
 1. Run Godot and import project from `godot_rviz2/godot-project`
 
    ```bash
-   ./bin/godot.x11.tools.64
+   ./bin/godot.linuxbsd.editor.x86_64
    ```
 
 1. Edit on Godot GUI editor
 
 1. Click run button on top right on Godot GUI.
+
+## TODO
+- Refactor codes
+- Simplified description of ros dependencies on SCon build system
 
 ## Reference
 
