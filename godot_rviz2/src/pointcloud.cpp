@@ -50,9 +50,9 @@ bool transform_pointcloud(
   return true;
 }
 
-PoolVector3Array PointCloud::get_pointcloud(const String & frame_id)
+PackedVector3Array PointCloud::get_pointcloud(const String & frame_id)
 {
-  PoolVector3Array pointcloud;
+  PackedVector3Array pointcloud;
   const auto last_msg = get_last_msg();
   if (!last_msg) return pointcloud;
 

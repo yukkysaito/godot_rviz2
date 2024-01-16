@@ -32,9 +32,9 @@ void DynamicObjects::_bind_methods()
   TOPIC_SUBSCRIBER_BIND_METHODS(DynamicObjects);
 }
 
-PoolVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
+PackedVector3Array DynamicObjects::get_triangle_points(bool only_known_objects)
 {
-  PoolVector3Array triangle_points;
+  PackedVector3Array triangle_points;
   const auto last_msg = get_last_msg();
   if (!last_msg) return triangle_points;
 

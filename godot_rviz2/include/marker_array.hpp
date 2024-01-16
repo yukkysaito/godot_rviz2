@@ -16,20 +16,20 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "visualization_msgs/msg/marker_array.hpp"
 
-class MarkerArray : public Reference
+class MarkerArray : public RefCounted
 {
-  GDCLASS(MarkerArray, Reference);
+  GDCLASS(MarkerArray, RefCounted);
   TOPIC_SUBSCRIBER(MarkerArray, visualization_msgs::msg::MarkerArray);
 
 public:
-  PoolVector3Array get_triangle_marker(const String & ns);
+  PackedVector3Array get_triangle_marker(const String & ns);
   Array get_color_spheres(const String & ns);
 
   MarkerArray() = default;

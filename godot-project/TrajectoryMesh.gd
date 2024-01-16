@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var trajectory = Trajectory.new()
 var wheelbase_to_front = 2.78 + 1.0
@@ -19,17 +19,17 @@ func _process(_delta):
 	# Trajectory
 	var traj_arr = []
 	traj_arr.resize(Mesh.ARRAY_MAX)
-	var traj_verts = PoolVector3Array()
-	var traj_uvs = PoolVector2Array()
-	var traj_normals = PoolVector3Array()
-	var traj_indices = PoolIntArray()
-	var traj_colors = PoolColorArray()
+	var traj_verts = PackedVector3Array()
+	#var traj_uvs = PackedVector2Array()
+	var traj_normals = PackedVector3Array()
+	#var traj_indices = PackedInt32Array()
+	var traj_colors = PackedColorArray()
 	# Create triangle
 	var trajectory_triangle_strip = trajectory.get_trajectory_triangle_strip(2.0)
 	for point in trajectory_triangle_strip:
 		traj_verts.append(point["position"])
 		traj_normals.append(point["normal"])
-		traj_uvs.append(Vector2(velocity_to_normalized_value(point["velocity"]), 0))
+		#traj_uvs.append(Vector2(velocity_to_normalized_value(point["velocity"]), 0))
 		traj_colors.append(Color(0.0, 0.02, 1.0, 0.8))
 	traj_arr[Mesh.ARRAY_VERTEX] = traj_verts
 	traj_arr[Mesh.ARRAY_NORMAL] = traj_normals
@@ -41,11 +41,11 @@ func _process(_delta):
 	# Wall
 	var wall_arr = []
 	wall_arr.resize(Mesh.ARRAY_MAX)
-	var wall_verts = PoolVector3Array()
-	var wall_uvs = PoolVector2Array()
-	var wall_normals = PoolVector3Array()
-	var wall_indices = PoolIntArray()
-	var wall_colors = PoolColorArray()
+	var wall_verts = PackedVector3Array()
+	#var wall_uvs = PackedVector2Array()
+	var wall_normals = PackedVector3Array()
+	#var wall_indices = PackedInt32Array()
+	var wall_colors = PackedColorArray()
 	# Create triangle
 	var wall_triangle_strip = trajectory.get_wall_triangle_strip(4.0, 2.0, wheelbase_to_front, true, true)
 	for point in wall_triangle_strip:
@@ -56,10 +56,11 @@ func _process(_delta):
 	wall_arr[Mesh.ARRAY_NORMAL] = wall_normals
 	wall_arr[Mesh.ARRAY_COLOR] = wall_colors
 	
-	if !traj_verts.empty():
+	if !traj_verts.is_empty():
 		mesh.clear_surfaces()
 		# Trajectory
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, traj_arr)
 		# Wall
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, wall_arr)
+		if !wall_triangle_strip.is_empty():
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, wall_arr)
 	trajectory.set_old()

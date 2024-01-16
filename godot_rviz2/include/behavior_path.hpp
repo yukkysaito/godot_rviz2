@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "autoware_auto_planning_msgs/msg/path.hpp"
 
-class BehaviorPath : public Reference
+class BehaviorPath : public RefCounted
 {
-  GDCLASS(BehaviorPath, Reference);
+  GDCLASS(BehaviorPath, RefCounted);
   TOPIC_SUBSCRIBER(BehaviorPath, autoware_auto_planning_msgs::msg::Path);
 
 public:

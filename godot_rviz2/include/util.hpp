@@ -15,8 +15,8 @@
 //
 
 #pragma once
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
@@ -42,11 +42,7 @@ void to_polygon2d(
   const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
   geometry_msgs::msg::Polygon & polygon);
 
-inline std::string to_std(const String & godot_s)
-{
-  std::wstring ws = godot_s.c_str();
-  return std::string(ws.begin(), ws.end());
-}
+inline std::string to_std(const String & godot_s) { return std::string(godot_s.utf8()); }
 
 inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
 {

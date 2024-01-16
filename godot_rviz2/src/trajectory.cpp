@@ -112,7 +112,7 @@ Array Trajectory::get_wall_triangle_strip(
 
     const auto & point = last_msg.value()->points[i];
     // A small epsilon to compare floating-point numbers
-    constexpr float eps = 0.01;
+    constexpr float eps = 0.0001;
     // Only consider points with a velocity lower than the epsilon
     if (point.longitudinal_velocity_mps < eps) {
       const auto & pose = point.pose;

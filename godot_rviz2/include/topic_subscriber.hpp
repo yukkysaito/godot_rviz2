@@ -63,14 +63,14 @@ public:                                                                         
   ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old)
 
 #else
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 
 template <class T>
-class TopicSubscriber : public Reference
+class TopicSubscriber : public RefCounted
 {
-  GDCLASS(TopicSubscriber<T>, Reference);
+  GDCLASS(TopicSubscriber<T>, RefCounted);
 
 private:
   using ConstSharedPtr = typename T::ConstSharedPtr;

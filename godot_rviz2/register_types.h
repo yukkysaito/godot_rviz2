@@ -14,5 +14,7 @@
 //  limitations under the License.
 //
 
-void register_godot_rviz2_types();
-void unregister_godot_rviz2_types();
+#include "modules/register_module_types.h"
+
+void initialize_godot_rviz2_module(ModuleInitializationLevel p_level);
+void uninitialize_godot_rviz2_module(ModuleInitializationLevel p_level);

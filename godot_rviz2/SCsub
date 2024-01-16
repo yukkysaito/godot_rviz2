@@ -72,7 +72,7 @@ env.Append(LIBPATH=[ros_lib_path,
                     "/usr/lib/x86_64-linux-gnu"]
                     +autoware_lib_paths)
 
-env.Append(CCFLAGS=[cpp_version])
+env.Append(CCFLAGS=[cpp_version, "-fexceptions"])
 
 msg_gen_prefix = "__rosidl_typesupport_cpp"
 msg_libs = list(map(lambda pkg: pkg + msg_gen_prefix, msg_pkgs))

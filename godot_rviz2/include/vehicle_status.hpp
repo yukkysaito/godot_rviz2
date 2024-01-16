@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "autoware_auto_vehicle_msgs/msg/turn_indicators_report.hpp"
@@ -31,9 +31,9 @@
  * This class subscribes to the TurnIndicatorsReport message and provides methods to check if either
  * the left or right turn indicators are active.
  */
-class VehicleStatus : public Reference
+class VehicleStatus : public RefCounted
 {
-  GDCLASS(VehicleStatus, Reference);
+  GDCLASS(VehicleStatus, RefCounted);
   TOPIC_SUBSCRIBER(VehicleStatus, autoware_auto_vehicle_msgs::msg::TurnIndicatorsReport);
 
 public:

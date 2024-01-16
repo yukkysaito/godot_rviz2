@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var traffic_light_markers = MarkerArray.new()
 
@@ -12,10 +12,10 @@ func _process(_delta):
 
 	var traffic_lights = traffic_light_markers.get_color_spheres("traffic_light")
 	var spheres_arr = []
-	var sphere_verts = PoolVector3Array()
-	var sphere_normals = PoolVector3Array()
-	var sphere_indices = PoolIntArray()
-	var sphere_colors = PoolColorArray()
+	var sphere_verts = PackedVector3Array()
+	var sphere_normals = PackedVector3Array()
+	var sphere_indices = PackedInt32Array()
+	var sphere_colors = PackedColorArray()
 	spheres_arr.resize(Mesh.ARRAY_MAX)
 
 	var index_offset = 0

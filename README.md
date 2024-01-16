@@ -40,7 +40,7 @@
    1. Run Godot
 
       ```bash
-      ./bin/godot.x11.tools.64
+      ./bin/godot.linuxbsd.editor.x86_64
       ```
    1. Click run button on top right on Godot GUI.
 

@@ -1,4 +1,4 @@
-extends MeshInstance
+extends MeshInstance3D
 
 func cross_product(a, b):
 	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
@@ -10,9 +10,9 @@ func visualize_mesh(boards_verts, traffic_lights):
 	var boards_arr = []
 	boards_arr.resize(Mesh.ARRAY_MAX)
 #	var uvs = PoolVector2Array()
-	var boards_normals = PoolVector3Array()
+	var boards_normals = PackedVector3Array()
 #	var boards_indices = PoolIntArray()
-	var boards_colors = PoolColorArray()
+	var boards_colors = PackedColorArray()
 
 	var boards_verts_size = boards_verts.size()
 	# back board
@@ -44,10 +44,10 @@ func visualize_mesh(boards_verts, traffic_lights):
 
 	# Traffic Light
 	var spheres_arr = []
-	var sphere_verts = PoolVector3Array()
-	var sphere_normals = PoolVector3Array()
-	var sphere_indices = PoolIntArray()
-	var sphere_colors = PoolColorArray()
+	var sphere_verts = PackedVector3Array()
+	var sphere_normals = PackedVector3Array()
+	var sphere_indices = PackedInt32Array()
+	var sphere_colors = PackedColorArray()
 	spheres_arr.resize(Mesh.ARRAY_MAX)
 
 	var index_offset = 0

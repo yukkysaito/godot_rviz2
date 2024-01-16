@@ -1,4 +1,4 @@
-extends SpotLight
+extends SpotLight3D
 
 func _ready():
 	visible = false

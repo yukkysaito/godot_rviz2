@@ -16,15 +16,15 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "godot_rviz2.hpp"
 #include "util.hpp"
 
-class Parameter : public Reference
+class Parameter : public RefCounted
 {
-  GDCLASS(Parameter, Reference);
+  GDCLASS(Parameter, RefCounted);
 
 protected:
   static void _bind_methods();

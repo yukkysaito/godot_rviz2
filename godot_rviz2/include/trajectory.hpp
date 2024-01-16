@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "core/reference.h"
-#include "core/ustring.h"
-#include "core/variant.h"
+#include "core/object/ref_counted.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
 #include "autoware_auto_planning_msgs/msg/trajectory.hpp"
@@ -29,9 +29,9 @@
  *
  * This class converts Autoware trajectory messages into a format suitable for the Godot Engine.
  */
-class Trajectory : public Reference
+class Trajectory : public RefCounted
 {
-  GDCLASS(Trajectory, Reference);
+  GDCLASS(Trajectory, RefCounted);
   TOPIC_SUBSCRIBER(Trajectory, autoware_auto_planning_msgs::msg::Trajectory);
 
 public:
