@@ -118,6 +118,9 @@ script = ExtResource("28")
 [node name="ReverseLight" parent="." index="12"]
 surface_material_override/0 = SubResource("StandardMaterial3D_fuxn2")
 
+[node name="WheelFrontL" parent="." index="15"]
+transform = Transform3D(0.01, 0, 0, 0, -4.37114e-10, -0.01, 0, 0.01, -4.37114e-10, 0.923231, 0.374834, 1.3678)
+
 [node name="TurnSignalL" parent="." index="17"]
 surface_material_override/0 = SubResource("StandardMaterial3D_wtn4r")
 script = ExtResource("23")
