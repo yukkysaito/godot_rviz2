@@ -18,16 +18,31 @@
 
 #include <string>
 
+/**
+ * @brief Binds methods of the SteeringReport class to the Godot system.
+ */
 void SteeringReport::_bind_methods()
 {
+  // Bind the get_angle method to Godot
   ClassDB::bind_method(D_METHOD("get_angle"), &SteeringReport::get_angle);
   TOPIC_SUBSCRIBER_BIND_METHODS(SteeringReport);
 }
 
+/**
+ * @brief Retrieves the current steering angle from the last SteeringReport message.
+ *
+ * This method checks the latest SteeringReport message and returns the steering tire angle.
+ * If no message is available, it returns 0.0.
+ *
+ * @return double The current steering angle in degrees, or 0.0 if no message is available.
+ */
 double SteeringReport::get_angle()
 {
+  // Retrieve the last SteeringReport message
   const auto last_msg = get_last_msg();
+  // Return 0.0 if no message is found
   if (!last_msg) return 0.0;
 
+  // Return the steering tire angle from the message
   return last_msg.value()->steering_tire_angle;
 }

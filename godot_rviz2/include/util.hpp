@@ -34,16 +34,46 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
+/**
+ * @brief Retrieves a transformation from the TF2 buffer.
+ *
+ * @param tf_buffer The TF2 buffer to retrieve the transformation from.
+ * @param source_frame_id The source frame ID for the transformation.
+ * @param target_frame_id The target frame ID for the transformation.
+ * @param time The specific time at which to retrieve the transformation.
+ * @return std::optional<geometry_msgs::msg::Transform> The transformation, if found.
+ */
 std::optional<geometry_msgs::msg::Transform> get_transform(
   const tf2_ros::Buffer & tf_buffer, const std::string & source_frame_id,
   const std::string & target_frame_id, const rclcpp::Time & time);
 
+/**
+ * @brief Converts pose and shape information into a 2D polygon.
+ *
+ * @param pose The pose of the object.
+ * @param shape The shape information of the object.
+ * @param polygon The resulting 2D polygon.
+ */
 void to_polygon2d(
   const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
   geometry_msgs::msg::Polygon & polygon);
 
+/**
+ * @brief Converts a Godot String to a standard string.
+ *
+ * @param godot_s The Godot String.
+ * @return std::string A standard string.
+ */
 inline std::string to_std(const String & godot_s) { return std::string(godot_s.utf8()); }
 
+/**
+ * @brief Converts ROS 2 coordinates to Godot's coordinate system.
+ *
+ * @param x The x-coordinate in ROS 2.
+ * @param y The y-coordinate in ROS 2.
+ * @param z The z-coordinate in ROS 2.
+ * @return Vector3 The converted Vector3 in Godot's coordinate system.
+ */
 inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
 {
   return Vector3(x, z, -y);
@@ -59,4 +89,11 @@ inline Vector3 ros2_to_godot(const geometry_msgs::msg::Vector3 & p)
   return ros2_to_godot(p.x, p.y, p.z);
 }
 
+/**
+ * @brief Calculates the cross product of two Eigen::Vector3f vectors.
+ *
+ * @param a The first vector.
+ * @param b The second vector.
+ * @return Eigen::Vector3f The cross product.
+ */
 Eigen::Vector3f cross_product(const Eigen::Vector3f & a, const Eigen::Vector3f & b);

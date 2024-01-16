@@ -25,10 +25,20 @@
 
 void PointCloud::_bind_methods()
 {
+  // Bind the get_pointcloud method to Godot
   ClassDB::bind_method(D_METHOD("get_pointcloud"), &PointCloud::get_pointcloud);
   TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
 
+/**
+ * @brief Transforms a point cloud to a specified target frame.
+ *
+ * @param input The input point cloud.
+ * @param tf2 The TF2 buffer for looking up transformations.
+ * @param target_frame The target frame to which the point cloud will be transformed.
+ * @param output The output transformed point cloud.
+ * @return bool True if the transformation is successful, false otherwise.
+ */
 bool transform_pointcloud(
   const sensor_msgs::msg::PointCloud2 & input, const tf2_ros::Buffer & tf2,
   const std::string & target_frame, sensor_msgs::msg::PointCloud2 & output)
@@ -42,7 +52,6 @@ bool transform_pointcloud(
     RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
     return false;
   }
-  // transform pointcloud
   Eigen::Matrix4f tf_matrix = tf2::transformToEigen(tf_stamped.transform).matrix().cast<float>();
   pcl_ros::transformPointCloud(tf_matrix, input, output);
   output.header.stamp = input.header.stamp;
@@ -70,10 +79,11 @@ PackedVector3Array PointCloud::get_pointcloud(const String & frame_id)
     msg_ptr = transformed_msg_ptr;
   }
 
-  // Convert to godot array
+  // Convert the point cloud to a Godot array
   sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg_ptr, "x"), iter_y(*msg_ptr, "y"),
     iter_z(*msg_ptr, "z");
   for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
+    // Append each point to the Godot array after converting from ROS 2 to Godot's coordinate system
     pointcloud.append(ros2_to_godot(*iter_x, *iter_y, *iter_z));
   }
 

@@ -142,13 +142,13 @@ void to_polygon2d(
       geometry_msgs::msg::Point32 point;
 
       point.x = std::cos(
-                  (static_cast<double>(i) / static_cast<double>(n)) * 2.0 * M_PI +
-                  M_PI / static_cast<double>(n)) *
+                  (static_cast<float>(i) / static_cast<float>(n)) * 2.0 * M_PI +
+                  M_PI / static_cast<float>(n)) *
                   radius +
                 center.x;
       point.y = std::sin(
-                  (static_cast<double>(i) / static_cast<double>(n)) * 2.0 * M_PI +
-                  M_PI / static_cast<double>(n)) *
+                  (static_cast<float>(i) / static_cast<float>(n)) * 2.0 * M_PI +
+                  M_PI / static_cast<float>(n)) *
                   radius +
                 center.y;
       point.z = pose.position.z;

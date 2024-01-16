@@ -14,26 +14,33 @@
 //  limitations under the License.
 //
 
-#pragma once
-
-#include "core/object/ref_counted.h"
-#include "core/string/ustring.h"
-#include "core/variant/variant.h"
-#include "topic_subscriber.hpp"
-
-#include "autoware_auto_vehicle_msgs/msg/steering_report.hpp"
-
+/**
+ * @class SteeringReport
+ * @brief The SteeringReport class provides an interface to obtain the steering angle from
+ * Autoware's SteeringReport messages.
+ *
+ * This class subscribes to Autoware's SteeringReport messages and allows for retrieval of the
+ * current steering angle.
+ */
 class SteeringReport : public RefCounted
 {
   GDCLASS(SteeringReport, RefCounted);
   TOPIC_SUBSCRIBER(SteeringReport, autoware_auto_vehicle_msgs::msg::SteeringReport);
 
 public:
+  /**
+   * @brief Retrieves the current steering angle.
+   *
+   * @return double The current steering angle in degrees.
+   */
   double get_angle();
 
   SteeringReport() = default;
   ~SteeringReport() = default;
 
 protected:
+  /**
+   * @brief Binds methods to the Godot system.
+   */
   static void _bind_methods();
 };

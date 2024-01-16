@@ -15,9 +15,13 @@
 //
 
 #include "ego_pose.hpp"
-
+/**
+ * @brief Binds methods of the EgoPose class to the Godot system.
+ */
 void EgoPose::_bind_methods()
 {
+  // Bind the get_ego_position method to Godot
   ClassDB::bind_method(D_METHOD("get_ego_position"), &EgoPose::get_ego_position);
+  // Bind the get_ego_rotation method to Godot
   ClassDB::bind_method(D_METHOD("get_ego_rotation"), &EgoPose::get_ego_rotation);
 }

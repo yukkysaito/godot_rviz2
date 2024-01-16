@@ -23,17 +23,34 @@
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
+/**
+ * @class PointCloud
+ * @brief The PointCloud class provides an interface to process and retrieve data from PointCloud2
+ * sensor messages.
+ *
+ * This class subscribes to PointCloud2 messages and converts them into a Godot-friendly format.
+ */
 class PointCloud : public RefCounted
 {
   GDCLASS(PointCloud, RefCounted);
   TOPIC_SUBSCRIBER(PointCloud, sensor_msgs::msg::PointCloud2);
 
 public:
+  /**
+   * @brief Retrieves the point cloud data, optionally transforming it to a specified frame.
+   *
+   * @param frame_id The target frame ID to which the point cloud should be transformed. Defaults to
+   * "map".
+   * @return PackedVector3Array A Godot array containing the point cloud data.
+   */
   PackedVector3Array get_pointcloud(const String & frame_id = "map");
 
   PointCloud() = default;
   ~PointCloud() = default;
 
 protected:
+  /**
+   * @brief Binds methods to the Godot system.
+   */
   static void _bind_methods();
 };
