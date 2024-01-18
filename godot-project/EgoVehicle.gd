@@ -26,7 +26,8 @@ func _process(_delta):
 	set_rotation(ego_pose.get_ego_rotation())
 	
 	if(velocity_report.has_new()):
-		rotate_wheels(_delta)
+		if (velocity_report.get_velocity() > 0):
+			rotate_wheels(_delta)
 		velocity_report.set_old()
 
 	# Indicators
