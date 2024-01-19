@@ -45,7 +45,9 @@ func _input(event):
 	if event is InputEventMouseMotion:
 		if enable_camera_rotation:
 			camera_rotation_h += -event.relative.x * mouse_sensitivity
-			camera_rotation_v += -event.relative.y * mouse_sensitivity
+			 # Apply vertical rotation only for non-"bev" modes
+			if view_mode[current_view_mode][0] != "bev":
+				camera_rotation_v += -event.relative.y * mouse_sensitivity
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			camera_zoom_ratio *= camera_zoom_change_ratio
