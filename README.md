@@ -90,11 +90,20 @@ def generate_launch_description():
     return LaunchDescription([godot_rviz2])
 ```
 
-1. Run ros2 command.
+2. Run ros2 command.
 
 ```bash
 ros2 launch <path>/godot_rviz2.py
 ```
+
+## How to Export Binary(WIP)
+1. Create template
+```
+scons platform=linux -j8 tools=no target=template_release custom_modules=../godot_rviz2
+```
+2. Select `godot.linuxbsd.template_release.x86_64` in Custom template
+3. Export
+
 
 ## TODO
 - Refactor codes
