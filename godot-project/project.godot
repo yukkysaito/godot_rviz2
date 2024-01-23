@@ -13,6 +13,8 @@ config_version=5
 config/name="godot_rviz2"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.2")
+boot_splash/bg_color=Color(1, 1, 1, 1)
+boot_splash/image="res://icon.png"
 config/icon="res://icon.png"
 
 [input]

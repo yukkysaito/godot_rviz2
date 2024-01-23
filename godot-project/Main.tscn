@@ -34,7 +34,6 @@ ground_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
 [sub_resource type="Sky" id="Sky_fb0c3"]
 sky_material = SubResource("ProceduralSkyMaterial_m8ng5")
 process_mode = 3
-radiance_size = 0
 
 [sub_resource type="Environment" id="Environment_hn68x"]
 resource_name = "environment"
