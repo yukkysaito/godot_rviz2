@@ -29,7 +29,7 @@ class DynamicObjects : public RefCounted
   TOPIC_SUBSCRIBER(DynamicObjects, autoware_auto_perception_msgs::msg::PredictedObjects);
 
 public:
-  PackedVector3Array get_triangle_points(bool only_known_objects = false);
+  Array get_triangle_list(bool only_known_objects = false);
 
   DynamicObjects() = default;
   ~DynamicObjects() = default;

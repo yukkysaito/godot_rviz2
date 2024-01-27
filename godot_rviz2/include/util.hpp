@@ -48,17 +48,6 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
   const std::string & target_frame_id, const rclcpp::Time & time);
 
 /**
- * @brief Converts pose and shape information into a 2D polygon.
- *
- * @param pose The pose of the object.
- * @param shape The shape information of the object.
- * @param polygon The resulting 2D polygon.
- */
-void to_polygon2d(
-  const geometry_msgs::msg::Pose & pose, const autoware_auto_perception_msgs::msg::Shape & shape,
-  geometry_msgs::msg::Polygon & polygon);
-
-/**
  * @brief Converts a Godot String to a standard string.
  *
  * @param godot_s The Godot String.
@@ -97,3 +86,64 @@ inline Vector3 ros2_to_godot(const geometry_msgs::msg::Vector3 & p)
  * @return Eigen::Vector3f The cross product.
  */
 Eigen::Vector3f cross_product(const Eigen::Vector3f & a, const Eigen::Vector3f & b);
+
+/**
+ * @brief Generates a 3D bounding box.
+ *
+ * @param width The width of the bounding box.
+ * @param height The height of the bounding box.
+ * @param length The length of the bounding box.
+ * @param translation The translation component of the bounding box's transformation.
+ * @param quaternion The rotation component of the bounding box's transformation.
+ * @param vertices Output vector of vertices defining the bounding box.
+ * @param normals Output vector of normals for each vertex.
+ */
+void generate_boundingbox3d(
+  float width, float height, float length, const Eigen::Translation3f & translation,
+  const Eigen::Quaternionf & quaternion, std::vector<Vector3> & vertices,
+  std::vector<Vector3> & normals);
+
+/**
+ * @brief Generates a 3D cylinder.
+ *
+ * @param radius The radius of the cylinder.
+ * @param height The height of the cylinder.
+ * @param translation The translation component of the cylinder's transformation.
+ * @param quaternion The rotation component of the cylinder's transformation.
+ * @param vertices Output vector of vertices defining the cylinder.
+ * @param normals Output vector of normals for each vertex.
+ */
+void generate_cylinder3d(
+  float radius, float height, const Eigen::Translation3f & translation,
+  const Eigen::Quaternionf & quaternion, std::vector<Vector3> & vertices,
+  std::vector<Vector3> & normals);
+
+/**
+ * @brief Generates a 3D polygon from a 2D polygon and a height.
+ *
+ * @param polygon_2d The 2D polygon to extrude.
+ * @param height The height of the extrusion.
+ * @param translation The translation component of the polygon's transformation.
+ * @param quaternion The rotation component of the polygon's transformation.
+ * @param vertices Output vector of vertices defining the 3D polygon.
+ * @param normals Output vector of normals for each vertex.
+ */
+void generate_polygon3d(
+  const geometry_msgs::msg::Polygon & polygon_2d, float height,
+  const Eigen::Translation3f & translation, const Eigen::Quaternionf & quaternion,
+  std::vector<Vector3> & vertices, std::vector<Vector3> & normals);
+
+/**
+ * @brief Overload of generate_polygon3d for a vector of Vector2.
+ *
+ * @param polygon_2d The 2D polygon defined by a vector of Vector2 to extrude.
+ * @param height The height of the extrusion.
+ * @param translation The translation component of the polygon's transformation.
+ * @param quaternion The rotation component of the polygon's transformation.
+ * @param vertices Output vector of vertices defining the 3D polygon.
+ * @param normals Output vector of normals for each vertex.
+ */
+void generate_polygon3d(
+  const std::vector<Vector2> & polygon_2d, float height, const Eigen::Translation3f & translation,
+  const Eigen::Quaternionf & quaternion, std::vector<Vector3> & vertices,
+  std::vector<Vector3> & normals);

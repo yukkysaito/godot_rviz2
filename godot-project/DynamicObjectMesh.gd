@@ -20,13 +20,11 @@ func _process(_delta):
 	var normals = PackedVector3Array()
 #	var indices = PoolIntArray()
 
-	verts = dynamic_objects.get_triangle_points(only_known_object)
+	var triangle_list = dynamic_objects.get_triangle_list(only_known_object)
 
-	for i in verts.size():
-		if(i % 3 ==2):
-			normals.append(cross_product(verts[i] - verts[i-2], verts[i-1] - verts[i-2]).normalized())
-			normals.append(normals[normals.size()-1])
-			normals.append(normals[normals.size()-1])
+	for point in triangle_list:
+		verts.append(point["position"])
+		normals.append(point["normal"])
 
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = normals
@@ -37,7 +35,6 @@ func _process(_delta):
 		mesh.clear_surfaces()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 	dynamic_objects.set_old()
-
 
 func _on_OnlyKnownObjectCheckButton_toggled(button_pressed):
 	only_known_object = button_pressed
