@@ -21,18 +21,21 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
-void BehaviorPath::_bind_methods()
+namespace
 {
-  ClassDB::bind_method(D_METHOD("get_path_triangle_strip"), &BehaviorPath::get_path_triangle_strip);
-  ClassDB::bind_method(
-    D_METHOD("get_drivable_area_triangle_strips"),
-    &BehaviorPath::get_drivable_area_triangle_strips);
-  TOPIC_SUBSCRIBER_BIND_METHODS(BehaviorPath);
-}
-
-Dictionary BehaviorPath::create_point_dict(
-  const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
-  const float velocity)
+/**
+ * @brief Creates a dictionary representing a point in the trajectory.
+ *
+ * This method calculates the rotated offset and normal for a given position and quaternion,
+ * and then converts these to a Godot-friendly format.
+ *
+ * @param quat Quaternion representing the orientation
+ * @param position Position vector
+ * @param width_offset Offset applied to the width
+ * @return A Dictionary containing position, normal, and velocity
+ */
+Dictionary create_point_dict(
+  const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset)
 {
   // Calculation of the rotated offset
   Eigen::Vector3f local_offset, rotated_offset;
@@ -52,10 +55,78 @@ Dictionary BehaviorPath::create_point_dict(
 
   // Creating the dictionary with calculated values
   Dictionary point_dict;
-  point_dict["velocity"] = velocity;
   point_dict["position"] = godot_position;
   point_dict["normal"] = godot_normal;
   return point_dict;
+}
+
+/**
+ * @brief Creates a dictionary representing a point in the trajectory.
+ *
+ * This method calculates the rotated offset and normal for a given position and quaternion,
+ * and then converts these to a Godot-friendly format.
+ *
+ * @param quat Quaternion representing the orientation
+ * @param position Position vector
+ * @param width_offset Offset applied to the width
+ * @param velocity Velocity at this point
+ * @return A Dictionary containing position, normal, and velocity
+ */
+
+Dictionary create_point_dict(
+  const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
+  const float velocity)
+{
+  Dictionary point_dict = create_point_dict(quat, position, width_offset);
+  point_dict["velocity"] = velocity;
+  return point_dict;
+}
+
+// Process a single line (either left or right) and return the triangle strip points
+Array calculate_line(const std::vector<geometry_msgs::msg::Point> & line, float width)
+{
+  Array line_triangle_points;
+  Eigen::Vector2f previous_front_vec;
+
+  for (size_t i = 0; i < line.size(); ++i) {
+    const Eigen::Vector3f position(line.at(i).x, line.at(i).y, line.at(i).z);
+
+    float yaw;
+    if (i == 0) {  // start point
+      Eigen::Vector2f front_vec(line.at(i + 1).x - line.at(i).x, line.at(i + 1).y - line.at(i).y);
+      front_vec.normalize();
+      yaw = std::atan2(front_vec.y(), front_vec.x());
+      previous_front_vec = front_vec;
+    } else if (i == line.size() - 1) {  // end point
+      Eigen::Vector2f & back_vec = previous_front_vec;
+      yaw = std::atan2(back_vec.y(), back_vec.x());
+    } else {  // middle points
+      Eigen::Vector2f front_vec(line.at(i + 1).x - line.at(i).x, line.at(i + 1).y - line.at(i).y);
+      Eigen::Vector2f & back_vec = previous_front_vec;
+      front_vec.normalize();
+      yaw = std::atan2(front_vec.y() + back_vec.y(), front_vec.x() + back_vec.x());
+      previous_front_vec = front_vec;
+    }
+
+    Eigen::Quaternionf quat = Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitX()) *
+                              Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitY()) *
+                              Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
+
+    // Append two points for each path point to form a strip
+    line_triangle_points.append(create_point_dict(quat, position, -(width / 2.0)));
+    line_triangle_points.append(create_point_dict(quat, position, (width / 2.0)));
+  }
+
+  return line_triangle_points;
+}
+}  // namespace
+
+void BehaviorPath::_bind_methods()
+{
+  ClassDB::bind_method(D_METHOD("get_path_triangle_strip"), &BehaviorPath::get_path_triangle_strip);
+  ClassDB::bind_method(
+    D_METHOD("get_drivable_area_triangle_strip"), &BehaviorPath::get_drivable_area_triangle_strip);
+  TOPIC_SUBSCRIBER_BIND_METHODS(BehaviorPath);
 }
 
 Array BehaviorPath::get_path_triangle_strip(const float width)
@@ -85,71 +156,24 @@ Array BehaviorPath::get_path_triangle_strip(const float width)
   return triangle_strip;
 }
 
-Array BehaviorPath::get_drivable_area_triangle_strips(const float width)
+Dictionary BehaviorPath::get_drivable_area_triangle_strip(const float width)
 {
-  Array drivable_area_lines;
-  PackedVector3Array left_line_triangle_points, right_line_triangle_points;
+  Dictionary drivable_area_lines;
   const auto last_msg = get_last_msg();
   if (!last_msg) return drivable_area_lines;
 
   const auto & left_line = last_msg.value()->left_bound;
   const auto & right_line = last_msg.value()->right_bound;
 
-  if (left_line.size() < 2 || right_line.size() < 2) return drivable_area_lines;
-
-  // TODO: refactor
-  {
-    float previous_yaw;
-    for (size_t i = 0; i < left_line.size(); ++i) {
-      const float yaw = i + 1 == left_line.size() ? previous_yaw
-                                                  : std::atan2(
-                                                      left_line.at(i + 1).y - left_line.at(i).y,
-                                                      left_line.at(i + 1).x - left_line.at(i).x);
-      Eigen::Quaternionf quat = Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitX()) *
-                                Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitY()) *
-                                Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
-      Eigen::Vector3f vec_in, vec_out;
-      vec_in << 0, -(width / 2.0), 0;
-      vec_out = quat * vec_in;
-      left_line_triangle_points.append(ros2_to_godot(
-        left_line.at(i).x + vec_out.x(), left_line.at(i).y + vec_out.y(),
-        left_line.at(i).z + vec_out.z()));
-      vec_in << 0, (width / 2.0), 0;
-      vec_out = quat * vec_in;
-      left_line_triangle_points.append(ros2_to_godot(
-        left_line.at(i).x + vec_out.x(), left_line.at(i).y + vec_out.y(),
-        left_line.at(i).z + vec_out.z()));
-      previous_yaw = yaw;
-    }
+  if (left_line.size() < 2 || right_line.size() < 2) {
+    Array empty_array;
+    drivable_area_lines["left_line"] = empty_array;
+    drivable_area_lines["right_line"] = empty_array;
+    return drivable_area_lines;
   }
 
-  {
-    float previous_yaw;
-    for (size_t i = 0; i < right_line.size(); ++i) {
-      const float yaw = i + 1 == right_line.size() ? previous_yaw
-                                                   : std::atan2(
-                                                       right_line.at(i + 1).y - right_line.at(i).y,
-                                                       right_line.at(i + 1).x - right_line.at(i).x);
-      Eigen::Quaternionf quat = Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitX()) *
-                                Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitY()) *
-                                Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
-      Eigen::Vector3f vec_in, vec_out;
-      vec_in << 0, -(width / 2.0), 0;
-      vec_out = quat * vec_in;
-      right_line_triangle_points.append(ros2_to_godot(
-        right_line.at(i).x + vec_out.x(), right_line.at(i).y + vec_out.y(),
-        right_line.at(i).z + vec_out.z()));
-      vec_in << 0, (width / 2.0), 0;
-      vec_out = quat * vec_in;
-      right_line_triangle_points.append(ros2_to_godot(
-        right_line.at(i).x + vec_out.x(), right_line.at(i).y + vec_out.y(),
-        right_line.at(i).z + vec_out.z()));
-      previous_yaw = yaw;
-    }
-  }
-
-  drivable_area_lines.append(left_line_triangle_points);
-  drivable_area_lines.append(right_line_triangle_points);
+  drivable_area_lines["left_line"] = calculate_line(left_line, width);
+  drivable_area_lines["right_line"] = calculate_line(right_line, width);
 
   return drivable_area_lines;
 }
