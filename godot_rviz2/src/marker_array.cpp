@@ -70,8 +70,9 @@ Array MarkerArray::get_triangle_list(const String & ns)
         }
 
         const auto normal = cross_product(
-          vertices[2].head<3>() - vertices[0].head<3>(),
-          vertices[1].head<3>() - vertices[0].head<3>());
+                              vertices[2].head<3>() - vertices[0].head<3>(),
+                              vertices[1].head<3>() - vertices[0].head<3>())
+                              .normalized();
 
         {
           Dictionary triangle_point;

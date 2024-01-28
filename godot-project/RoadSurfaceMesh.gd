@@ -12,7 +12,6 @@ func visualize_mesh(triangle_list):
 	for point in triangle_list:
 		verts.append(point["position"])
 		normals.append(point["normal"])
-			
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = normals
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
