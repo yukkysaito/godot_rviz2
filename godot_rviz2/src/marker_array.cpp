@@ -20,28 +20,85 @@
 
 using Type = visualization_msgs::msg::Marker;
 
+namespace
+{
+bool has_origin_pose(const Type & marker)
+{
+  return marker.pose.position.x != 0 || marker.pose.position.y != 0 ||
+         marker.pose.position.z != 0 || marker.pose.orientation.x != 0 ||
+         marker.pose.orientation.y != 0 || marker.pose.orientation.z != 0 ||
+         marker.pose.orientation.w != 0;
+}
+}  // namespace
+
 void MarkerArray::_bind_methods()
 {
-  ClassDB::bind_method(D_METHOD("get_triangle_marker"), &MarkerArray::get_triangle_marker);
+  ClassDB::bind_method(D_METHOD("get_triangle_list"), &MarkerArray::get_triangle_list);
   ClassDB::bind_method(D_METHOD("get_color_spheres"), &MarkerArray::get_color_spheres);
   TOPIC_SUBSCRIBER_BIND_METHODS(MarkerArray);
 }
 
-PackedVector3Array MarkerArray::get_triangle_marker(const String & ns)
+Array MarkerArray::get_triangle_list(const String & ns)
 {
-  PackedVector3Array triangle_points;
+  Array triangle_list;
+
   const auto last_msg = get_last_msg();
-  if (!last_msg) return triangle_points;
+  if (!last_msg) return triangle_list;
 
   for (const auto & marker : last_msg.value()->markers) {
-    if (to_std(ns) == marker.ns) {
-      for (const auto & point : marker.points) {
-        triangle_points.append(Vector3(point.x, point.z, -1.0 * point.y));
+    if (to_std(ns) == marker.ns && marker.type == Type::TRIANGLE_LIST) {
+      const auto & points = marker.points;
+      for (size_t i = 2; i < points.size(); i += 3) {
+        const std::array<Eigen::Vector4f, 3> local_vertices = {
+          Eigen::Vector4f{points[i - 2].x, points[i - 2].y, points[i - 2].z, 1},
+          Eigen::Vector4f{points[i - 1].x, points[i - 1].y, points[i - 1].z, 1},
+          Eigen::Vector4f{points[i].x, points[i].y, points[i].z, 1}};
+
+        std::array<Eigen::Vector4f, 3> vertices;
+        if (has_origin_pose(marker)) {
+          const auto & pos = marker.pose.position;
+          const auto & quat = marker.pose.orientation;
+          Eigen::Translation3f translation(pos.x, pos.y, pos.z);
+          Eigen::Quaternionf quaternion(quat.w, quat.x, quat.y, quat.z);
+          Eigen::Matrix4f transform = (translation * quaternion).matrix();
+          std::array<Eigen::Vector4f, 3> global_vertices{
+            transform * local_vertices[0], transform * local_vertices[1],
+            transform * local_vertices[2]};
+          vertices = global_vertices;
+        } else {
+          vertices = local_vertices;
+        }
+
+        const auto normal = cross_product(
+          vertices[2].head<3>() - vertices[0].head<3>(),
+          vertices[1].head<3>() - vertices[0].head<3>());
+
+        {
+          Dictionary triangle_point;
+          triangle_point["position"] =
+            ros2_to_godot(vertices[0][0], vertices[0][1], vertices[0][2]);
+          triangle_point["normal"] = ros2_to_godot(normal[0], normal[1], normal[2]);
+          triangle_list.append(triangle_point);
+        }
+        {
+          Dictionary triangle_point;
+          triangle_point["position"] =
+            ros2_to_godot(vertices[1][0], vertices[1][1], vertices[1][2]);
+          triangle_point["normal"] = ros2_to_godot(normal[0], normal[1], normal[2]);
+          triangle_list.append(triangle_point);
+        }
+        {
+          Dictionary triangle_point;
+          triangle_point["position"] =
+            ros2_to_godot(vertices[2][0], vertices[2][1], vertices[2][2]);
+          triangle_point["normal"] = ros2_to_godot(normal[0], normal[1], normal[2]);
+          triangle_list.append(triangle_point);
+        }
       }
     }
   }
 
-  return triangle_points;
+  return triangle_list;
 }
 
 Array MarkerArray::get_color_spheres(const String & ns)

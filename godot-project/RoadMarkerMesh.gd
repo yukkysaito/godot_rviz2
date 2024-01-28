@@ -1,17 +1,17 @@
 extends MeshInstance3D
 
-func visualize_mesh(verts):
+func visualize_mesh(triangle_list):
 	mesh.clear_surfaces()
 
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
-#	var uvs = PoolVector2Array()
+	var verts = PackedVector3Array()
 	var normals = PackedVector3Array()
-#	var indices = PoolIntArray()
 #	var colors = PoolColorArray()
 	
-	for i in verts.size():
-		normals.append(Vector3(0,1,0))
+	for point in triangle_list:
+		verts.append(point["position"])
+		normals.append(point["normal"])
 			
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = normals

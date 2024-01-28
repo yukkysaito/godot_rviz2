@@ -1,42 +1,31 @@
 extends MeshInstance3D
 
-func cross_product(a, b):
-	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
-
-func visualize_mesh(boards_verts, traffic_lights):
+func visualize_mesh(board_triangle_list, traffic_lights):
 	mesh.clear_surfaces()
 
 	# Traffic Board
 	var boards_arr = []
 	boards_arr.resize(Mesh.ARRAY_MAX)
-#	var uvs = PoolVector2Array()
+	var boards_verts = PackedVector3Array()
 	var boards_normals = PackedVector3Array()
-#	var boards_indices = PoolIntArray()
 	var boards_colors = PackedColorArray()
 
-	var boards_verts_size = boards_verts.size()
 	# back board
-	for i in boards_verts_size:
-		if(i % 3 ==2):
-			boards_normals.append(cross_product(boards_verts[i] - boards_verts[i-2], boards_verts[i-1] - boards_verts[i-2]).normalized())
-			boards_normals.append(boards_normals[boards_normals.size()-1])
-			boards_normals.append(boards_normals[boards_normals.size()-1])
+	for point in board_triangle_list:
+		boards_verts.append(point["position"])
+		boards_normals.append(point["normal"])
 		boards_colors.append(Color(0.1, 0.1, 0.1, 1.0))
 
 	# front board
-	for i in boards_verts_size:
+	for i in board_triangle_list.size():
 		if(i % 3 ==2):
-			var j_0 = i-1
-			var j_1 = i-2
-			var j_2 = i
-			boards_verts.append(boards_verts[j_0])
-			boards_verts.append(boards_verts[j_1])
-			boards_verts.append(boards_verts[j_2])
-			boards_normals.append(cross_product(boards_verts[j_2] - boards_verts[j_2-2], boards_verts[j_2-1] - boards_verts[j_2-2]).normalized())
+			boards_verts.append(board_triangle_list[i]["position"])
+			boards_verts.append(board_triangle_list[i-1]["position"])
+			boards_verts.append(board_triangle_list[i-2]["position"])
+			boards_normals.append(-1.0*board_triangle_list[i]["normal"])
 			boards_normals.append(boards_normals[boards_normals.size()-1])
 			boards_normals.append(boards_normals[boards_normals.size()-1])
 		boards_colors.append(Color(0.5, 0.5, 0.5, 1.0))
-
 
 	boards_arr[Mesh.ARRAY_VERTEX] = boards_verts
 	boards_arr[Mesh.ARRAY_NORMAL] = boards_normals

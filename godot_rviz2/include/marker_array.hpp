@@ -29,7 +29,7 @@ class MarkerArray : public RefCounted
   TOPIC_SUBSCRIBER(MarkerArray, visualization_msgs::msg::MarkerArray);
 
 public:
-  PackedVector3Array get_triangle_marker(const String & ns);
+  Array get_triangle_list(const String & ns);
   Array get_color_spheres(const String & ns);
 
   MarkerArray() = default;

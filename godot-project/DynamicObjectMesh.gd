@@ -3,9 +3,6 @@ extends MeshInstance3D
 var dynamic_objects = DynamicObjects.new()
 var only_known_object = true
 
-func cross_product(a, b):
-	return Vector3(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
-
 func _ready():
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
 

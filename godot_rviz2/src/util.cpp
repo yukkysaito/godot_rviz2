@@ -184,24 +184,22 @@ void generate_polygon3d(
   // Process the top face
   std::optional<Eigen::Vector3f> top_normal = std::nullopt;
   for (size_t i = 2; i < polygon_2d.size(); ++i) {
-    std::vector<Eigen::Vector4f> local_vertices{
-      {polygon_2d.at(0).x, polygon_2d.at(0).y, height / 2, 1},
-      {polygon_2d.at(i - 1).x, polygon_2d.at(i - 1).y, height / 2, 1},
-      {polygon_2d.at(i).x, polygon_2d.at(i).y, height / 2, 1}};
+    std::array<Eigen::Vector4f, 3> local_vertices{
+      Eigen::Vector4f{polygon_2d.at(0).x, polygon_2d.at(0).y, height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(i - 1).x, polygon_2d.at(i - 1).y, height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(i).x, polygon_2d.at(i).y, height / 2, 1}};
 
-    Eigen::Vector4f transformed_vertex1, transformed_vertex2, transformed_vertex3;
-    transformed_vertex1 = transform * local_vertices[0];
-    transformed_vertex2 = transform * local_vertices[1];
-    transformed_vertex3 = transform * local_vertices[2];
+    std::array<Eigen::Vector4f, 3> global_vertices{
+      transform * local_vertices[0], transform * local_vertices[1], transform * local_vertices[2]};
 
-    vertices.push_back({transformed_vertex1[0], transformed_vertex1[1], transformed_vertex1[2]});
-    vertices.push_back({transformed_vertex2[0], transformed_vertex2[1], transformed_vertex2[2]});
-    vertices.push_back({transformed_vertex3[0], transformed_vertex3[1], transformed_vertex3[2]});
+    vertices.push_back({global_vertices[0][0], global_vertices[0][1], global_vertices[0][2]});
+    vertices.push_back({global_vertices[1][0], global_vertices[1][1], global_vertices[1][2]});
+    vertices.push_back({global_vertices[2][0], global_vertices[2][1], global_vertices[2][2]});
 
     if (!top_normal.has_value()) {
       top_normal = cross_product(
-        transformed_vertex3.head<3>() - transformed_vertex1.head<3>(),
-        transformed_vertex2.head<3>() - transformed_vertex1.head<3>());
+        global_vertices[2].head<3>() - global_vertices[0].head<3>(),
+        global_vertices[1].head<3>() - global_vertices[0].head<3>());
     }
     const auto & normal = top_normal.value();
     normals.push_back({normal[0], normal[1], normal[2]});
@@ -213,29 +211,26 @@ void generate_polygon3d(
   for (size_t i = 0; i < polygon_2d.size(); ++i) {
     size_t j = (i + 1) % polygon_2d.size();
 
-    std::vector<Eigen::Vector4f> local_vertices{
-      {polygon_2d.at(i).x, polygon_2d.at(i).y, height / 2, 1},
-      {polygon_2d.at(i).x, polygon_2d.at(i).y, -height / 2, 1},
-      {polygon_2d.at(j).x, polygon_2d.at(j).y, -height / 2, 1},
-      {polygon_2d.at(j).x, polygon_2d.at(j).y, height / 2, 1}};
+    std::array<Eigen::Vector4f, 4> local_vertices{
+      Eigen::Vector4f{polygon_2d.at(i).x, polygon_2d.at(i).y, height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(i).x, polygon_2d.at(i).y, -height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(j).x, polygon_2d.at(j).y, -height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(j).x, polygon_2d.at(j).y, height / 2, 1}};
 
-    Eigen::Vector4f transformed_vertex1, transformed_vertex2, transformed_vertex3,
-      transformed_vertex4;
-    transformed_vertex1 = transform * local_vertices[0];
-    transformed_vertex2 = transform * local_vertices[1];
-    transformed_vertex3 = transform * local_vertices[2];
-    transformed_vertex4 = transform * local_vertices[3];
+    std::array<Eigen::Vector4f, 4> global_vertices{
+      transform * local_vertices[0], transform * local_vertices[1], transform * local_vertices[2],
+      transform * local_vertices[3]};
 
-    vertices.push_back({transformed_vertex1[0], transformed_vertex1[1], transformed_vertex1[2]});
-    vertices.push_back({transformed_vertex2[0], transformed_vertex2[1], transformed_vertex2[2]});
-    vertices.push_back({transformed_vertex3[0], transformed_vertex3[1], transformed_vertex3[2]});
-    vertices.push_back({transformed_vertex1[0], transformed_vertex1[1], transformed_vertex1[2]});
-    vertices.push_back({transformed_vertex3[0], transformed_vertex3[1], transformed_vertex3[2]});
-    vertices.push_back({transformed_vertex4[0], transformed_vertex4[1], transformed_vertex4[2]});
+    vertices.push_back({global_vertices[0][0], global_vertices[0][1], global_vertices[0][2]});
+    vertices.push_back({global_vertices[1][0], global_vertices[1][1], global_vertices[1][2]});
+    vertices.push_back({global_vertices[2][0], global_vertices[2][1], global_vertices[2][2]});
+    vertices.push_back({global_vertices[0][0], global_vertices[0][1], global_vertices[0][2]});
+    vertices.push_back({global_vertices[2][0], global_vertices[2][1], global_vertices[2][2]});
+    vertices.push_back({global_vertices[3][0], global_vertices[3][1], global_vertices[3][2]});
 
     const Eigen::Vector3f normal = cross_product(
-      transformed_vertex3.head<3>() - transformed_vertex1.head<3>(),
-      transformed_vertex2.head<3>() - transformed_vertex1.head<3>());
+      global_vertices[2].head<3>() - global_vertices[0].head<3>(),
+      global_vertices[1].head<3>() - global_vertices[0].head<3>());
     normals.push_back({normal[0], normal[1], normal[2]});
     normals.push_back({normal[0], normal[1], normal[2]});
     normals.push_back({normal[0], normal[1], normal[2]});
@@ -247,19 +242,17 @@ void generate_polygon3d(
   // Process the bottom face
   Eigen::Vector3f bottom_normal = -top_normal.value();
   for (size_t i = 2; i < polygon_2d.size(); ++i) {
-    std::vector<Eigen::Vector4f> local_vertices{
-      {polygon_2d.at(0).x, polygon_2d.at(0).y, -height / 2, 1},
-      {polygon_2d.at(i).x, polygon_2d.at(i).y, -height / 2, 1},
-      {polygon_2d.at(i - 1).x, polygon_2d.at(i - 1).y, -height / 2, 1}};
+    std::array<Eigen::Vector4f, 3> local_vertices{
+      Eigen::Vector4f{polygon_2d.at(0).x, polygon_2d.at(0).y, -height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(i).x, polygon_2d.at(i).y, -height / 2, 1},
+      Eigen::Vector4f{polygon_2d.at(i - 1).x, polygon_2d.at(i - 1).y, -height / 2, 1}};
 
-    Eigen::Vector4f transformed_vertex1, transformed_vertex2, transformed_vertex3;
-    transformed_vertex1 = transform * local_vertices[0];
-    transformed_vertex2 = transform * local_vertices[1];
-    transformed_vertex3 = transform * local_vertices[2];
+    std::array<Eigen::Vector4f, 3> global_vertices{
+      transform * local_vertices[0], transform * local_vertices[1], transform * local_vertices[2]};
 
-    vertices.push_back({transformed_vertex1[0], transformed_vertex1[1], transformed_vertex1[2]});
-    vertices.push_back({transformed_vertex2[0], transformed_vertex2[1], transformed_vertex2[2]});
-    vertices.push_back({transformed_vertex3[0], transformed_vertex3[1], transformed_vertex3[2]});
+    vertices.push_back({global_vertices[0][0], global_vertices[0][1], global_vertices[0][2]});
+    vertices.push_back({global_vertices[1][0], global_vertices[1][1], global_vertices[1][2]});
+    vertices.push_back({global_vertices[2][0], global_vertices[2][1], global_vertices[2][2]});
 
     const auto & normal = bottom_normal;
     normals.push_back({normal[0], normal[1], normal[2]});

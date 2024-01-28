@@ -128,14 +128,14 @@ Array Trajectory::get_wall_triangle_strip(
         Eigen::Vector3f(length_offset, -half_width, height),
         Eigen::Vector3f(length_offset, half_width, height)};
 
-      // Define the local normal
-      Eigen::Vector3f local_normal(-1, 0, 0);
+      // Define the local and rotated normal
+      const Eigen::Vector3f local_normal(-1, 0, 0);
+      Eigen::Vector3f rotated_normal = quat * local_normal;
 
       // Transform and append each point to the triangle strip
       for (size_t j = 0; j < local_points.size(); j++) {
         const auto & local_point = local_points[j];
         Eigen::Vector3f rotated_point = quat * local_point;
-        Eigen::Vector3f rotated_normal = quat * local_normal;
 
         Dictionary point_dict;
         point_dict["position"] = ros2_to_godot(
