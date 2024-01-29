@@ -1,7 +1,7 @@
 extends MeshInstance3D
 
 var trajectory = Trajectory.new()
-var wheelbase_to_front = 2.78 + 1.0
+@export var wheelbase_to_front: float = 3.78
 
 func velocity_to_normalized_value(velocity):
 	return clamp(velocity / 5.0, 0.0, 1.0)
