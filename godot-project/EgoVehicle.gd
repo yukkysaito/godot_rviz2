@@ -58,7 +58,6 @@ func _process(delta):
 		
 # Rotate the wheels based on the current speed
 func rotate_wheels(move_delta):
-	var current_speed  = velocity_report.get_velocity()
 	var rotation_delta = (move_delta / tire_radius) 
 
 	wheel_back_r.rotate_x(rotation_delta)
