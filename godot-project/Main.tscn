@@ -47,7 +47,6 @@ size = Vector3(4.8091, 1.60975, 2.14476)
 
 [sub_resource type="StandardMaterial3D" id="12"]
 render_priority = -2
-transparency = 1
 blend_mode = 1
 albedo_color = Color(0.329412, 0.254902, 0.596078, 1)
 use_point_size = true
@@ -60,7 +59,7 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="13"]
 transparency = 1
 shading_mode = 0
-albedo_color = Color(0.964706, 1, 0, 0.219608)
+albedo_color = Color(0.964706, 1, 0, 0.360784)
 use_point_size = true
 point_size = 2.0
 
@@ -78,7 +77,6 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="19"]
 render_priority = -2
 transparency = 1
-vertex_color_use_as_albedo = true
 distance_fade_mode = 1
 distance_fade_min_distance = 200.0
 distance_fade_max_distance = 0.0
@@ -103,7 +101,6 @@ vertex_color_use_as_albedo = true
 resource_name = "mesh"
 
 [sub_resource type="StandardMaterial3D" id="24"]
-render_priority = -1
 shading_mode = 0
 vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 0.823529)
@@ -116,7 +113,7 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="26"]
 render_priority = 1
 transparency = 1
-albedo_color = Color(0, 0.909804, 1, 0.623529)
+albedo_color = Color(0, 0.909804, 1, 0.886275)
 
 [sub_resource type="ArrayMesh" id="27"]
 resource_name = "mesh"
