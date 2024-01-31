@@ -13,6 +13,7 @@ func _process(_delta):
 	var road_surface_triangle_list = Array()
 	road_surface_triangle_list.append_array(vector_map.get_triangle_list("road_lanelets"))
 	road_surface_triangle_list.append_array(vector_map.get_triangle_list("shoulder_road_lanelets"))
+	road_surface_triangle_list.append_array(vector_map.get_triangle_list("intersection_area"))
 	road_surface.visualize_mesh(road_surface_triangle_list)
 	# Road Marker
 	var road_marker = get_node("RoadMarkerMesh")
@@ -23,7 +24,6 @@ func _process(_delta):
 	road_marker_verts.append_array(vector_map.get_triangle_list("shoulder_left_lane_bound"))
 	road_marker_verts.append_array(vector_map.get_triangle_list("pedestrian_marking"))
 	road_marker_verts.append_array(vector_map.get_triangle_list("stop_lines"))
-	road_marker_verts.append_array(vector_map.get_triangle_list("intersection_area"))
 	road_marker_verts.append_array(vector_map.get_triangle_list("parking_lots"))
 	road_marker.visualize_mesh(road_marker_verts)
 	# Traffic Light
