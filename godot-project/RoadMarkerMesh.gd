@@ -11,7 +11,7 @@ func visualize_mesh(triangle_list):
 	
 	for point in triangle_list:
 		verts.append(point["position"])
-		normals.append(point["normal"])
+		normals.append(Vector3(0,1,0))
 			
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_NORMAL] = normals
