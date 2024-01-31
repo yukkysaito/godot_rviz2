@@ -1,6 +1,6 @@
 extends Sprite2D
 
-var angle_scale = 17.0
+@export var angle_scale: float = 17.0
 var steering_report = SteeringReport.new()
 
 func _ready():
