@@ -17,6 +17,7 @@
 #include "register_types.h"
 
 #include "behavior_path.hpp"
+#include "camera_image.hpp"
 #include "core/object/class_db.h"
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
@@ -45,6 +46,7 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<SteeringReport>();
   ClassDB::register_class<VelocityReport>();
   ClassDB::register_class<Parameter>();
+  ClassDB::register_class<CameraImage>();
 }
 
 void uninitialize_godot_rviz2_module(ModuleInitializationLevel p_level)

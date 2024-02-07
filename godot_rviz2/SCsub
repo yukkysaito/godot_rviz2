@@ -32,7 +32,15 @@ ros_libs = ["rclcpp",
              "rcl_interfaces__rosidl_generator_c",
              "rcl_logging_interface",
              "rcl_logging_spdlog",
-             "builtin_interfaces__rosidl_generator_c"]
+             "builtin_interfaces__rosidl_generator_c",
+            #  "opencv_core", 
+            #  "opencv_imgproc", 
+            #  "opencv_highgui",
+            #  "opencv_videoio",
+             "cv_bridge",
+             "image_transport",
+             "message_filters",
+             "class_loader"]
 msg_pkgs = ["tf2_msgs",
             "actionlib_msgs",
             "action_msgs",
@@ -48,6 +56,7 @@ msg_pkgs = ["tf2_msgs",
 
 pcl_include_path = "/usr/include/pcl-1.12"
 eigen3_include_path = "/usr/include/eigen3"
+opencv4_include_path = "/usr/include/opencv4"
 
 env.add_source_files(env.modules_sources, "src/*.cpp")
 env.add_source_files(env.modules_sources, "register_types.cpp")
@@ -63,7 +72,8 @@ autoware_lib_paths = list(map(lambda pkg: autoware_path + "/" + pkg + "/lib", au
 env.Append(CPPPATH=["include", 
                     ros_path+"/include",
                     pcl_include_path,
-                    eigen3_include_path]
+                    eigen3_include_path,
+                    opencv4_include_path]
                     +ros_include_paths
                     +autoware_include_paths)
 
@@ -79,4 +89,5 @@ msg_libs = list(map(lambda pkg: pkg + msg_gen_prefix, msg_pkgs))
 
 env.Append(LIBS=ros_libs
                 +['pcl_common']
-                +msg_libs)
+                +msg_libs
+                +['opencv_imgproc', 'opencv_core'])

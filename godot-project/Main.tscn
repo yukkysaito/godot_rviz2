@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=51 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://EgoVehicle.gd" id="2"]
@@ -23,7 +23,10 @@
 [ext_resource type="Texture2D" uid="uid://dxngfcjijk4iq" path="res://console_meter_hand.png" id="23"]
 [ext_resource type="Script" path="res://ConsoleMeter.gd" id="24"]
 [ext_resource type="Script" path="res://VectorMap.gd" id="25"]
+[ext_resource type="Script" path="res://CenterCameraImage.gd" id="25_hjkii"]
 [ext_resource type="Script" path="res://PathMesh.gd" id="26"]
+[ext_resource type="Script" path="res://LeftCameraImage.gd" id="26_27xof"]
+[ext_resource type="Script" path="res://RightCameraImage.gd" id="27_f7nds"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
 sky_top_color = Color(1, 1, 1, 1)
@@ -41,9 +44,6 @@ background_mode = 2
 background_color = Color(1, 1, 1, 1)
 sky = SubResource("Sky_fb0c3")
 ambient_light_color = Color(1, 1, 1, 1)
-
-[sub_resource type="BoxShape3D" id="1"]
-size = Vector3(4.8091, 1.60975, 2.14476)
 
 [sub_resource type="StandardMaterial3D" id="12"]
 render_priority = -2
@@ -112,7 +112,9 @@ resource_name = "mesh"
 
 [sub_resource type="StandardMaterial3D" id="26"]
 render_priority = 1
-transparency = 1
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
 albedo_color = Color(0, 0.909804, 1, 0.886275)
 
 [sub_resource type="ArrayMesh" id="27"]
@@ -126,6 +128,9 @@ vertex_color_use_as_albedo = true
 
 [sub_resource type="ArrayMesh" id="31"]
 resource_name = "mesh"
+
+[sub_resource type="BoxShape3D" id="1"]
+size = Vector3(4.8091, 1.60975, 2.14476)
 
 [sub_resource type="FontFile" id="33"]
 fallbacks = Array[Font]([ExtResource("22")])
@@ -5395,38 +5400,6 @@ script = ExtResource("2_6kmdb")
 environment = SubResource("Environment_hn68x")
 script = ExtResource("2_mywyw")
 
-[node name="EgoVehicle" type="Node3D" parent="."]
-script = ExtResource("2")
-
-[node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="EgoVehicle"]
-
-[node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 3.84072, 1.10939, 0)
-light_energy = 10.0
-light_specular = 3.0
-spot_range = 200.0
-spot_angle = 54.1078
-script = ExtResource("14")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0)
-shape = SubResource("1")
-
-[node name="VehicleBody3D" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource("1")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
-
-[node name="Camera3D" type="Node3D" parent="EgoVehicle"]
-script = ExtResource("9")
-
-[node name="Horizon" type="Node3D" parent="EgoVehicle/Camera3D"]
-
-[node name="Vertical" type="Node3D" parent="EgoVehicle/Camera3D/Horizon"]
-
-[node name="ViewCamera" type="Camera3D" parent="EgoVehicle/Camera3D/Horizon/Vertical"]
-transform = Transform3D(-4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -8, 4, 0)
-size = 90.53
-far = 300.0
-
 [node name="PointCloudMapMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("12")
 mesh = SubResource("4")
@@ -5435,7 +5408,7 @@ script = ExtResource("6")
 [node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("13")
 mesh = SubResource("10")
-skeleton = NodePath("../EgoVehicle")
+skeleton = NodePath("../SubViewportContainer/SubViewport/EgoVehicle")
 script = ExtResource("7")
 
 [node name="VectorMap" type="Node3D" parent="."]
@@ -5522,12 +5495,87 @@ max_value = 4.0
 tick_count = 5
 ticks_on_borders = true
 
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+msaa_3d = 1
+size = Vector2i(1152, 648)
+
+[node name="EgoVehicle" type="Node3D" parent="SubViewportContainer/SubViewport"]
+script = ExtResource("2")
+
+[node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="SubViewportContainer/SubViewport/EgoVehicle"]
+
+[node name="HeadBeamLight" type="SpotLight3D" parent="SubViewportContainer/SubViewport/EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 3.84072, 1.10939, 0)
+light_energy = 10.0
+light_specular = 3.0
+spot_range = 200.0
+spot_angle = 54.1078
+script = ExtResource("14")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0)
+shape = SubResource("1")
+
+[node name="VehicleBody3D" parent="SubViewportContainer/SubViewport/EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource("1")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
+
+[node name="Camera3D" type="Node3D" parent="SubViewportContainer/SubViewport/EgoVehicle"]
+script = ExtResource("9")
+
+[node name="Horizon" type="Node3D" parent="SubViewportContainer/SubViewport/EgoVehicle/Camera3D"]
+
+[node name="Vertical" type="Node3D" parent="SubViewportContainer/SubViewport/EgoVehicle/Camera3D/Horizon"]
+
+[node name="ViewCamera" type="Camera3D" parent="SubViewportContainer/SubViewport/EgoVehicle/Camera3D/Horizon/Vertical"]
+transform = Transform3D(-4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -8, 4, 0)
+size = 90.53
+far = 300.0
+
+[node name="CameraImages" type="HBoxContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="LeftCameraImage" type="TextureRect" parent="CameraImages"]
+layout_mode = 2
+size_flags_horizontal = 3
+expand_mode = 4
+stretch_mode = 4
+script = ExtResource("26_27xof")
+
+[node name="CenterCameraImage" type="TextureRect" parent="CameraImages"]
+layout_mode = 2
+size_flags_horizontal = 3
+expand_mode = 4
+stretch_mode = 4
+script = ExtResource("25_hjkii")
+
+[node name="RightCameraImage" type="TextureRect" parent="CameraImages"]
+layout_mode = 2
+size_flags_horizontal = 3
+expand_mode = 4
+stretch_mode = 4
+script = ExtResource("27_f7nds")
+
 [node name="VehicleStatus" type="HBoxContainer" parent="."]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
 alignment = 1
 
 [node name="Steering" type="Sprite2D" parent="VehicleStatus"]
@@ -5561,6 +5609,6 @@ texture = ExtResource("23")
 [connection signal="toggled" from="Menu/PointCloudMapMeshCheckButton" to="PointCloudMapMesh" method="_on_CheckButton_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="Sun" method="_on_night_mode_check_button_toggled"]
 [connection signal="toggled" from="Menu/NightModeCheckButton" to="BackGround" method="_on_night_mode_check_button_toggled"]
-[connection signal="toggled" from="Menu/NightModeCheckButton" to="EgoVehicle" method="_on_night_mode_check_button_toggled"]
+[connection signal="toggled" from="Menu/NightModeCheckButton" to="SubViewportContainer/SubViewport/EgoVehicle" method="_on_night_mode_check_button_toggled"]
 [connection signal="toggled" from="Menu/OnlyKnownObjectCheckButton" to="DynamicObjectMesh" method="_on_OnlyKnownObjectCheckButton_toggled"]
 [connection signal="value_changed" from="Menu/RenderingQuality/MSAASlider" to="." method="_on_MSAASlider_value_changed"]
