@@ -28,8 +28,9 @@
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
 sky_top_color = Color(1, 1, 1, 1)
 sky_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
-sky_curve = 0.060919
+sky_curve = 0.00437356
 ground_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
+ground_curve = 0.00233258
 
 [sub_resource type="Sky" id="Sky_fb0c3"]
 sky_material = SubResource("ProceduralSkyMaterial_m8ng5")
@@ -40,6 +41,7 @@ resource_name = "environment"
 background_mode = 2
 background_color = Color(1, 1, 1, 1)
 sky = SubResource("Sky_fb0c3")
+ambient_light_source = 3
 ambient_light_color = Color(1, 1, 1, 1)
 
 [sub_resource type="BoxShape3D" id="1"]
@@ -59,7 +61,7 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="13"]
 transparency = 1
 shading_mode = 0
-albedo_color = Color(0.964706, 1, 0, 0.360784)
+albedo_color = Color(0.0823529, 0.352941, 0.654902, 0.847059)
 use_point_size = true
 point_size = 2.0
 
@@ -92,10 +94,9 @@ vertex_color_use_as_albedo = true
 resource_name = "mesh"
 
 [sub_resource type="StandardMaterial3D" id="34"]
-render_priority = -1
 transparency = 1
 shading_mode = 0
-vertex_color_use_as_albedo = true
+albedo_color = Color(0.0862745, 0.313726, 0.494118, 0.964706)
 
 [sub_resource type="ArrayMesh" id="35"]
 resource_name = "mesh"
@@ -113,7 +114,8 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="26"]
 render_priority = 1
 transparency = 1
-albedo_color = Color(0, 0.909804, 1, 0.886275)
+depth_draw_mode = 1
+albedo_color = Color(0.207843, 0.552941, 0.745098, 0.882353)
 
 [sub_resource type="ArrayMesh" id="27"]
 resource_name = "mesh"
@@ -5384,9 +5386,7 @@ cache/0/71/0/kerning_overrides/71/0 = Vector2(0, 0)
 script = ExtResource("3")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
-light_energy = 0.6
-shadow_enabled = true
+transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866026, -0.500003, 0.749999, -0.43301, 0, 3, 0)
 directional_shadow_mode = 0
 sky_mode = 1
 script = ExtResource("2_6kmdb")
