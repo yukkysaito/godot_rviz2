@@ -26,6 +26,7 @@
 #include "spinner.hpp"
 #include "steering_report.hpp"
 #include "trajectory.hpp"
+#include "vector_map.hpp"
 #include "vehicle_status.hpp"
 #include "velocity_report.hpp"
 
@@ -44,6 +45,7 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<VehicleStatus>();
   ClassDB::register_class<SteeringReport>();
   ClassDB::register_class<VelocityReport>();
+  ClassDB::register_class<VectorMap>();
   ClassDB::register_class<Parameter>();
 }
 

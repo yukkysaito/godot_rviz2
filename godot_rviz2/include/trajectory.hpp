@@ -79,7 +79,7 @@ private:
    * @param velocity Velocity at this point
    * @return A Dictionary containing position, normal, and velocity
    */
-  Dictionary create_point_dict(
+  Dictionary create_offset_point_dict_with_velocity(
     const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
     const float velocity);
 };

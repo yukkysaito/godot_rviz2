@@ -1,6 +1,8 @@
 # SCsub
 
 import os
+from itertools import chain
+
 Import('env')
 
 ros_distro = "humble"
@@ -32,7 +34,9 @@ ros_libs = ["rclcpp",
              "rcl_interfaces__rosidl_generator_c",
              "rcl_logging_interface",
              "rcl_logging_spdlog",
-             "builtin_interfaces__rosidl_generator_c"]
+             "builtin_interfaces__rosidl_generator_c",
+             "lanelet2_core",
+             "lanelet2_extension_lib"]
 msg_pkgs = ["tf2_msgs",
             "actionlib_msgs",
             "action_msgs",
@@ -43,6 +47,7 @@ msg_pkgs = ["tf2_msgs",
             "std_msgs",
             "rosgraph_msgs",
             "autoware_auto_planning_msgs",
+            "autoware_auto_mapping_msgs",
             "autoware_auto_perception_msgs",
             "autoware_auto_vehicle_msgs"]
 
@@ -57,7 +62,9 @@ ros_pkgs = set([f for f in os.listdir(ros_path+"/include") if os.path.isdir(os.p
 ros_include_paths = list(map(lambda pkg: ros_path +"/include/" + pkg, ros_pkgs))
 ros_lib_path = ros_path +"/lib"
 autoware_pkgs = [f for f in os.listdir(autoware_path) if os.path.isdir(os.path.join(autoware_path, f))]
-autoware_include_paths = list(map(lambda pkg: autoware_path + "/" + pkg + "/include/" + pkg, autoware_pkgs))
+autoware_include_paths = list(chain.from_iterable(
+    [[autoware_path + "/" + pkg + "/include/", autoware_path + "/" + pkg + "/include/" + pkg] for pkg in autoware_pkgs]
+))
 autoware_lib_paths = list(map(lambda pkg: autoware_path + "/" + pkg + "/lib", autoware_pkgs))
 
 env.Append(CPPPATH=["include", 

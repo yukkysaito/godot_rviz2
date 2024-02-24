@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://c12wli2xky3ja"]
+[gd_scene load_steps=20 format=3 uid="uid://c12wli2xky3ja"]
 
 [ext_resource type="PackedScene" uid="uid://5ayw2a03ou6w" path="res://Vehicle/RX450h/RX450h.glb" id="1_qgkfj"]
 [ext_resource type="Script" path="res://Vehicle/BrakeLight.gd" id="22"]
@@ -9,6 +9,10 @@
 emission_enabled = true
 emission = Color(1, 1, 1, 1)
 emission_energy_multiplier = 10.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_abhho"]
+emission = Color(0.423529, 0.423529, 0.423529, 1)
+emission_energy_multiplier = 0.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pv2si"]
 albedo_color = Color(0, 0, 0, 1)
@@ -83,6 +87,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_xu21l")
 script = ExtResource("28")
 
 [node name="BodyCar" parent="." index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_abhho")
 surface_material_override/1 = SubResource("StandardMaterial3D_pv2si")
 surface_material_override/7 = SubResource("StandardMaterial3D_l86j3")
 surface_material_override/8 = SubResource("StandardMaterial3D_6ky6s")

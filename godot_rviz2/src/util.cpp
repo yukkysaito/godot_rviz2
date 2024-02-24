@@ -35,14 +35,6 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/utils.h>
 
-namespace
-{
-/**
- * @brief Determines if a 2D polygon is defined in a clockwise manner.
- *
- * @param polygon_2d The 2D polygon to check.
- * @return True if the polygon is clockwise, false otherwise.
- */
 bool is_clockwise(const std::vector<Vector2> & polygon_2d)
 {
   // Get the number of points in the polygon
@@ -63,12 +55,6 @@ bool is_clockwise(const std::vector<Vector2> & polygon_2d)
   return sum < 0.0;
 }
 
-/**
- * @brief Inverts the order of vertices in a 2D polygon to change its winding.
- *
- * @param polygon_2d The 2D polygon to invert.
- * @return A new polygon with vertices in the inverse order.
- */
 std::vector<Vector2> inverse_clockwise(const std::vector<Vector2> & polygon_2d)
 {
   // Create a copy of the original polygon
@@ -79,7 +65,70 @@ std::vector<Vector2> inverse_clockwise(const std::vector<Vector2> & polygon_2d)
 
   return inversed_polygon;
 }
-}  // namespace
+
+Dictionary create_offset_point_dict(
+  const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset)
+{
+  // Calculation of the rotated offset
+  Eigen::Vector3f local_offset, rotated_offset;
+  local_offset << 0, width_offset, 0;
+  rotated_offset = quat * local_offset;
+
+  // Conversion to Godot's coordinate system
+  Vector3 godot_position = ros2_to_godot(
+    position.x() + rotated_offset.x(), position.y() + rotated_offset.y(),
+    position.z() + rotated_offset.z());
+
+  // Calculation of the rotated normal
+  Eigen::Vector3f local_normal, rotated_normal;
+  local_normal << 0, 0, 1;
+  rotated_normal = quat * local_normal;
+  Vector3 godot_normal = ros2_to_godot(rotated_normal.x(), rotated_normal.y(), rotated_normal.z());
+
+  // Creating the dictionary with calculated values
+  Dictionary point_dict;
+  point_dict["position"] = godot_position;
+  point_dict["normal"] = godot_normal;
+  return point_dict;
+}
+
+Array calculate_line_as_triangle_strip(
+  const std::vector<geometry_msgs::msg::Point> & line, float width)
+{
+  Array line_triangle_points;
+  Eigen::Vector2f previous_front_vec;
+
+  for (size_t i = 0; i < line.size(); ++i) {
+    const Eigen::Vector3f position(line.at(i).x, line.at(i).y, line.at(i).z);
+
+    float yaw;
+    if (i == 0) {  // start point
+      Eigen::Vector2f front_vec(line.at(i + 1).x - line.at(i).x, line.at(i + 1).y - line.at(i).y);
+      front_vec.normalize();
+      yaw = std::atan2(front_vec.y(), front_vec.x());
+      previous_front_vec = front_vec;
+    } else if (i == line.size() - 1) {  // end point
+      Eigen::Vector2f & back_vec = previous_front_vec;
+      yaw = std::atan2(back_vec.y(), back_vec.x());
+    } else {  // middle points
+      Eigen::Vector2f front_vec(line.at(i + 1).x - line.at(i).x, line.at(i + 1).y - line.at(i).y);
+      Eigen::Vector2f & back_vec = previous_front_vec;
+      front_vec.normalize();
+      yaw = std::atan2(front_vec.y() + back_vec.y(), front_vec.x() + back_vec.x());
+      previous_front_vec = front_vec;
+    }
+
+    Eigen::Quaternionf quat = Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitX()) *
+                              Eigen::AngleAxisf(0.0, Eigen::Vector3f::UnitY()) *
+                              Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
+
+    // Append two points for each path point to form a strip
+    line_triangle_points.append(create_offset_point_dict(quat, position, -(width / 2.0)));
+    line_triangle_points.append(create_offset_point_dict(quat, position, (width / 2.0)));
+  }
+
+  return line_triangle_points;
+}
 
 std::optional<geometry_msgs::msg::Transform> get_transform(
   const tf2_ros::Buffer & tf_buffer, const std::string & source_frame_id,

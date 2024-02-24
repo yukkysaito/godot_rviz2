@@ -26,9 +26,10 @@
 [ext_resource type="Script" path="res://PathMesh.gd" id="26"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
-sky_top_color = Color(1, 1, 1, 1)
+sky_top_color = Color(0, 0, 0, 1)
 sky_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
 sky_curve = 0.00437356
+ground_bottom_color = Color(0.207843, 0.223529, 0.294118, 1)
 ground_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
 ground_curve = 0.00233258
 
@@ -42,7 +43,6 @@ background_mode = 2
 background_color = Color(1, 1, 1, 1)
 sky = SubResource("Sky_fb0c3")
 ambient_light_source = 3
-ambient_light_color = Color(1, 1, 1, 1)
 
 [sub_resource type="BoxShape3D" id="1"]
 size = Vector3(4.8091, 1.60975, 2.14476)
@@ -50,7 +50,12 @@ size = Vector3(4.8091, 1.60975, 2.14476)
 [sub_resource type="StandardMaterial3D" id="12"]
 render_priority = -2
 blend_mode = 1
+cull_mode = 2
 albedo_color = Color(0.329412, 0.254902, 0.596078, 1)
+clearcoat = 0.0
+clearcoat_roughness = 0.33
+ao_light_affect = 0.64
+grow_amount = -11.812
 use_point_size = true
 distance_fade_mode = 1
 distance_fade_max_distance = 200.0
@@ -71,7 +76,8 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="17"]
 render_priority = -3
 transparency = 1
-albedo_color = Color(0.607843, 0.607843, 0.607843, 1)
+shading_mode = 0
+albedo_color = Color(0, 0.0745098, 0.137255, 1)
 
 [sub_resource type="ArrayMesh" id="16"]
 resource_name = "mesh"
@@ -79,9 +85,10 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="19"]
 render_priority = -2
 transparency = 1
-distance_fade_mode = 1
-distance_fade_min_distance = 200.0
-distance_fade_max_distance = 0.0
+shading_mode = 0
+albedo_color = Color(0.529412, 0.529412, 0.529412, 1)
+proximity_fade_distance = 1000.0
+distance_fade_max_distance = 200.0
 
 [sub_resource type="ArrayMesh" id="18"]
 resource_name = "mesh"
@@ -115,7 +122,10 @@ resource_name = "mesh"
 render_priority = 1
 transparency = 1
 depth_draw_mode = 1
-albedo_color = Color(0.207843, 0.552941, 0.745098, 0.882353)
+albedo_color = Color(0.317647, 0.670588, 0.878431, 0.847059)
+emission_enabled = true
+emission = Color(0, 0.105882, 0.129412, 1)
+emission_energy_multiplier = 0.5
 
 [sub_resource type="ArrayMesh" id="27"]
 resource_name = "mesh"
@@ -5425,7 +5435,7 @@ script = ExtResource("9")
 [node name="ViewCamera" type="Camera3D" parent="EgoVehicle/Camera3D/Horizon/Vertical"]
 transform = Transform3D(-4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -8, 4, 0)
 size = 90.53
-far = 300.0
+far = 500.0
 
 [node name="PointCloudMapMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("12")
@@ -5459,6 +5469,7 @@ mesh = SubResource("29")
 script = ExtResource("13")
 
 [node name="PathDrivableAreaMesh" type="MeshInstance3D" parent="."]
+visible = false
 material_override = SubResource("34")
 mesh = SubResource("35")
 script = ExtResource("26")

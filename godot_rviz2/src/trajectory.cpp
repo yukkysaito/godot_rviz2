@@ -16,6 +16,8 @@
 
 #include "trajectory.hpp"
 
+#include "util.hpp"
+
 #include <string>
 #define EIGEN_MPL2_ONLY
 #include <eigen3/Eigen/Core>
@@ -35,31 +37,12 @@ void Trajectory::_bind_methods()
   TOPIC_SUBSCRIBER_BIND_METHODS(Trajectory);
 }
 
-Dictionary Trajectory::create_point_dict(
+Dictionary Trajectory::create_offset_point_dict_with_velocity(
   const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset,
   const float velocity)
 {
-  // Calculation of the rotated offset
-  Eigen::Vector3f local_offset, rotated_offset;
-  local_offset << 0, width_offset, 0;
-  rotated_offset = quat * local_offset;
-
-  // Conversion to Godot's coordinate system
-  Vector3 godot_position = ros2_to_godot(
-    position.x() + rotated_offset.x(), position.y() + rotated_offset.y(),
-    position.z() + rotated_offset.z());
-
-  // Calculation of the rotated normal
-  Eigen::Vector3f local_normal, rotated_normal;
-  local_normal << 0, 0, 1;
-  rotated_normal = quat * local_normal;
-  Vector3 godot_normal = ros2_to_godot(rotated_normal.x(), rotated_normal.y(), rotated_normal.z());
-
-  // Creating the dictionary with calculated values
-  Dictionary point_dict;
+  Dictionary point_dict = create_offset_point_dict(quat, position, width_offset);
   point_dict["velocity"] = velocity;
-  point_dict["position"] = godot_position;
-  point_dict["normal"] = godot_normal;
   return point_dict;
 }
 
@@ -81,10 +64,10 @@ Array Trajectory::get_trajectory_triangle_strip(const float width)
     Eigen::Vector3f position(pose.position.x, pose.position.y, pose.position.z);
 
     // Append two points for each trajectory point to form a strip
-    triangle_strip.append(
-      create_point_dict(quat, position, -(width / 2.0), point.longitudinal_velocity_mps));
-    triangle_strip.append(
-      create_point_dict(quat, position, (width / 2.0), point.longitudinal_velocity_mps));
+    triangle_strip.append(create_offset_point_dict_with_velocity(
+      quat, position, -(width / 2.0), point.longitudinal_velocity_mps));
+    triangle_strip.append(create_offset_point_dict_with_velocity(
+      quat, position, (width / 2.0), point.longitudinal_velocity_mps));
   }
 
   return triangle_strip;

@@ -35,6 +35,42 @@
 #include <eigen3/Eigen/Geometry>
 
 /**
+ * @brief Determines if a 2D polygon is defined in a clockwise manner.
+ *
+ * @param polygon_2d The 2D polygon to check.
+ * @return True if the polygon is clockwise, false otherwise.
+ */
+bool is_clockwise(const std::vector<Vector2> & polygon_2d);
+
+/**
+ * @brief Inverts the order of vertices in a 2D polygon to change its winding.
+ *
+ * @param polygon_2d The 2D polygon to invert.
+ * @return A new polygon with vertices in the inverse order.
+ */
+std::vector<Vector2> inverse_clockwise(const std::vector<Vector2> & polygon_2d);
+
+/**
+ * @brief Creates a dictionary representing a point.
+ *
+ * This method calculates the rotated offset and normal for a given position and quaternion,
+ * and then converts these to a Godot-friendly format.
+ *
+ * @param quat Quaternion representing the orientation
+ * @param position Position vector
+ * @param width_offset Offset applied to the width
+ * @return A Dictionary containing position and normal
+ */
+Dictionary create_offset_point_dict(
+  const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset);
+
+/**
+ * TODO
+ */
+Array calculate_line_as_triangle_strip(
+  const std::vector<geometry_msgs::msg::Point> & line, float width);
+
+/**
  * @brief Retrieves a transformation from the TF2 buffer.
  *
  * @param tf_buffer The TF2 buffer to retrieve the transformation from.
