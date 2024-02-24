@@ -105,7 +105,7 @@ Eigen::Vector3f cross_product(const Eigen::Vector3f & a, const Eigen::Vector3f &
 }
 
 void generate_boundingbox3d(
-  float width, float height, float length, const Eigen::Translation3f & translation,
+  float width, float length, float height, const Eigen::Translation3f & translation,
   const Eigen::Quaternionf & quaternion, std::vector<Vector3> & vertices,
   std::vector<Vector3> & normals)
 {
