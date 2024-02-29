@@ -20,11 +20,41 @@
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
 #include "lanelet2_core/LaneletMap.h"
+#include "lanelet2_extension/regulatory_elements/autoware_traffic_light.hpp"
 #include "topic_subscriber.hpp"
 
 #include "autoware_auto_mapping_msgs/msg/had_map_bin.hpp"
 
 #include <vector>
+
+struct LightBulb
+{
+  std::string color;
+  Vector3 position;
+  Vector3 normal;
+  std::string arrow = "none";
+  float radius = 0.15;
+};
+struct Board
+{
+  Vector3 right_top_position;
+  Vector3 left_top_position;
+  Vector3 right_bottom_position;
+  Vector3 left_bottom_position;
+  Vector3 normal;
+};
+
+struct TrafficLight
+{
+  std::vector<LightBulb> light_bulbs;
+  Board board;
+};
+
+struct TrafficLightGroup
+{
+  std::vector<TrafficLight> traffic_lights;
+  int group_id;
+};
 
 class VectorMap : public RefCounted
 {
@@ -36,6 +66,7 @@ public:
   Array get_lanelet_triangle_list(const String & name);
   Array get_polygon_triangle_list(const String & name);
   Array get_linestring_triangle_list(const String & name, const float width);
+  Array get_traffic_light_list();
 
   VectorMap();
   ~VectorMap() = default;
@@ -65,6 +96,8 @@ private:
   lanelet::ConstPolygons3d intersection_areas_;
   lanelet::ConstPolygons3d parking_lots_;
   lanelet::ConstPolygons3d obstacle_polygons_;
+
+  std::vector<lanelet::AutowareTrafficLightConstPtr> traffic_lights_;
 
   Array get_as_triangle_list(const lanelet::ConstPolygons3d & polygons) const;
   Array get_as_triangle_list(const lanelet::ConstLanelets & lanelets) const;

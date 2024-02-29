@@ -94,8 +94,13 @@ distance_fade_max_distance = 200.0
 resource_name = "mesh"
 
 [sub_resource type="StandardMaterial3D" id="30"]
+transparency = 1
 shading_mode = 0
 vertex_color_use_as_albedo = true
+albedo_color = Color(0.329412, 0.717647, 1, 1)
+heightmap_scale = 1.777
+refraction_scale = 0.24
+distance_fade_max_distance = 0.0
 
 [sub_resource type="ArrayMesh" id="29"]
 resource_name = "mesh"
@@ -5485,6 +5490,7 @@ mesh = SubResource("27")
 script = ExtResource("10")
 
 [node name="TrafficLightRecognitionMesh" type="MeshInstance3D" parent="."]
+visible = false
 material_override = SubResource("32")
 mesh = SubResource("31")
 skeleton = NodePath("../VectorMap")

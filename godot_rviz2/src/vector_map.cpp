@@ -47,6 +47,16 @@ bool has_label(const lanelet::ConstLineString3d & linestring, const std::set<std
   if (labels.count(attr.value()) == 0) return false;
   return true;
 }
+
+bool is_attribute_value(
+  const lanelet::ConstPoint3d p, const std::string attr_str, const std::string value_str)
+{
+  lanelet::Attribute attr = p.attribute(attr_str);
+  if (attr.value().compare(value_str) == 0) {
+    return true;
+  }
+  return false;
+}
 }  // namespace
 
 namespace triangulation
@@ -161,6 +171,7 @@ void VectorMap::_bind_methods()
     D_METHOD("get_polygon_triangle_list"), &VectorMap::get_polygon_triangle_list);
   ClassDB::bind_method(
     D_METHOD("get_linestring_triangle_list"), &VectorMap::get_linestring_triangle_list);
+  ClassDB::bind_method(D_METHOD("get_traffic_light_list"), &VectorMap::get_traffic_light_list);
 
   TOPIC_SUBSCRIBER_BIND_METHODS(VectorMap);
 }
@@ -195,6 +206,9 @@ bool VectorMap::generate_graph_structure()
     lanelet::utils::query::getAllPolygonsByType(lanelet_map_, "intersection_area");
   parking_lots_ = lanelet::utils::query::getAllParkingLots(lanelet_map_);
   obstacle_polygons_ = lanelet::utils::query::getAllObstaclePolygons(lanelet_map_);
+
+  // traffic light
+  traffic_lights_ = lanelet::utils::query::autowareTrafficLights(all_lanelets_);
 
   return true;
 }
@@ -329,7 +343,7 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstPolygons3d & polygons)
     for (const auto & triangle : triangles) {
       Dictionary dict;
       dict["position"] = ros2_to_godot(triangle.x, triangle.y, triangle.z);
-      dict["normal"] = ros2_to_godot(0, 0, 1);
+      dict["normal"] = ros2_to_godot(0.f, 0.f, 1.f);
       triangle_list.append(dict);
     }
   }
@@ -358,7 +372,7 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstLineStrings3d & linest
     for (const auto & triangle : triangles) {
       Dictionary dict;
       dict["position"] = ros2_to_godot(triangle.x, triangle.y, triangle.z);
-      dict["normal"] = ros2_to_godot(0, 0, 1);
+      dict["normal"] = ros2_to_godot(0.f, 0.f, 1.f);
       triangle_list.append(dict);
     }
   }
@@ -405,9 +419,145 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstLanelets & lanelets) c
     for (const auto & triangle : triangles) {
       Dictionary dict;
       dict["position"] = ros2_to_godot(triangle.x, triangle.y, triangle.z);
-      dict["normal"] = ros2_to_godot(0, 0, 1);
+      dict["normal"] = ros2_to_godot(0.f, 0.f, 1.f);
       triangle_list.append(dict);
     }
   }
   return triangle_list;
+}
+
+void convert_to_godot_array(
+  const std::vector<TrafficLightGroup> & traffic_light_groups, Array & traffic_light_list)
+{
+  for (const auto & traffic_light_group : traffic_light_groups) {
+    Dictionary traffic_light_group_dict;
+    traffic_light_group_dict["group_id"] = traffic_light_group.group_id;
+
+    Array traffic_lights;
+    for (const auto & traffic_light : traffic_light_group.traffic_lights) {
+      Dictionary traffic_light_dict;
+      Dictionary board_dict;
+      board_dict["right_top_position"] = traffic_light.board.right_top_position;
+      board_dict["left_top_position"] = traffic_light.board.left_top_position;
+      board_dict["right_bottom_position"] = traffic_light.board.right_bottom_position;
+      board_dict["left_bottom_position"] = traffic_light.board.left_bottom_position;
+      board_dict["normal"] = traffic_light.board.normal;
+      traffic_light_dict["board"] = board_dict;
+      Array light_bulbs;
+      for (const auto & light_bulb : traffic_light.light_bulbs) {
+        Dictionary light_bulb_dict;
+        light_bulb_dict["color"] = String(light_bulb.color.c_str());
+        light_bulb_dict["position"] = light_bulb.position;
+        light_bulb_dict["normal"] = light_bulb.normal;
+        light_bulb_dict["arrow"] = String(light_bulb.arrow.c_str());
+        light_bulb_dict["radius"] = light_bulb.radius;
+        light_bulbs.append(light_bulb_dict);
+      }
+      traffic_light_dict["light_bulbs"] = light_bulbs;
+      traffic_lights.append(traffic_light_dict);
+    }
+    traffic_light_group_dict["traffic_lights"] = traffic_lights;
+    traffic_light_list.append(traffic_light_group_dict);
+  }
+
+  return;
+}
+
+void get_traffic_light_groups_from_lanelet_map(
+  const std::vector<lanelet::AutowareTrafficLightConstPtr> & regulatory_elements,
+  std::vector<TrafficLightGroup> & traffic_light_groups)
+{
+  for (const auto & regulatory_element : regulatory_elements) {
+    const auto reg_traffic_lights = regulatory_element->trafficLights();
+    std::unordered_map<int /* board id */, Board> boards_map;
+    std::unordered_map<int /* board id */, std::vector<LightBulb>> light_bulbs_map;
+    // board
+
+    for (const auto & reg_traffic_light : reg_traffic_lights) {
+      if (!reg_traffic_light.isLineString()) continue;
+
+      lanelet::ConstLineString3d linestring =
+        static_cast<lanelet::ConstLineString3d>(reg_traffic_light);
+
+      float height = 0.7;
+      if (linestring.hasAttribute("height")) {
+        height = std::stof(linestring.attribute("height").value());
+      }
+      Board board;
+      Eigen::Vector3f right_top(
+        linestring.back().x(), linestring.back().y(), linestring.back().z() + height);
+      Eigen::Vector3f left_top(
+        linestring.front().x(), linestring.front().y(), linestring.front().z() + height);
+      Eigen::Vector3f right_bottom(
+        linestring.back().x(), linestring.back().y(), linestring.back().z());
+      Eigen::Vector3f left_bottom(
+        linestring.front().x(), linestring.front().y(), linestring.front().z());
+
+      board.right_top_position = ros2_to_godot(right_top);
+      board.left_top_position = ros2_to_godot(left_top);
+      board.right_bottom_position = ros2_to_godot(right_bottom);
+      board.left_bottom_position = ros2_to_godot(left_bottom);
+
+      board.normal = ros2_to_godot(cross_product(right_top - left_top, left_bottom - left_top));
+
+      boards_map[linestring.id()] = board;
+    }
+
+    // light bulbs
+    for (auto linestring_light_bulbs : regulatory_element->lightBulbs()) {
+      if (!linestring_light_bulbs.hasAttribute("traffic_light_id")) {
+        continue;
+      }
+      int board_id = std::stoi(linestring_light_bulbs.attribute("traffic_light_id").value());
+      std::vector<LightBulb> light_bulbs;
+
+      for (auto point_light_bulb : linestring_light_bulbs) {
+        if (!point_light_bulb.hasAttribute("color")) {
+          std::cerr << "light bulb has no color attribute. traffic light group id is"
+                    << regulatory_element->id() << std::endl;
+          continue;
+        }
+
+        LightBulb light_bulb;
+        light_bulb.color = point_light_bulb.attribute("color").value();
+        light_bulb.position =
+          ros2_to_godot(point_light_bulb.x(), point_light_bulb.y(), point_light_bulb.z());
+        if (point_light_bulb.hasAttribute("arrow")) {
+          light_bulb.arrow = point_light_bulb.attribute("arrow").value();
+        }
+        if (point_light_bulb.hasAttribute("radius")) {
+          light_bulb.radius = std::stof(point_light_bulb.attribute("radius").value());
+        }
+        light_bulb.normal = boards_map[board_id].normal;
+        light_bulbs.push_back(light_bulb);
+      }
+
+      light_bulbs_map[board_id] = light_bulbs;
+    }
+
+    // traffic light group
+    TrafficLightGroup traffic_light_group;
+    for (const auto & board : boards_map) {
+      TrafficLight traffic_light;
+      traffic_light.board = board.second;
+      if (light_bulbs_map.find(board.first) != light_bulbs_map.end())
+        traffic_light.light_bulbs = light_bulbs_map[board.first];
+      else
+        std::cerr << "no light bulbs for board id " << board.first << std::endl;
+      traffic_light_group.traffic_lights.push_back(traffic_light);
+    }
+    traffic_light_group.group_id = regulatory_element->id();
+
+    traffic_light_groups.push_back(traffic_light_group);
+  }
+}
+
+Array VectorMap::get_traffic_light_list()
+{
+  std::vector<TrafficLightGroup> traffic_light_groups;
+  get_traffic_light_groups_from_lanelet_map(traffic_lights_, traffic_light_groups);
+
+  Array traffic_light_list;
+  convert_to_godot_array(traffic_light_groups, traffic_light_list);
+  return traffic_light_list;
 }

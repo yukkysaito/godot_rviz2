@@ -25,6 +25,7 @@
 #include "pointcloud.hpp"
 #include "spinner.hpp"
 #include "steering_report.hpp"
+#include "traffic_lights.hpp"
 #include "trajectory.hpp"
 #include "vector_map.hpp"
 #include "vehicle_status.hpp"
@@ -40,6 +41,7 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<PointCloud>();
   ClassDB::register_class<BehaviorPath>();
   ClassDB::register_class<Trajectory>();
+  ClassDB::register_class<TrafficLights>();
   ClassDB::register_class<DynamicObjects>();
   ClassDB::register_class<EgoPose>();
   ClassDB::register_class<VehicleStatus>();

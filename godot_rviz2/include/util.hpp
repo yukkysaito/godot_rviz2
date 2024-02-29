@@ -99,9 +99,14 @@ inline std::string to_std(const String & godot_s) { return std::string(godot_s.u
  * @param z The z-coordinate in ROS 2.
  * @return Vector3 The converted Vector3 in Godot's coordinate system.
  */
-inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
+inline Vector3 ros2_to_godot(const float & x, const float & y, const float & z)
 {
   return Vector3(x, z, -y);
+}
+
+inline Vector3 ros2_to_godot(const double & x, const double & y, const double & z)
+{
+  return ros2_to_godot(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 }
 
 inline Vector3 ros2_to_godot(const geometry_msgs::msg::Point & p)
@@ -112,6 +117,11 @@ inline Vector3 ros2_to_godot(const geometry_msgs::msg::Point & p)
 inline Vector3 ros2_to_godot(const geometry_msgs::msg::Vector3 & p)
 {
   return ros2_to_godot(p.x, p.y, p.z);
+}
+
+inline Vector3 ros2_to_godot(const Eigen::Vector3f & p)
+{
+  return ros2_to_godot(p.x(), p.y(), p.z());
 }
 
 /**
