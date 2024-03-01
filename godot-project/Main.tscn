@@ -129,8 +129,11 @@ transparency = 1
 depth_draw_mode = 1
 albedo_color = Color(0.317647, 0.670588, 0.878431, 0.847059)
 emission_enabled = true
-emission = Color(0, 0.105882, 0.129412, 1)
-emission_energy_multiplier = 0.5
+emission = Color(0, 0.0588235, 0.0745098, 1)
+normal_scale = -2.69
+distance_fade_mode = 1
+distance_fade_min_distance = 10.0
+distance_fade_max_distance = 25.0
 
 [sub_resource type="ArrayMesh" id="27"]
 resource_name = "mesh"
