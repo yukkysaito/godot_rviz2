@@ -25,7 +25,7 @@ func _process(_delta):
 	# Road Marker
 	var road_marker = get_node("RoadMarkerMesh")
 	var road_marker_verts = Array()
-	road_marker_verts.append_array(vector_map.get_polygon_triangle_list("pedestrian_line_marking"))
+	road_marker_verts.append_array(vector_map.get_polygon_triangle_list("pedestrian_marking"))
 	road_marker_verts.append_array(vector_map.get_linestring_triangle_list("shared_white_line", 0.05))
 	#road_marker_verts.append_array(vector_map.get_linestring_triangle_list("white_line", 0.05))
 	road_marker_verts.append_array(vector_map.get_linestring_triangle_list("stop_line", 0.5))

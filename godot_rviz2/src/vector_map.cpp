@@ -59,6 +59,50 @@ bool is_attribute_value(
 }
 }  // namespace
 
+namespace lanelet_utils
+{
+lanelet::ConstLineStrings3d get_linestrings(
+  const lanelet::LaneletMapConstPtr & lanelet_map, const std::string & type)
+{
+  lanelet::ConstLineStrings3d linestring_polygons;
+  for (const auto & ls : lanelet_map->lineStringLayer) {
+    const std::string & attr = ls.attributeOr(lanelet::AttributeName::Type, "none");
+    if (attr == type) {
+      linestring_polygons.push_back(ls);
+    }
+  }
+  return linestring_polygons;
+}
+
+lanelet::ConstPolygons3d get_polygons(
+  const lanelet::LaneletMapConstPtr & lanelet_map, const std::string & type)
+{
+  lanelet::ConstPolygons3d polygons;
+  for (const auto & poly : lanelet_map->polygonLayer) {
+    const std::string & attr = poly.attributeOr(lanelet::AttributeName::Type, "none");
+    if (attr == type) {
+      polygons.push_back(poly);
+    }
+  }
+  return polygons;
+}
+
+lanelet::ConstLanelets get_lanelets(
+  const lanelet::LaneletMapConstPtr & lanelet_map, const std::string & type)
+{
+  lanelet::ConstLanelets lanelets;
+  for (const auto & lanelet : lanelet_map->laneletLayer) {
+    if (!lanelet.hasAttribute(lanelet::AttributeName::Subtype)) continue;
+    const lanelet::Attribute & attr = lanelet.attribute(lanelet::AttributeName::Subtype);
+    if (attr.value() == type) {
+      lanelets.push_back(lanelet);
+    }
+  }
+
+  return lanelets;
+}
+}  // namespace lanelet_utils
+
 namespace triangulation
 {
 struct Vertex
@@ -184,28 +228,28 @@ bool VectorMap::generate_graph_structure()
   lanelet::utils::conversion::fromBinMsg(*(last_msg.value()), lanelet_map_);
   // lanelet
   all_lanelets_ = lanelet::utils::query::laneletLayer(lanelet_map_);
-  road_lanelets_ = lanelet::utils::query::roadLanelets(all_lanelets_);
-  shoulder_lanelets_ = lanelet::utils::query::shoulderLanelets(all_lanelets_);
-  crosswalk_lanelets_ = lanelet::utils::query::crosswalkLanelets(all_lanelets_);
-  walkway_lanelets_ = lanelet::utils::query::walkwayLanelets(all_lanelets_);
+  road_lanelets_ = lanelet_utils::get_lanelets(lanelet_map_, lanelet::AttributeValueString::Road);
+  shoulder_lanelets_ = lanelet_utils::get_lanelets(lanelet_map_, "road_shoulder");
+  crosswalk_lanelets_ =
+    lanelet_utils::get_lanelets(lanelet_map_, lanelet::AttributeValueString::Crosswalk);
+  walkway_lanelets_ =
+    lanelet_utils::get_lanelets(lanelet_map_, lanelet::AttributeValueString::Walkway);
 
   // line string
-  pedestrian_line_markings_ = lanelet::utils::query::getAllPedestrianPolygonMarkings(lanelet_map_);
+  pedestrian_markings_ = lanelet_utils::get_linestrings(lanelet_map_, "pedestrian_marking");
   stop_lines_ = lanelet::utils::query::stopLinesLanelets(road_lanelets_);
-  curbstones_ = lanelet::utils::query::curbstones(lanelet_map_);
-  parking_spaces_ = lanelet::utils::query::getAllParkingSpaces(lanelet_map_);
+  curbstones_ = lanelet_utils::get_linestrings(lanelet_map_, "curbstone");
+  parking_spaces_ = lanelet_utils::get_linestrings(lanelet_map_, "parking_space");
 
   // polygon
   no_obstacle_segmentation_area_ =
-    lanelet::utils::query::getAllPolygonsByType(lanelet_map_, "no_obstacle_segmentation_area");
-  no_obstacle_segmentation_area_for_run_out_ = lanelet::utils::query::getAllPolygonsByType(
-    lanelet_map_, "no_obstacle_segmentation_area_for_run_out");
-  hatched_road_markings_area_ =
-    lanelet::utils::query::getAllPolygonsByType(lanelet_map_, "hatched_road_markings");
-  intersection_areas_ =
-    lanelet::utils::query::getAllPolygonsByType(lanelet_map_, "intersection_area");
-  parking_lots_ = lanelet::utils::query::getAllParkingLots(lanelet_map_);
-  obstacle_polygons_ = lanelet::utils::query::getAllObstaclePolygons(lanelet_map_);
+    lanelet_utils::get_polygons(lanelet_map_, "no_obstacle_segmentation_area");
+  no_obstacle_segmentation_area_for_run_out_ =
+    lanelet_utils::get_polygons(lanelet_map_, "no_obstacle_segmentation_area_for_run_out");
+  hatched_road_markings_area_ = lanelet_utils::get_polygons(lanelet_map_, "hatched_road_markings");
+  intersection_areas_ = lanelet_utils::get_polygons(lanelet_map_, "intersection_area");
+  parking_lots_ = lanelet_utils::get_polygons(lanelet_map_, "parking_lot");
+  obstacle_polygons_ = lanelet_utils::get_polygons(lanelet_map_, "obstacle");
 
   // traffic light
   traffic_lights_ = lanelet::utils::query::autowareTrafficLights(all_lanelets_);
@@ -235,8 +279,8 @@ Array VectorMap::get_lanelet_triangle_list(const String & name)
 Array VectorMap::get_polygon_triangle_list(const String & name)
 {
   Array triangle_list;
-  if (name == "pedestrian_line_marking") {
-    triangle_list = get_as_triangle_list(pedestrian_line_markings_);
+  if (name == "pedestrian_marking") {
+    triangle_list = get_as_triangle_list(pedestrian_markings_);
   } else if (name == "intersection_area") {
     triangle_list = get_as_triangle_list(intersection_areas_);
   } else if (name == "hatched_road_markings_area") {
@@ -355,6 +399,9 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstLineStrings3d & linest
   Array triangle_list;
 
   for (const auto & linestring : linestring_polygons) {
+    if (linestring.size() < 3) {
+      continue;
+    }
     std::vector<Vector3> triangles;
 
     std::vector<Vector3> polygon;
@@ -471,8 +518,8 @@ void get_traffic_light_groups_from_lanelet_map(
     const auto reg_traffic_lights = regulatory_element->trafficLights();
     std::unordered_map<int /* board id */, Board> boards_map;
     std::unordered_map<int /* board id */, std::vector<LightBulb>> light_bulbs_map;
-    // board
 
+    // board
     for (const auto & reg_traffic_light : reg_traffic_lights) {
       if (!reg_traffic_light.isLineString()) continue;
 

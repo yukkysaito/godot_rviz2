@@ -85,7 +85,7 @@ private:
   lanelet::ConstLanelets crosswalk_lanelets_;
   lanelet::ConstLanelets walkway_lanelets_;
 
-  lanelet::ConstLineStrings3d pedestrian_line_markings_;
+  lanelet::ConstLineStrings3d pedestrian_markings_;
   lanelet::ConstLineStrings3d curbstones_;
   lanelet::ConstLineStrings3d parking_spaces_;
   lanelet::ConstLineStrings3d stop_lines_;
