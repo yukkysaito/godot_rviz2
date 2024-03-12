@@ -5524,6 +5524,7 @@ text = "Night Mode"
 layout_mode = 0
 offset_top = 80.0
 focus_mode = 0
+button_pressed = true
 text = "Only Known Objects"
 
 [node name="RenderingQuality" type="HBoxContainer" parent="Menu"]
