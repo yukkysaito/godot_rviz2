@@ -203,6 +203,9 @@ void generate_polygon3d(
   for (const auto & point : polygon_2d.points) {
     polygon_2d_vector.push_back({point.x, point.y});
   }
+  polygon_2d_vector =
+    is_clockwise(polygon_2d_vector) ? polygon_2d_vector : inverse_clockwise(polygon_2d_vector);
+
   generate_polygon3d(polygon_2d_vector, height, translation, quaternion, vertices, normals);
 }
 
