@@ -3,6 +3,7 @@ extends MeshInstance3D
 var pointcloud = PointCloud.new()
 var sum_time = 0.0
 var transparency_speed = 4.0
+var transparency_scale = 0.3 # 0.0~0.5
 var cycle_time = 3.0
 
 func _ready():
@@ -10,6 +11,15 @@ func _ready():
 
 func _process(delta):
 	sum_time += delta
+
+	if sum_time * transparency_speed < 2 * PI:
+		transparency = clamp(cos(sum_time * transparency_speed) * transparency_scale + (1 - transparency_scale), 0.0, 1.0)
+	else:
+		transparency = 1.0
+	if (cycle_time < sum_time):
+		sum_time = 0.0
+
+
 	if !pointcloud.has_new():
 		return
 
@@ -26,12 +36,6 @@ func _process(delta):
 
 	arr[Mesh.ARRAY_VERTEX] = verts
 #	arr[Mesh.ARRAY_TEX_UV] = uvs
-
-	if sum_time * transparency_speed < 2 * PI:
-		transparency = (cos(sum_time * transparency_speed) + 1.0) * 0.5
-	if (cycle_time < sum_time):
-		sum_time = 0.0
-
 
 	if !verts.is_empty():
 		mesh.clear_surfaces()
