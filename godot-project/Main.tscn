@@ -5541,8 +5541,8 @@ text = "Rendering Quality (Low-High)"
 [node name="MSAASlider" type="HSlider" parent="Menu/RenderingQuality"]
 layout_mode = 2
 size_flags_horizontal = 3
-max_value = 4.0
-tick_count = 5
+max_value = 3.0
+tick_count = 4
 ticks_on_borders = true
 
 [node name="VehicleStatus" type="HBoxContainer" parent="."]

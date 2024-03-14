@@ -31,6 +31,6 @@ common/enable_pause_aware_picking=true
 
 [rendering]
 
-anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/msaa_3d=3
 environment/defaults/default_environment="res://default_env.tres"
 quality/filters/msaa=2

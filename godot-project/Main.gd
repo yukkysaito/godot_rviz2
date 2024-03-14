@@ -8,8 +8,5 @@ func _ready():
 func _process(_delta):
 	spinner.spin_some()
 
-func _on_TextureButton_pressed():
-	pass # Replace with function body.
-
 func _on_MSAASlider_value_changed(value):
 	get_viewport().set_msaa_3d(value)
