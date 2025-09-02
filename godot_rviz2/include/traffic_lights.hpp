@@ -21,12 +21,12 @@
 #include "core/variant/variant.h"
 #include "topic_subscriber.hpp"
 
-#include "autoware_perception_msgs/msg/traffic_signal_array.hpp"
+#include "autoware_perception_msgs/msg/traffic_light_group_array.hpp"
 
 class TrafficLights : public RefCounted
 {
   GDCLASS(TrafficLights, RefCounted);
-  TOPIC_SUBSCRIBER(TrafficLights, autoware_perception_msgs::msg::TrafficSignalArray);
+  TOPIC_SUBSCRIBER(TrafficLights, autoware_perception_msgs::msg::TrafficLightGroupArray);
 
 public:
   Array get_traffic_light_status();

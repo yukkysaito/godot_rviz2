@@ -16,11 +16,11 @@
 
 #pragma once
 
+#include "autoware_lanelet2_extension/regulatory_elements/autoware_traffic_light.hpp"
 #include "core/object/ref_counted.h"
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
 #include "lanelet2_core/LaneletMap.h"
-#include "lanelet2_extension/regulatory_elements/autoware_traffic_light.hpp"
 #include "topic_subscriber.hpp"
 
 #include "autoware_map_msgs/msg/lanelet_map_bin.hpp"

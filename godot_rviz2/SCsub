@@ -36,7 +36,7 @@ ros_libs = ["rclcpp",
              "rcl_logging_spdlog",
              "builtin_interfaces__rosidl_generator_c",
              "lanelet2_core",
-             "lanelet2_extension_lib"]
+             "autoware_lanelet2_extension_lib"]
 msg_pkgs = ["tf2_msgs",
             "actionlib_msgs",
             "action_msgs",

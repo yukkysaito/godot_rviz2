@@ -173,18 +173,19 @@ func _process(_delta):
 					for light_bulb in traffic_light["light_bulbs"]:
 						if 	light_bulb["color"] != traffic_light_status_element["color"]:
 							continue
+
 						if 	light_bulb["arrow"] != traffic_light_status_element["arrow"]:
 							continue
+
 						var mesh_name = "Mesh_" + str(traffic_light_status["group_id"]) + "_" + light_bulb["color"] + "_" + light_bulb["arrow"]
 						var mesh_instance
 						if mesh_name in existing_meshes:
-							mesh_instance = existing_meshes[mesh_name]
+							# Exclude this mesh from the deletion list since it's being reused
+							existing_meshes.erase(mesh_name)
 						else:
 							mesh_instance = generate_light_bulb(light_bulb)
 							mesh_instance.name = mesh_name
 							add_child(mesh_instance)
-						# Exclude this mesh from the deletion list since it's being reused
-						existing_meshes.erase(mesh_name)
 
 	# Delete meshes that were not used
 	for mesh_instance in existing_meshes.values():
