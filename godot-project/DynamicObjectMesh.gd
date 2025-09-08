@@ -300,7 +300,7 @@ func _hide_unused_icons() -> void:
 
 # ================== Utilities ==================
 # Accepts Vector3 or Dictionary {x,y,z}; returns 'default' otherwise.
-static func _to_v3(v: Variant, default: Vector3) -> Vector3:
+func _to_v3(v: Variant, default: Vector3) -> Vector3:
 	if v is Vector3:
 		return v
 	if v is Dictionary and v.has("x") and v.has("y") and v.has("z"):
