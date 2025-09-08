@@ -5,13 +5,13 @@ class_name DynamicObjectRenderer
 @export var only_known_object: bool = true
 @export var object_3d_model_mode: bool = false
 
-@export var initial_pool: int = 16     # Initial pool size per type (keep small)
-@export var pool_growth_step: int = 8  # Grow when shortage happens
+@export var initial_pool: int = 16     # Initial pool size per type
+@export var pool_growth_step: int = 8  # Pool growth step when shortage occurs
 
-# If model's origin is the "center" and you want to place it on the ground.
+# If model origin is "center" and you want it to sit on the ground.
 @export var use_ground_offset: bool = true
 
-# What does the incoming 'position' mean?
+# Meaning of incoming 'position':
 # - true  : position == ground contact point
 # - false : position == model center
 @export var position_is_ground_contact: bool = false
@@ -21,15 +21,16 @@ class_name DynamicObjectRenderer
 # - true : degrees  (we assign rotation_degrees)
 @export var rotation_is_degrees: bool = false
 
-# ================== Internal states ==================
-var dynamic_objects := DynamicObjects.new()
-var array_mesh := ArrayMesh.new()  # For triangle rendering mode
+# ===== 2D Icon (billboard) settings =====
+@export var show_icons: bool = true
+const PX_TO_M := 0.001                      # 1 pixel = 0.001 m
+const ICON_EXTRA_OFFSET_M := 0.5            # Additional +1.0 m above object height
 
-# pools[type] = {
-#   "scene": PackedScene,
-#   "pool": Array[Node3D],
-#   "used": int  # number of used nodes in the current frame
-# }
+# ================== Internal state ==================
+var dynamic_objects := DynamicObjects.new()
+var array_mesh := ArrayMesh.new()  # Surface for triangle mode
+
+# Model pools: pools[type] = { "scene": PackedScene, "pool": Array[Node3D], "used": int }
 var pools := {
 	"car":        {"scene": preload("res://DynamicObject/Car.tscn")        as PackedScene, "pool": [] as Array[Node3D], "used": 0},
 	"pedestrian": {"scene": preload("res://DynamicObject/Pedestrian.tscn") as PackedScene, "pool": [] as Array[Node3D], "used": 0},
@@ -40,22 +41,178 @@ var pools := {
 	"motorcycle": {"scene": preload("res://DynamicObject/Motorcycle.tscn") as PackedScene, "pool": [] as Array[Node3D], "used": 0},
 }
 
+# Icon textures (type -> Texture2D). Paths follow: res://DynamicObject/Foo.png
+const ICON_TEX := {
+	"car": preload("res://DynamicObject/Car.png"),
+	"pedestrian": preload("res://DynamicObject/Pedestrian.png"),
+	"truck": preload("res://DynamicObject/Truck.png"),
+	"trailer": preload("res://DynamicObject/Trailer.png"),
+	"bus": preload("res://DynamicObject/Bus.png"),
+	"bicycle": preload("res://DynamicObject/Bicycle.png"),
+	"motorcycle": preload("res://DynamicObject/Motorcycle.png"),
+}
+
+# Icon pools: icon_pools[type] = { "pool": Array[MeshInstance3D], "used": int }
+var icon_pools := {
+	"car": {"pool": [] as Array[MeshInstance3D], "used": 0},
+	"pedestrian": {"pool": [] as Array[MeshInstance3D], "used": 0},
+	"truck": {"pool": [] as Array[MeshInstance3D], "used": 0},
+	"trailer": {"pool": [] as Array[MeshInstance3D], "used": 0},
+	"bus": {"pool": [] as Array[MeshInstance3D], "used": 0},
+	"bicycle": {"pool": [] as Array[MeshInstance3D], "used": 0},
+	"motorcycle": {"pool": [] as Array[MeshInstance3D], "used": 0},
+}
+
 func _ready() -> void:
-	# Subscribe to your object topic
+	# Subscribe to dynamic object topic
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
 
-	# Prepare initial pools
-	_initialize_pools(initial_pool)
+	# Initialize pools
+	_initialize_model_pools(initial_pool)
+	_initialize_icon_pools(initial_pool)
 
-	# Set default mesh for triangle mode (will be reused)
+	# Prepare triangle mode mesh
 	mesh = array_mesh
 
-# ------------------ Pool management ------------------
-func _initialize_pools(count: int) -> void:
-	for t in pools.keys():
-		_grow_pool(t, count)
+# ================== Main loop ==================
+func _process(_delta: float) -> void:
+	if not dynamic_objects.has_new():
+		return
 
-func _grow_pool(t: String, count: int) -> void:
+	# Fetch once and reuse for both model/triangle and icons
+	var objects := dynamic_objects.get_dynamic_object_list(only_known_object)
+
+	if object_3d_model_mode:
+		_render_models(objects)
+	else:
+		_render_triangles()
+
+	if show_icons:
+		_render_icons(objects)
+
+	dynamic_objects.set_old()
+
+# ================== Models ==================
+func _render_models(objects: Array) -> void:
+	# Clear triangle surfaces when switching from triangle mode
+	array_mesh.clear_surfaces()
+
+	_reset_usage_counters()
+	for obj in objects:
+		var t: String = obj.get("class", "")
+		if not pools.has(t):
+			continue
+
+		var node := _borrow_model_node(t)
+		var pos: Vector3  = _to_v3(obj.get("position",  Vector3.ZERO), Vector3.ZERO)
+		var size: Vector3 = _to_v3(obj.get("size",      Vector3.ONE),  Vector3.ONE)
+		var rot:  Vector3 = _to_v3(obj.get("rotation",  Vector3.ZERO), Vector3.ZERO)
+
+		# Apply ground offset consistently with "position_is_ground_contact"
+		pos = _apply_ground_offset(pos, size)
+
+		# Assign transform
+		node.position = pos
+		if rotation_is_degrees:
+			node.rotation_degrees = rot
+		else:
+			node.rotation = rot
+		node.visible = true
+
+		# Also place an icon above this object
+		if show_icons:
+			_place_icon_for_object(t, pos, size)
+
+	_hide_unused_nodes()
+
+func _render_triangles() -> void:
+	# Disable all model nodes (triangle mode renders the mesh surface only)
+	for t in pools.keys():
+		_disable_all_in_pool(pools[t]["pool"])
+		pools[t]["used"] = 0
+
+	# Reset icon usage (icons will be placed from object list later)
+	for t in icon_pools.keys():
+		icon_pools[t]["used"] = 0
+
+	# Build triangle arrays
+	var triangles := dynamic_objects.get_triangle_list(only_known_object)
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+
+	for p in triangles:
+		verts.append(_to_v3(p.get("position", Vector3.ZERO), Vector3.ZERO))
+		norms.append(_to_v3(p.get("normal",   Vector3.UP),   Vector3.UP))
+
+	array_mesh.clear_surfaces()
+	if not verts.is_empty():
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = verts
+		arr[Mesh.ARRAY_NORMAL] = norms
+		array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+
+	if mesh != array_mesh:
+		mesh = array_mesh
+
+# ================== Icons (billboard) ==================
+func _render_icons(objects: Array) -> void:
+	# Place exactly one icon per dynamic object
+	_reset_icon_usage_counters()
+	for obj in objects:
+		var t: String = obj.get("class", "")
+		var pos: Vector3  = _to_v3(obj.get("position",  Vector3.ZERO), Vector3.ZERO)
+		var size: Vector3 = _to_v3(obj.get("size",      Vector3.ONE),  Vector3.ONE)
+
+		pos = _apply_ground_offset(pos, size)
+		_place_icon_for_object(t, pos, size)
+
+	_hide_unused_icons()
+
+func _place_icon_for_object(t: String, obj_center_pos: Vector3, obj_size: Vector3) -> void:
+	# Resolve texture by class; skip if none
+	if not ICON_TEX.has(t):
+		return
+	var tex: Texture2D = ICON_TEX[t]
+
+	# Borrow icon node for this type
+	var icon_node := _borrow_icon_node(t)
+
+	# Compute quad size in meters from texture pixels
+	var tex_size: Vector2i = tex.get_size()
+	var w_m := float(tex_size.x) * PX_TO_M
+	var h_m := float(tex_size.y) * PX_TO_M
+
+	# Ensure mesh size matches the texture (per-instance)
+	var qm := icon_node.mesh as QuadMesh
+	if qm.size.x != w_m or qm.size.y != h_m:
+		qm.size = Vector2(w_m, h_m)
+
+	# Ensure material is configured and texture is set
+	var mat := icon_node.get_active_material(0)
+	if mat is StandardMaterial3D:
+		var sm := mat as StandardMaterial3D
+		if sm.albedo_texture != tex:
+			sm.albedo_texture = tex
+		# Keep billboard/alpha settings stable
+		sm.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		sm.cull_mode = BaseMaterial3D.CULL_BACK
+
+	# Vertical placement:
+	var icon_center_y := obj_center_pos.y + float(obj_size.y) + ICON_EXTRA_OFFSET_M + (0.5 * h_m)
+
+	# Final icon position; facing is handled by BILLBOARD_FIXED_Y (no rotation needed)
+	icon_node.position = Vector3(obj_center_pos.x, icon_center_y, obj_center_pos.z)
+	icon_node.visible = true
+
+# ================== Pool helpers ==================
+func _initialize_model_pools(count: int) -> void:
+	for t in pools.keys():
+		_grow_model_pool(t, count)
+
+func _grow_model_pool(t: String, count: int) -> void:
 	var scene := pools[t]["scene"] as PackedScene
 	var pool: Array[Node3D] = pools[t]["pool"]
 	for i in range(count):
@@ -64,109 +221,104 @@ func _grow_pool(t: String, count: int) -> void:
 		add_child(node)
 		pool.append(node)
 
-# ------------------ Main loop ------------------
-func _process(_delta: float) -> void:
-	if not dynamic_objects.has_new():
-		return
+func _borrow_model_node(t: String) -> Node3D:
+	var pool: Array[Node3D] = pools[t]["pool"]
+	var used: int = pools[t]["used"]
+	if used >= pool.size():
+		_grow_model_pool(t, pool_growth_step)
+	var node: Node3D = pool[used]
+	pools[t]["used"] = used + 1
+	return node
 
-	if object_3d_model_mode:
-		_render_models()
-	else:
-		_render_triangles()
-
-	dynamic_objects.set_old()
-
-# ------------------ Model rendering ------------------
-func _render_models() -> void:
-	# Clear triangle mesh surface to avoid interference when switching mode
-	array_mesh.clear_surfaces()
-
-	# Reset usage counters for all types
+func _hide_unused_nodes() -> void:
 	for t in pools.keys():
-		pools[t]["used"] = 0
-
-	var objects := dynamic_objects.get_dynamic_object_list(only_known_object)
-	for obj in objects:
-		var t: String = obj.get("class", "")
-		if not pools.has(t):
-			continue
-
 		var pool: Array[Node3D] = pools[t]["pool"]
 		var used: int = pools[t]["used"]
+		for i in range(used, pool.size()):
+			if pool[i].visible:
+				pool[i].visible = false
 
-		# Grow pool if needed
-		if used >= pool.size():
-			_grow_pool(t, pool_growth_step)
+func _disable_all_in_pool(pool: Array) -> void:
+	for n in pool:
+		if n.visible:
+			n.visible = false
 
-		var node: Node3D = pool[used]
-
-		# Robustly parse vectors (accept Vector3 or {x,y,z} dictionary)
-		var pos: Vector3  = _to_v3(obj.get("position",  Vector3.ZERO), Vector3.ZERO)
-		var size: Vector3 = _to_v3(obj.get("size",      Vector3.ONE),  Vector3.ONE)
-		var rot:  Vector3 = _to_v3(obj.get("rotation",  Vector3.ZERO), Vector3.ZERO)
-
-		# Ground offset handling:
-		# If input position is ground point and origin is center -> shift UP by +0.5*size.y
-		# If input position is center and you want ground contact   -> shift DOWN by -0.5*size.y
-		if use_ground_offset:
-			if position_is_ground_contact:
-				pos.y += 0.5 * float(size.y)
-			else:
-				pos.y -= 0.5 * float(size.y)
-
-		# Assign transform
-		node.position = pos
-		if rotation_is_degrees:
-			node.rotation_degrees = rot
-		else:
-			node.rotation = rot
-
-		node.visible = true
-		pools[t]["used"] = used + 1
-
-	# Hide only the unused nodes (minimal work per frame)
+func _reset_usage_counters() -> void:
 	for t in pools.keys():
-		var pool2: Array[Node3D] = pools[t]["pool"]
-		var used2: int = pools[t]["used"]
-		for i in range(used2, pool2.size()):
-			var n: Node3D = pool2[i]
-			if n.visible:
-				n.visible = false
-
-# ------------------ Triangle rendering ------------------
-func _render_triangles() -> void:
-	# Turn off all models (when switching from model mode)
-	for t in pools.keys():
-		var pool: Array[Node3D] = pools[t]["pool"]
 		pools[t]["used"] = 0
-		for n in pool:
-			if n.visible:
-				n.visible = false
 
-	# Build triangle arrays
-	var triangles := dynamic_objects.get_triangle_list(only_known_object)
-	var verts := PackedVector3Array()
-	var norms := PackedVector3Array()
-	verts.clear()
-	norms.clear()
+# ================== Icon pool helpers ==================
+func _initialize_icon_pools(count: int) -> void:
+	for t in icon_pools.keys():
+		_grow_icon_pool(t, count)
 
-	for p in triangles:
-		# Fallbacks keep sizes in sync even if 'normal' is missing.
-		verts.append(_to_v3(p.get("position", Vector3.ZERO), Vector3.ZERO))
-		norms.append(_to_v3(p.get("normal",   Vector3.UP),   Vector3.UP))
+func _grow_icon_pool(t: String, count: int) -> void:
+	var pool: Array[MeshInstance3D] = icon_pools[t]["pool"]
+	for i in range(count):
+		var mi := _make_icon_node()
+		add_child(mi)
+		pool.append(mi)
 
-	array_mesh.clear_surfaces()
+func _make_icon_node() -> MeshInstance3D:
+	# Create a MeshInstance3D with QuadMesh + StandardMaterial3D (billboard)
+	var mi := MeshInstance3D.new()
 
-	if not verts.is_empty():
-		var arr := []
-		arr.resize(Mesh.ARRAY_MAX)
-		arr[Mesh.ARRAY_VERTEX] = verts
-		arr[Mesh.ARRAY_NORMAL] = norms
-		array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	var qm := QuadMesh.new()
+	mi.mesh = qm
 
-	# Ensure mesh reference is correct
-	if mesh != array_mesh:
-		mesh = array_mesh
+	var mat := StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	mat.vertex_color_use_as_albedo = false
+	mat.cull_mode = BaseMaterial3D.CULL_BACK
+	mi.set_surface_override_material(0, mat)
+
+	mi.visible = false
+	return mi
+
+func _borrow_icon_node(t: String) -> MeshInstance3D:
+	var pool: Array[MeshInstance3D] = icon_pools[t]["pool"]
+	var used: int = icon_pools[t]["used"]
+	if used >= pool.size():
+		_grow_icon_pool(t, pool_growth_step)
+	var node := pool[used]
+	icon_pools[t]["used"] = used + 1
+	return node
+
+func _reset_icon_usage_counters() -> void:
+	for t in icon_pools.keys():
+		icon_pools[t]["used"] = 0
+
+func _hide_unused_icons() -> void:
+	for t in icon_pools.keys():
+		var pool: Array[MeshInstance3D] = icon_pools[t]["pool"]
+		var used: int = icon_pools[t]["used"]
+		for i in range(used, pool.size()):
+			if pool[i].visible:
+				pool[i].visible = false
+
+# ================== Utilities ==================
+# Accepts Vector3 or Dictionary {x,y,z}; returns 'default' otherwise.
+static func _to_v3(v: Variant, default: Vector3) -> Vector3:
+	if v is Vector3:
+		return v
+	if v is Dictionary and v.has("x") and v.has("y") and v.has("z"):
+		return Vector3(v["x"], v["y"], v["z"])
+	return default
+
+# Apply consistent ground offset relative to model origin and "position_is_ground_contact".
+func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
+	if not use_ground_offset:
+		return pos
+	var p := pos
+	if position_is_ground_contact:
+		# Incoming position is ground point; move to model center by +0.5 * height
+		p.y += 0.5 * float(size.y)
+	else:
+		# Incoming position is model center; move down so the model sits on the ground
+		p.y -= 0.5 * float(size.y)
+	return p
 
 # ------------------ UI callbacks ------------------
 func _on_OnlyKnownObjectCheckButton_toggled(button_pressed: bool) -> void:
@@ -174,12 +326,3 @@ func _on_OnlyKnownObjectCheckButton_toggled(button_pressed: bool) -> void:
 
 func _on_d_model_object_toggled(toggled_on: bool) -> void:
 	object_3d_model_mode = toggled_on
-
-# ------------------ Utilities ------------------
-# Accepts either a Vector3 or a Dictionary {x,y,z}; returns 'default' otherwise.
-static func _to_v3(v: Variant, default: Vector3) -> Vector3:
-	if v is Vector3:
-		return v
-	if v is Dictionary and v.has("x") and v.has("y") and v.has("z"):
-		return Vector3(v["x"], v["y"], v["z"])
-	return default
