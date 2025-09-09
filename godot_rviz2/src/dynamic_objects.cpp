@@ -83,6 +83,7 @@ Array DynamicObjects::get_dynamic_object_list(bool only_known_objects)
   for (const auto & object : last_msg.value()->objects) {
     if (only_known_objects && object.classification.front().label == Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
+    const auto & velocity = object.kinematics.initial_twist_with_covariance.twist.linear;
     const auto & quat = object.kinematics.initial_pose_with_covariance.pose.orientation;
     const auto & shape = object.shape;
 
@@ -97,6 +98,7 @@ Array DynamicObjects::get_dynamic_object_list(bool only_known_objects)
     dynamic_object["rotation"] = ros2_to_godot(roll, pitch, yaw);
     dynamic_object["size"] =
       ros2_to_godot(shape.dimensions.x, shape.dimensions.y, shape.dimensions.z);
+    dynamic_object["velocity"] = ros2_to_godot(velocity.x, velocity.y, velocity.z);
     if (object.classification.front().label == Label::PEDESTRIAN) {
       dynamic_object["class"] = "pedestrian";
     } else if (object.classification.front().label == Label::BICYCLE) {
