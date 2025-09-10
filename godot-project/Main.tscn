@@ -5447,16 +5447,20 @@ transform = Transform3D(-4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 
 size = 90.53
 far = 500.0
 
-[node name="PointCloudMapMesh" type="MeshInstance3D" parent="."]
+[node name="PointCloudMapMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("visualize_pointcloud_map_toggle")]
 material_override = SubResource("12")
 mesh = SubResource("4")
 script = ExtResource("6")
+visualize_pointcloud_map_toggle = NodePath("../Menu/PointCloudMapMeshCheckButton")
 
-[node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="."]
+[node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("obstacle_segmentation_toggle")]
 material_override = SubResource("13")
 mesh = SubResource("10")
 skeleton = NodePath("../EgoVehicle")
 script = ExtResource("7")
+obstacle_segmentation_toggle = NodePath("../Menu/EnableObstacleSegmentationButton")
+transparency_speed = 4.0
+cycle_time = 2.5
 
 [node name="VectorMap" type="Node3D" parent="."]
 script = ExtResource("25")
@@ -5489,10 +5493,12 @@ material_override = SubResource("24")
 mesh = SubResource("23")
 script = ExtResource("8")
 
-[node name="DynamicObjectMesh" type="MeshInstance3D" parent="."]
+[node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("only_known_object_toggle", "object_mode_toggle")]
 material_override = SubResource("26")
 mesh = SubResource("27")
 script = ExtResource("10")
+only_known_object_toggle = NodePath("../Menu/OnlyKnownObjectCheckButton")
+object_mode_toggle = NodePath("../Menu/Object3DModelButton")
 
 [node name="TrafficLightRecognitionMesh" type="MeshInstance3D" parent="."]
 visible = false

@@ -1,19 +1,25 @@
 extends MeshInstance3D
 
+
+@export var obstacle_segmentation_toggle: BaseButton
+
 var pointcloud = PointCloud.new()
 var sum_time = 0.0
-var transparency_speed = 4.0
-var transparency_scale = 0.3 # 0.0~0.5
-var cycle_time = 3.0
+@export var transparency_speed = 3.0
+@export var transparency_scale = 1.0
+@export var cycle_time = 3.0
 
 func _ready():
 	pointcloud.subscribe("/perception/obstacle_segmentation/pointcloud", false)
+	visible = obstacle_segmentation_toggle.button_pressed
 
 func _process(delta):
+	if not visible:
+		return
 	sum_time += delta
 
 	if sum_time * transparency_speed < 2 * PI:
-		transparency = clamp(cos(sum_time * transparency_speed) * transparency_scale + (1 - transparency_scale), 0.0, 1.0)
+		transparency = clamp((cos(sum_time * transparency_speed) * 0.5 + 0.5) * transparency_scale, 0.0, 1.0)
 	else:
 		transparency = 1.0
 	if (cycle_time < sum_time):

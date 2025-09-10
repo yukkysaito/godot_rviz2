@@ -3,10 +3,15 @@ extends MeshInstance3D
 var pointcloud = PointCloud.new()
 var visualize_again = false
 
+@export var visualize_pointcloud_map_toggle: BaseButton
+
 func _ready():
 	pointcloud.subscribe("/map/pointcloud_map", true)
+	visible = visualize_pointcloud_map_toggle.button_pressed
 
 func _process(_delta):
+	if not visible:
+		return
 	if not (pointcloud.has_new() or visualize_again):
 		return
 	var arr = []

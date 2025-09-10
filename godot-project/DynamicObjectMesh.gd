@@ -2,8 +2,10 @@ extends MeshInstance3D
 class_name DynamicObjectRenderer
 
 # ================== Editor-exposed settings ==================
-@export var only_known_object: bool = true
-@export var object_3d_model_mode: bool = true
+var only_known_object: bool
+@export var only_known_object_toggle: BaseButton
+var object_3d_model_mode: bool
+@export var object_mode_toggle: BaseButton
 
 @export var initial_pool: int = 16     # Initial pool size per type
 @export var pool_growth_step: int = 8  # Pool growth step when shortage occurs
@@ -67,6 +69,10 @@ func _ready() -> void:
 	# Subscribe to dynamic object topic
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
 
+	# Synchronize UI status
+	only_known_object = only_known_object_toggle.button_pressed
+	object_3d_model_mode = object_mode_toggle.button_pressed
+	
 	# Initialize pools
 	_initialize_model_pools(initial_pool)
 	_initialize_icon_pools(initial_pool)
