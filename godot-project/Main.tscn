@@ -5533,9 +5533,11 @@ offset_top = 121.0
 offset_right = 224.0
 offset_bottom = 152.0
 focus_mode = 0
+button_pressed = true
 text = "3D Model Mode"
 
 [node name="EnableObstacleSegmentationButton" type="CheckButton" parent="Menu"]
+layout_mode = 0
 offset_top = 159.0
 offset_right = 224.0
 offset_bottom = 190.0

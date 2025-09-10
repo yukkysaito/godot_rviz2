@@ -3,7 +3,7 @@ class_name DynamicObjectRenderer
 
 # ================== Editor-exposed settings ==================
 @export var only_known_object: bool = true
-@export var object_3d_model_mode: bool = false
+@export var object_3d_model_mode: bool = true
 
 @export var initial_pool: int = 16     # Initial pool size per type
 @export var pool_growth_step: int = 8  # Pool growth step when shortage occurs
@@ -118,6 +118,14 @@ func _render_models(objects: Array) -> void:
 		else:
 			node.rotation = rot
 		node.visible = true
+
+		if t == "pedestrian":
+			var vel: Vector3 = _to_v3(obj.get("velocity", Vector3.ZERO), Vector3.ZERO)
+			var speed_mps: float = abs(vel.x)  # spec: x is forward speed [m/s]
+			# robust fallback: if feeds ever set y/z, use magnitude
+			if not (is_zero_approx(vel.y) and is_zero_approx(vel.z)):
+				speed_mps = vel.length()
+			node.set_meta("speed_mps", speed_mps)
 
 		# Also place an icon above this object
 		if show_icons:
