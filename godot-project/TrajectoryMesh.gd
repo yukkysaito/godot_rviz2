@@ -10,7 +10,7 @@ func velocity_to_color(velocity):
 	return Color(0, 0.2, 1.0, alpha)
 
 func _ready():
-	trajectory.subscribe("/planning/scenario_planning/trajectory", false)
+	trajectory.subscribe("/planning/trajectory", false)
 	
 func _process(_delta):
 	if !trajectory.has_new():
