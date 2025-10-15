@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=49 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://EgoVehicle.gd" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://Vehicle/HeadBeamLight.gd" id="14"]
 [ext_resource type="Script" path="res://Menu.gd" id="17"]
 [ext_resource type="Script" path="res://TrafficLightRecognitionMesh.gd" id="18"]
+[ext_resource type="Script" path="res://OpeationControl.gd" id="18_utxm1"]
 [ext_resource type="Script" path="res://Steering.gd" id="19"]
 [ext_resource type="Texture2D" uid="uid://dheocmceyan8" path="res://steering.png" id="20"]
 [ext_resource type="Texture2D" uid="uid://8nsarni0u0kg" path="res://console_meter.png" id="21"]
@@ -5436,6 +5437,7 @@ shape = SubResource("1")
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
 
 [node name="Camera3D" type="Node3D" parent="EgoVehicle"]
+visible = false
 script = ExtResource("9")
 
 [node name="Horizon" type="Node3D" parent="EgoVehicle/Camera3D"]
@@ -5506,6 +5508,15 @@ material_override = SubResource("32")
 mesh = SubResource("31")
 skeleton = NodePath("../VectorMap")
 script = ExtResource("18")
+
+[node name="OpeationControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("18_utxm1")
 
 [node name="Menu" type="Control" parent="."]
 layout_mode = 3

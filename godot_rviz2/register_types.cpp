@@ -17,10 +17,13 @@
 #include "register_types.h"
 
 #include "behavior_path.hpp"
+#include "change_operation_mode_client.hpp"
 #include "core/object/class_db.h"
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
 #include "marker_array.hpp"
+#include "navigation_state.hpp"
+#include "operation_mode_state.hpp"
 #include "parameter.hpp"
 #include "pointcloud.hpp"
 #include "spinner.hpp"
@@ -40,6 +43,9 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<MarkerArray>();
   ClassDB::register_class<PointCloud>();
   ClassDB::register_class<BehaviorPath>();
+  ClassDB::register_class<NavigationState>();
+  ClassDB::register_class<OperationModeState>();
+  ClassDB::register_class<OperationModeChanger>();
   ClassDB::register_class<Trajectory>();
   ClassDB::register_class<TrafficLights>();
   ClassDB::register_class<DynamicObjects>();

@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3 uid="uid://cdctd2y5ojije"]
+
+[ext_resource type="Script" path="res://UI/StartButton.gd" id="1_w4g7y"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gp7f6"]
+content_margin_left = 100.0
+content_margin_top = 0.0
+content_margin_right = 100.0
+content_margin_bottom = 0.0
+bg_color = Color(0.0823529, 0.396078, 0.752941, 1)
+corner_radius_top_left = 60
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+corner_radius_bottom_left = 60
+shadow_color = Color(0, 0, 0, 0.333333)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sxn5x"]
+content_margin_left = 100.0
+content_margin_top = 0.0
+content_margin_right = 100.0
+content_margin_bottom = 0.0
+bg_color = Color(0.0980392, 0.462745, 0.823529, 1)
+corner_radius_top_left = 60
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+corner_radius_bottom_left = 60
+shadow_color = Color(0, 0, 0, 0.333333)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h2sl8"]
+content_margin_left = 100.0
+content_margin_top = 0.0
+content_margin_right = 100.0
+content_margin_bottom = 0.0
+bg_color = Color(0.0509804, 0.278431, 0.631373, 1)
+corner_radius_top_left = 60
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+corner_radius_bottom_left = 60
+shadow_color = Color(0, 0, 0, 0.333333)
+shadow_size = 6
+
+[node name="CenterContainer" type="CenterContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StartButton" type="Button" parent="."]
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 90
+theme_override_styles/normal = SubResource("StyleBoxFlat_gp7f6")
+theme_override_styles/hover = SubResource("StyleBoxFlat_sxn5x")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_h2sl8")
+text = "START"
+script = ExtResource("1_w4g7y")
