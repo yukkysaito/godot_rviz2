@@ -1,6 +1,7 @@
 # SCsub
 
 import os
+from SCons.Script import ARGUMENTS
 from itertools import chain
 
 Import('env')
@@ -75,9 +76,18 @@ env.Append(CPPPATH=["include",
                     +ros_include_paths
                     +autoware_include_paths)
 
+# architecture dependent lib path (use scons command line argument if provided)
+arch = ARGUMENTS.get('arch', os.uname().machine)
+if arch in ["arm64", "aarch64"]:
+    arch_lib = "aarch64-linux-gnu"
+elif arch in ["x86_64", "amd64"]:
+    arch_lib = "x86_64-linux-gnu"
+else:
+    arch_lib = arch + "-linux-gnu"
+
 env.Append(LIBPATH=[ros_lib_path, 
-                    ros_lib_path+"/x86_64-linux-gnu",
-                    "/usr/lib/x86_64-linux-gnu"]
+                    ros_lib_path+"/"+arch_lib,
+                    "/usr/lib/"+arch_lib]
                     +autoware_lib_paths)
 
 env.Append(CCFLAGS=[cpp_version, "-fexceptions"])
