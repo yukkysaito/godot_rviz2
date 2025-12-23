@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3 uid="uid://ba3ld5j820rkd"]
+
+[ext_resource type="Script" path="res://Splash/Splash.gd" id="1_j51x8"]
+[ext_resource type="Script" path="res://Splash/Spinner.gd" id="2_xx7uj"]
+[ext_resource type="Texture2D" uid="uid://c4q2esnc1x3u4" path="res://Splash/Logo.svg" id="3_paitp"]
+
+[node name="Splash" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_j51x8")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0431373, 0.0431373, 0.0431373, 1)
+
+[node name="Center" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -67.5
+offset_right = 20.0
+offset_bottom = 67.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="Icon" type="TextureRect" parent="Center"]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_paitp")
+stretch_mode = 3
+
+[node name="Spacer1" type="Control" parent="Center"]
+layout_mode = 2
+
+[node name="Spinner" type="Control" parent="Center"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_xx7uj")
+
+[node name="Spacer2" type="Control" parent="Center"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="Center"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="FadeLayer" type="CanvasLayer" parent="."]
+
+[node name="Fade" type="ColorRect" parent="FadeLayer"]
+modulate = Color(0, 0, 0, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

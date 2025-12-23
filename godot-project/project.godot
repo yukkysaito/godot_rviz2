@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="godot_rviz2"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://Splash/Splash.tscn"
 config/features=PackedStringArray("4.2")
 boot_splash/bg_color=Color(1, 1, 1, 1)
 boot_splash/image="res://icon.png"
