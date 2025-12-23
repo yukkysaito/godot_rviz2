@@ -5580,27 +5580,58 @@ max_value = 3.0
 tick_count = 4
 ticks_on_borders = true
 
-[node name="VehicleStatus" type="HBoxContainer" parent="."]
+[node name="VehicleStatus" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="VehicleStatus"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VehicleStatus/HUD"]
+layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-alignment = 1
+offset_left = -130.0
+offset_top = -148.0
+offset_right = 130.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
 
-[node name="Steering" type="Sprite2D" parent="VehicleStatus"]
-position = Vector2(-72, -86)
+[node name="SteeringSlot" type="Control" parent="VehicleStatus/HUD/HBoxContainer"]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+
+[node name="Steering" type="Sprite2D" parent="VehicleStatus/HUD/HBoxContainer/SteeringSlot"]
+visible = false
+position = Vector2(64, 64)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("20")
+flip_h = true
+region_rect = Rect2(100, 0, 256, 256)
 script = ExtResource("19")
 
-[node name="ConsoleMeter" type="Sprite2D" parent="VehicleStatus"]
-position = Vector2(82, -108)
+[node name="Spacer" type="Control" parent="VehicleStatus/HUD/HBoxContainer"]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="ConsoleMeterSlot" type="Control" parent="VehicleStatus/HUD/HBoxContainer"]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+
+[node name="ConsoleMeter" type="Sprite2D" parent="VehicleStatus/HUD/HBoxContainer/ConsoleMeterSlot"]
+position = Vector2(64, 43)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("21")
 script = ExtResource("24")
 
-[node name="VelocityLabel" type="Label" parent="VehicleStatus/ConsoleMeter"]
+[node name="VelocityLabel" type="Label" parent="VehicleStatus/HUD/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
 offset_left = -210.0
 offset_top = 58.0
 offset_right = 216.0
@@ -5612,7 +5643,7 @@ text = "0Km"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Hand" type="Sprite2D" parent="VehicleStatus/ConsoleMeter"]
+[node name="Hand" type="Sprite2D" parent="VehicleStatus/HUD/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
 position = Vector2(0, 50)
 texture = ExtResource("23")
 
