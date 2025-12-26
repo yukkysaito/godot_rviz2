@@ -3,7 +3,7 @@ extends Control
 @export var main_scene_path: String = "res://Main.tscn"
 
 # Splash is visible at least this long
-@export var min_splash_seconds: float = 2.0
+@export var min_splash_seconds: float = 1.0
 
 # Optional debug hold (keeps splash after "Finished")
 @export var debug_hold_seconds: float = 0.0
