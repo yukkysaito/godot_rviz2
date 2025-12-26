@@ -1,8 +1,36 @@
-[gd_scene load_steps=4 format=3 uid="uid://ba3ld5j820rkd"]
+[gd_scene load_steps=10 format=3 uid="uid://ba3ld5j820rkd"]
 
 [ext_resource type="Script" path="res://Splash/Splash.gd" id="1_j51x8"]
+[ext_resource type="Script" path="res://Splash/Orb.gd" id="2_gjo40"]
 [ext_resource type="Script" path="res://Splash/Spinner.gd" id="2_xx7uj"]
-[ext_resource type="Texture2D" uid="uid://c4q2esnc1x3u4" path="res://Splash/Logo.svg" id="3_paitp"]
+[ext_resource type="Shader" path="res://Splash/Shaders/shell.gdshader" id="3_obc64"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ooadm"]
+
+[sub_resource type="Sky" id="Sky_kvt01"]
+sky_material = SubResource("ProceduralSkyMaterial_ooadm")
+
+[sub_resource type="Environment" id="Environment_dfc4a"]
+background_mode = 1
+sky = SubResource("Sky_kvt01")
+glow_enabled = true
+glow_intensity = 8.0
+glow_blend_mode = 0
+glow_hdr_threshold = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8rwrd"]
+render_priority = 0
+shader = ExtResource("3_obc64")
+shader_parameter/u_alpha = 0.08
+shader_parameter/u_rim_pow = 3.0
+shader_parameter/u_rim_gain = 10.0
+shader_parameter/u_color = Vector3(1, 1, 1)
+shader_parameter/u_done_t = 0.0
+shader_parameter/u_fade_time = 0.6
+
+[sub_resource type="SphereMesh" id="SphereMesh_o0ml5"]
+material = SubResource("ShaderMaterial_8rwrd")
+rings = 48
 
 [node name="Splash" type="Control"]
 layout_mode = 3
@@ -14,51 +42,62 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_j51x8")
 
-[node name="Bg" type="ColorRect" parent="."]
+[node name="OrbSlot" type="SubViewportContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0431373, 0.0431373, 0.0431373, 1)
+
+[node name="OrbViewport" type="SubViewport" parent="OrbSlot"]
+handle_input_locally = false
+render_target_update_mode = 4
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="OrbSlot/OrbViewport"]
+environment = SubResource("Environment_dfc4a")
+
+[node name="Orb3D" type="Node3D" parent="OrbSlot/OrbViewport"]
+script = ExtResource("2_gjo40")
+shader_path = "res://Splash/Shaders/orb_particles.gdshader"
+
+[node name="Camera3D" type="Camera3D" parent="OrbSlot/OrbViewport/Orb3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="OrbSlot/OrbViewport/Orb3D"]
+
+[node name="Particles" type="MultiMeshInstance3D" parent="OrbSlot/OrbViewport/Orb3D"]
+
+[node name="Shell" type="MeshInstance3D" parent="OrbSlot/OrbViewport/Orb3D"]
+mesh = SubResource("SphereMesh_o0ml5")
 
 [node name="Center" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
+anchor_bottom = 1.0
 offset_left = -20.0
-offset_top = -67.5
+offset_top = -135.0
 offset_right = 20.0
-offset_bottom = 67.5
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
 theme_override_constants/separation = 15
 
-[node name="Icon" type="TextureRect" parent="Center"]
-layout_mode = 2
-mouse_filter = 2
-texture = ExtResource("3_paitp")
-stretch_mode = 3
-
-[node name="Spacer1" type="Control" parent="Center"]
-layout_mode = 2
-
 [node name="Spinner" type="Control" parent="Center"]
+visible = false
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_xx7uj")
 
-[node name="Spacer2" type="Control" parent="Center"]
-layout_mode = 2
-
 [node name="StatusLabel" type="Label" parent="Center"]
 layout_mode = 2
 horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Center"]
+layout_mode = 2
 
 [node name="FadeLayer" type="CanvasLayer" parent="."]
 
