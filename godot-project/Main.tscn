@@ -5589,6 +5589,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VehicleStatus/HUD"]
 layout_mode = 1
@@ -5603,13 +5604,14 @@ offset_right = 130.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 
 [node name="SteeringSlot" type="Control" parent="VehicleStatus/HUD/HBoxContainer"]
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
+mouse_filter = 2
 
 [node name="Steering" type="Sprite2D" parent="VehicleStatus/HUD/HBoxContainer/SteeringSlot"]
-visible = false
 position = Vector2(64, 64)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("20")
@@ -5620,10 +5622,12 @@ script = ExtResource("19")
 [node name="Spacer" type="Control" parent="VehicleStatus/HUD/HBoxContainer"]
 custom_minimum_size = Vector2(10, 0)
 layout_mode = 2
+mouse_filter = 2
 
 [node name="ConsoleMeterSlot" type="Control" parent="VehicleStatus/HUD/HBoxContainer"]
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
+mouse_filter = 2
 
 [node name="ConsoleMeter" type="Sprite2D" parent="VehicleStatus/HUD/HBoxContainer/ConsoleMeterSlot"]
 position = Vector2(64, 43)
