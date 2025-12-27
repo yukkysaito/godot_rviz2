@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3 uid="uid://ce8mnltunflu1"]
+
+[ext_resource type="PackedScene" uid="uid://caupj156kml8s" path="res://3DViewer/DynamicObject/Pedestrian.glb" id="1_veerl"]
+[ext_resource type="Script" path="res://3DViewer/DynamicObject/PedestrianAnimator.gd" id="2_4r5l2"]
+
+[node name="Pedestrian" instance=ExtResource("1_veerl")]
+script = ExtResource("2_4r5l2")
+
+[node name="Skeleton3D" parent="Armature" index="0"]
+bones/0/position = Vector3(-1.95473, -0.34011, -106.881)
+bones/1/rotation = Quaternion(-0.00724221, -0.152644, 0.0468352, 0.987144)
+bones/3/rotation = Quaternion(0.0143069, 0.150434, 3.09729e-08, 0.988517)
+bones/6/rotation = Quaternion(-1.9082e-15, -5.96047e-08, 1.60982e-15, 1)
+bones/8/position = Vector3(9.31921e-07, 13.0201, -2.88244e-06)
+bones/8/rotation = Quaternion(0.365401, 0.210961, -0.157163, 0.892904)
+bones/9/position = Vector3(-1.01549e-05, 19.3306, 5.23169e-06)
+bones/9/rotation = Quaternion(0.17593, 0.0392488, 0.119428, 0.976343)
+bones/12/position = Vector3(-1.79665e-06, 13.0201, -1.94055e-05)
+bones/12/rotation = Quaternion(0.0691182, 0.923032, 0.37799, -0.0189251)
+bones/13/rotation = Quaternion(-0.165239, 0.021621, 0.0894617, 0.98195)
+bones/15/position = Vector3(3.68164, -6.17069, -9.28986)
+bones/15/rotation = Quaternion(0.00298865, 0.015276, 0.985694, -0.167827)
+bones/16/rotation = Quaternion(-0.00181936, 0.000135187, -0.0733369, 0.997306)
+bones/17/rotation = Quaternion(0.429507, -0.515094, 0.359295, 0.648929)
+bones/18/rotation = Quaternion(0.26529, -0.0719697, 0.019862, 0.961274)
+bones/19/rotation = Quaternion(-2.47383e-08, -7.50879e-09, 1.42463e-08, 1)
+bones/20/position = Vector3(-6.11851, -6.1707, 9.28986)
+bones/20/rotation = Quaternion(0.00437008, -0.022796, 0.986898, 0.15967)
+bones/21/rotation = Quaternion(-0.000205376, 0.00486073, -0.151026, 0.988518)
+bones/22/rotation = Quaternion(0.232406, -0.697688, 0.324388, 0.594972)
+bones/23/rotation = Quaternion(0.410597, 0.0394269, -0.0159778, 0.910824)
+bones/24/rotation = Quaternion(0.194765, -0.0272433, 0.0250945, 0.98015)

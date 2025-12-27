@@ -1,5 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://bqvh70kin1uwr"]
-
-[ext_resource type="PackedScene" uid="uid://ue602kue1n4f" path="res://DynamicObject/Bus.glb" id="1_eoacy"]
-
-[node name="Bus2" instance=ExtResource("1_eoacy")]

@@ -1,6 +1,6 @@
 extends Control
 
-@export var main_scene_path: String = "res://Main.tscn"
+@export var main_scene_path: String = "res://3DViewer/Main.tscn"
 
 # Splash is visible at least this long
 @export var min_splash_seconds: float = 1.0

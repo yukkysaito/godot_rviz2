@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7nenvfg5sheu"]
+
+[ext_resource type="PackedScene" uid="uid://bp34okb8uvvx1" path="res://3DViewer/DynamicObject/Motorcycle.glb" id="1_qcx5g"]
+
+[node name="Motorbike" instance=ExtResource("1_qcx5g")]
