@@ -31,11 +31,8 @@ func _process(_delta):
 	road_marker_verts.append_array(vector_map.get_linestring_triangle_list("stop_line", 0.5))
 	road_marker.visualize_mesh(road_marker_verts)
 	# Traffic Light
-	var traffic_light = get_node("TrafficLightMesh")
-	traffic_light.set_traffic_light_map(vector_map.get_traffic_light_list())
-	#traffic_light.visualize_mesh(vector_map.get_triangle_list("traffic_light_triangle"), vector_map.get_color_spheres("traffic_light"))
-	traffic_light.visualize()
+	var tl_mgr := get_node("TrafficLightGroupsManager") as TrafficLightGroupsManager
+	tl_mgr.set_map(vector_map.get_traffic_light_list())
+
 
 	vector_map.set_old()
-
-

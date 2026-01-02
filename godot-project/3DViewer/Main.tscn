@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=46 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
@@ -12,10 +12,11 @@
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
 [ext_resource type="Script" path="res://3DViewer/Camera.gd" id="9"]
 [ext_resource type="Script" path="res://3DViewer/DynamicObjectMesh.gd" id="10"]
-[ext_resource type="Script" path="res://3DViewer/TrafficLightMesh.gd" id="13"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/HeadBeamLight.gd" id="14"]
+[ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
+[ext_resource type="PackedScene" uid="uid://biwx0nd3tu8lg" path="res://3DViewer/TrafficLight/Board/TrafficLightBoard.tscn" id="15_3ypoo"]
+[ext_resource type="PackedScene" uid="uid://c1jhsuxmew4q7" path="res://3DViewer/TrafficLight/TrafficLightGroupActor.tscn" id="15_hw4ln"]
 [ext_resource type="Script" path="res://3DViewer/Menu.gd" id="17"]
-[ext_resource type="Script" path="res://3DViewer/TrafficLightRecognitionMesh.gd" id="18"]
 [ext_resource type="Script" path="res://3DViewer/OpeationControl.gd" id="18_utxm1"]
 [ext_resource type="Script" path="res://3DViewer/VehicleStatus/Steering.gd" id="19"]
 [ext_resource type="Texture2D" uid="uid://dheocmceyan8" path="res://3DViewer/VehicleStatus/steering.png" id="20"]
@@ -44,6 +45,8 @@ background_mode = 2
 background_color = Color(1, 1, 1, 1)
 sky = SubResource("Sky_fb0c3")
 ambient_light_source = 3
+glow_enabled = true
+glow_intensity = 8.0
 
 [sub_resource type="BoxShape3D" id="1"]
 size = Vector3(4.8091, 1.60975, 2.14476)
@@ -96,18 +99,6 @@ distance_fade_max_distance = 200.0
 [sub_resource type="ArrayMesh" id="18"]
 resource_name = "mesh"
 
-[sub_resource type="StandardMaterial3D" id="30"]
-transparency = 1
-shading_mode = 0
-vertex_color_use_as_albedo = true
-albedo_color = Color(0.329412, 0.717647, 1, 1)
-heightmap_scale = 1.777
-refraction_scale = 0.24
-distance_fade_max_distance = 0.0
-
-[sub_resource type="ArrayMesh" id="29"]
-resource_name = "mesh"
-
 [sub_resource type="StandardMaterial3D" id="34"]
 transparency = 1
 shading_mode = 0
@@ -139,15 +130,6 @@ distance_fade_mode = 1
 distance_fade_max_distance = 25.0
 
 [sub_resource type="ArrayMesh" id="27"]
-resource_name = "mesh"
-
-[sub_resource type="StandardMaterial3D" id="32"]
-render_priority = 1
-transparency = 1
-shading_mode = 0
-vertex_color_use_as_albedo = true
-
-[sub_resource type="ArrayMesh" id="31"]
 resource_name = "mesh"
 
 [sub_resource type="FontFile" id="33"]
@@ -5446,6 +5428,7 @@ script = ExtResource("9")
 [node name="ViewCamera" type="Camera3D" parent="EgoVehicle/Camera3D/Horizon/Vertical"]
 transform = Transform3D(-4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -8, 4, 0)
 size = 90.53
+near = 0.2
 far = 500.0
 
 [node name="PointCloudMapMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("visualize_pointcloud_map_toggle")]
@@ -5478,10 +5461,11 @@ mesh = SubResource("18")
 skeleton = NodePath("../RoadSurfaceMesh")
 script = ExtResource("5")
 
-[node name="TrafficLightMesh" type="MeshInstance3D" parent="VectorMap"]
-material_override = SubResource("30")
-mesh = SubResource("29")
-script = ExtResource("13")
+[node name="TrafficLightGroupsManager" type="Node3D" parent="VectorMap"]
+script = ExtResource("14_pvyag")
+actor_scene = ExtResource("15_hw4ln")
+board_scene = ExtResource("15_3ypoo")
+default_board_color = Color(0.533333, 0.533333, 0.533333, 1)
 
 [node name="PathDrivableAreaMesh" type="MeshInstance3D" parent="."]
 visible = false
@@ -5500,13 +5484,6 @@ mesh = SubResource("27")
 script = ExtResource("10")
 only_known_object_toggle = NodePath("../Menu/OnlyKnownObjectCheckButton")
 object_mode_toggle = NodePath("../Menu/Object3DModelButton")
-
-[node name="TrafficLightRecognitionMesh" type="MeshInstance3D" parent="."]
-visible = false
-material_override = SubResource("32")
-mesh = SubResource("31")
-skeleton = NodePath("../VectorMap")
-script = ExtResource("18")
 
 [node name="OpeationControl" type="Control" parent="."]
 layout_mode = 3

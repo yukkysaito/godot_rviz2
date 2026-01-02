@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1jhsuxmew4q7"]
+
+[ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupActor.gd" id="1_t2c52"]
+
+[node name="TrafficLightGroupActor" type="Node3D"]
+script = ExtResource("1_t2c52")

@@ -1,0 +1,12 @@
+[gd_scene load_steps=5 format=3 uid="uid://biwx0nd3tu8lg"]
+
+[ext_resource type="Script" path="res://3DViewer/TrafficLight/Board/TrafficLightBoard.gd" id="1_80rqv"]
+[ext_resource type="ArrayMesh" uid="uid://d2ivea2y4t1fs" path="res://3DViewer/TrafficLight/Board/Corner.tres" id="2_05e6i"]
+[ext_resource type="ArrayMesh" uid="uid://0f111w4h356v" path="res://3DViewer/TrafficLight/Board/Edge.tres" id="3_833ke"]
+[ext_resource type="ArrayMesh" uid="uid://754wyqwfnjr2" path="res://3DViewer/TrafficLight/Board/Center.tres" id="4_mxroa"]
+
+[node name="TrafficLightBoard" type="Node3D"]
+script = ExtResource("1_80rqv")
+corner_mesh = ExtResource("2_05e6i")
+edge_mesh = ExtResource("3_833ke")
+center_mesh = ExtResource("4_mxroa")

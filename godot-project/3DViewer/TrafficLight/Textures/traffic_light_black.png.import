@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cksjs8wf68mi5"
-path.s3tc="res://.godot/imported/traffic_light_green_up.png-8761937d288a2e479bae0bac98007203.s3tc.ctex"
+uid="uid://b5vpgh5i3cyki"
+path.s3tc="res://.godot/imported/traffic_light_black.png-a67abb89e69984778a3943eef282f0c5.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://3DViewer/TrafficLight/traffic_light_green_up.png"
-dest_files=["res://.godot/imported/traffic_light_green_up.png-8761937d288a2e479bae0bac98007203.s3tc.ctex"]
+source_file="res://3DViewer/TrafficLight/Textures/traffic_light_black.png"
+dest_files=["res://.godot/imported/traffic_light_black.png-a67abb89e69984778a3943eef282f0c5.s3tc.ctex"]
 
 [params]
 
