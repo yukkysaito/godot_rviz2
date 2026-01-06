@@ -1,5 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://cdctd2y5ojije"]
+[gd_scene load_steps=6 format=3 uid="uid://cdctd2y5ojije"]
 
+[ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="1_kb51d"]
 [ext_resource type="Script" path="res://UI/StartButton.gd" id="1_w4g7y"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gp7f6"]
@@ -49,6 +50,7 @@ offset_bottom = 40.0
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_kb51d")
 theme_override_font_sizes/font_size = 90
 theme_override_styles/normal = SubResource("StyleBoxFlat_gp7f6")
 theme_override_styles/hover = SubResource("StyleBoxFlat_sxn5x")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dheocmceyan8"
-path="res://.godot/imported/steering.png-ee2c240d77c8a790d5dab7908dbfa6ba.ctex"
+uid="uid://uehqbkwlcguq"
+path="res://.godot/imported/rain.png-e129c49638440768bd193dbc10aa1b25.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://3DViewer/VehicleStatus/steering.png"
-dest_files=["res://.godot/imported/steering.png-ee2c240d77c8a790d5dab7908dbfa6ba.ctex"]
+source_file="res://3DViewer/TopStatusBar/rain.png"
+dest_files=["res://.godot/imported/rain.png-e129c49638440768bd193dbc10aa1b25.ctex"]
 
 [params]
 

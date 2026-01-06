@@ -91,6 +91,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_nv4wi")
 
@@ -98,10 +99,11 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_nv4wi")
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.890196, 0.94902, 0.992157, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.498039)
-theme_override_constants/outline_size = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 44
 text = "Hi there! Please choose your destination."
 horizontal_alignment = 1

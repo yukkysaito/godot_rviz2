@@ -8,7 +8,7 @@ class_name TrafficLightGroupsManager
 @export var board_scene: PackedScene            # Optional: injected into each actor
 
 @export var default_board_color: Color = Color(0.10, 0.10, 0.10, 1.0)
-@export var z_offset_board: float = 0.02
+@export var z_offset_board: float = 0.03
 @export var z_offset_bulb: float = 0.00
 
 # If no recognition update arrives for this duration, turn off the glow for that group.

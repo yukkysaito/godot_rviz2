@@ -1,8 +1,18 @@
-# ParentControl.gd
+# OperationControl.gd
 extends Control
+class_name OperationControl
 
+# -----------------------------------------------------------------------------
+# Topic states
+# -----------------------------------------------------------------------------
 var operation_mode_state := OperationModeState.new()
 var navidation_state := NavigationState.new()
+
+# -----------------------------------------------------------------------------
+# External UI references
+# -----------------------------------------------------------------------------
+@export var top_status_bar_path: NodePath
+@onready var _top_status_bar: TopStatusBar = get_node_or_null(top_status_bar_path) as TopStatusBar
 
 @export var start_button_scene: PackedScene = preload("res://UI/StartButton.tscn")
 @export var message_panel_scene: PackedScene = preload("res://UI/MessagePanel.tscn")
@@ -18,6 +28,9 @@ enum UiState { NEED_DEST, ARRIVED_MSG, READY_TO_START, HIDE_ALL }
 # --- Cached last UI state to avoid redundant work ---
 var _last_ui_state: int = -1
 
+# -----------------------------------------------------------------------------
+# Lifecycle
+# -----------------------------------------------------------------------------
 func _ready() -> void:
 	operation_mode_state.subscribe("/api/operation_mode/state", true)
 	navidation_state.subscribe("/api/routing/state", true)
@@ -42,8 +55,18 @@ func _process(_delta: float) -> void:
 
 # ---------------- Core loop: read -> decide -> apply ----------------
 func _update_and_apply_ui() -> void:
-	var route := _read_route_state()
-	var ui := _compute_ui_state(route)
+	var route: int = _read_route_state()
+
+	# Derive op flags once
+	var can_auto: bool = operation_mode_state.is_autonomous_mode_available()
+	var is_auto: bool = operation_mode_state.is_autonomous_mode()
+
+	# 1) Update TopStatusBar (optional)
+	if _top_status_bar != null:
+		_top_status_bar.set_autonomous(is_auto)
+
+	# 2) Update Operation UI
+	var ui: int = _compute_ui_state(route, can_auto, is_auto)
 	_apply_ui_state(ui)
 
 # Read current navigation into enum
@@ -62,11 +85,7 @@ func _read_route_state() -> int:
 	return RouteState.UNKNOWN
 
 # Decide what the UI should look like *only* from state
-func _compute_ui_state(route: int) -> int:
-	# Derive op flags once
-	var can_auto := operation_mode_state.is_autonomous_mode_available()
-	var is_auto  := operation_mode_state.is_autonomous_mode()
-
+func _compute_ui_state(route: int, can_auto: bool, is_auto: bool) -> int:
 	match route:
 		RouteState.NO_ROUTE:
 			return UiState.NEED_DEST

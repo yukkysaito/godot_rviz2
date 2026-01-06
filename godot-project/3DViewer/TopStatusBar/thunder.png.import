@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dxngfcjijk4iq"
-path="res://.godot/imported/console_meter_hand.png-865d65647f9be9097fe336984a0063a3.ctex"
+uid="uid://did771q82ss7k"
+path="res://.godot/imported/thunder.png-245e0f85d68566e651b8affdccc58ed9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://3DViewer/VehicleStatus/console_meter_hand.png"
-dest_files=["res://.godot/imported/console_meter_hand.png-865d65647f9be9097fe336984a0063a3.ctex"]
+source_file="res://3DViewer/TopStatusBar/thunder.png"
+dest_files=["res://.godot/imported/thunder.png-245e0f85d68566e651b8affdccc58ed9.ctex"]
 
 [params]
 

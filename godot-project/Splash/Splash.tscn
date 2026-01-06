@@ -1,9 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://ba3ld5j820rkd"]
+[gd_scene load_steps=11 format=3 uid="uid://ba3ld5j820rkd"]
 
 [ext_resource type="Script" path="res://Splash/Splash.gd" id="1_j51x8"]
 [ext_resource type="Script" path="res://Splash/Orb.gd" id="2_gjo40"]
 [ext_resource type="Script" path="res://Splash/Spinner.gd" id="2_xx7uj"]
 [ext_resource type="Shader" path="res://Splash/Shaders/shell.gdshader" id="3_obc64"]
+[ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="5_3yr4f"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ooadm"]
 
@@ -94,6 +95,11 @@ script = ExtResource("2_xx7uj")
 
 [node name="StatusLabel" type="Label" parent="Center"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.513726, 0.513726, 0.513726, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.431373)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("5_3yr4f")
+theme_override_font_sizes/font_size = 30
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center"]
