@@ -312,6 +312,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("18_utxm1")
 top_status_bar_path = NodePath("../TopStatusBar")
 
@@ -385,6 +386,7 @@ position = Vector2(0, 50)
 texture = ExtResource("23")
 
 [node name="TopStatusBar" parent="HUD" instance=ExtResource("27_3n38x")]
+mouse_filter = 2
 
 [node name="WeatherController" type="Node" parent="HUD"]
 script = ExtResource("28_g20aq")
