@@ -305,39 +305,28 @@ ticks_on_borders = true
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="OperationControl" type="Control" parent="HUD"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("18_utxm1")
-top_status_bar_path = NodePath("../TopStatusBar")
-
 [node name="VehicleActuatorStatus" type="Control" parent="HUD"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="HUD/VehicleActuatorStatus"]
-layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -130.0
-offset_top = -148.0
-offset_right = 130.0
-offset_bottom = -20.0
+offset_left = -137.0
+offset_top = -149.0
+offset_right = 137.0
+offset_bottom = -21.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HUD/VehicleActuatorStatus"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="SteeringSlot" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
@@ -384,6 +373,18 @@ vertical_alignment = 1
 [node name="Hand" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
 position = Vector2(0, 50)
 texture = ExtResource("23")
+
+[node name="OperationControl" type="Control" parent="HUD"]
+layout_mode = 3
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 70.0
+offset_bottom = -150.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("18_utxm1")
+top_status_bar_path = NodePath("../TopStatusBar")
 
 [node name="TopStatusBar" parent="HUD" instance=ExtResource("27_3n38x")]
 mouse_filter = 2
