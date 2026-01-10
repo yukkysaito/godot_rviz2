@@ -1,8 +1,7 @@
 # godot_rviz2 (ROS2 humble)
 
-[![](http://img.youtube.com/vi/LPzkEC5hBMo/0.jpg)](https://www.youtube.com/watch?v=LPzkEC5hBMo)
-[![](http://img.youtube.com/vi/7udy3QDXQBk/0.jpg)](https://www.youtube.com/watch?v=7udy3QDXQBk)
-[![](http://img.youtube.com/vi/r8NtqiF3JNg/0.jpg)](https://www.youtube.com/watch?v=r8NtqiF3JNg)
+[![](https://github.com/user-attachments/assets/437755d1-6c20-449f-8da2-0ba3e8c42669)](https://youtu.be/mqZM1AkbA5A?si=EQV2JB2tUFsGdfVd)
+
 
 ## Environment
 
@@ -54,7 +53,6 @@
 
 | key   | action           |
 | ----- | ---------------- |
-| Space | Show menu        |
 | Tab   | Switch view mode |
 
 ## How to customize
@@ -96,18 +94,36 @@ def generate_launch_description():
 ros2 launch <path>/godot_rviz2.py
 ```
 
-## How to Export Binary(WIP)
+## How to Export Binary
 1. Create template
+   ```
+   scons platform=linux -j8 tools=no target=template_release custom_modules=../godot_rviz2
+   ```
+2. Run godot Editor and 
+   ```bash
+   cd godot_rviz2
+   ./bin/godot.linuxbsd.editor.x86_64
+   ```
+3. export with `godot.linuxbsd.template_release.x86_64`
+   <img width="1589" height="1009" alt="image" src="https://github.com/user-attachments/assets/95b7a65d-6019-4988-bc3f-3648149d617e" />
+   <img width="1438" height="1036" alt="image" src="https://github.com/user-attachments/assets/e7ecbd02-04ac-4a06-bf62-42ae8c413d64" />
+   <img width="1488" height="942" alt="image" src="https://github.com/user-attachments/assets/c8ae7e86-f3de-474c-b8d1-6510a025d129" />
+   <img width="1488" height="942" alt="image" src="https://github.com/user-attachments/assets/05045008-c45c-4536-91f9-6c79f4a1f2ca" />
+4. Run
+```bash
+cd godot_rviz2
+source <autoware_path>/install/setup.bash
+sample.x86_64
 ```
-scons platform=linux -j8 tools=no target=template_release custom_modules=../godot_rviz2
-```
-2. Select `godot.linuxbsd.template_release.x86_64` in Custom template
-3. Export
-
 
 ## TODO
-- Refactor codes
 - Simplified description of ros dependencies on SCon build system
+
+## Videos
+[![](http://img.youtube.com/vi/LPzkEC5hBMo/0.jpg)](https://www.youtube.com/watch?v=LPzkEC5hBMo)
+[![](http://img.youtube.com/vi/7udy3QDXQBk/0.jpg)](https://www.youtube.com/watch?v=7udy3QDXQBk)
+[![](http://img.youtube.com/vi/r8NtqiF3JNg/0.jpg)](https://www.youtube.com/watch?v=r8NtqiF3JNg)
+
 
 ## Reference
 
