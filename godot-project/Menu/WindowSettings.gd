@@ -53,6 +53,7 @@ func _setup_aa_options() -> void:
 	aa_option.add_item("MSAA 8x", AAPreset.MSAA_8X)
 
 func _on_aa_selected(index: int) -> void:
+	# Ignore callbacks triggered by programmatic changes (select/sync)
 	if _suppress:
 		return
 	var preset := aa_option.get_item_id(index)
@@ -62,7 +63,7 @@ func _apply_aa_preset(preset: int) -> void:
 	if target_vp == null:
 		return
 
-	# まず両方OFFにしてから、どちらかを有効化（排他）
+	# Disable all AA first, then enable exactly one option (mutually exclusive)
 	target_vp.msaa_3d = Viewport.MSAA_DISABLED
 	target_vp.use_taa = false
 	target_vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
@@ -87,6 +88,7 @@ func _apply_aa_preset(preset: int) -> void:
 			target_vp.msaa_3d = Viewport.MSAA_8X
 
 func _on_mode_selected(index: int) -> void:
+	# Ignore callbacks triggered by programmatic changes (select/sync)
 	if _suppress:
 		return
 	var preset := display_mode_option.get_item_id(index)
@@ -97,12 +99,15 @@ func _apply_window_preset(preset: int) -> void:
 		WindowPreset.WINDOWED:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
 		WindowPreset.MAXIMIZED:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+
 		WindowPreset.BORDERLESS_MAXIMIZED:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+
 		WindowPreset.FULLSCREEN:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
@@ -117,10 +122,11 @@ func _on_always_on_top_toggled(on: bool) -> void:
 func _sync_ui_from_current() -> void:
 	_suppress = true
 
-	# mode preset
+	# Determine the current window preset from mode + borderless flag
 	var mode := DisplayServer.window_get_mode()
 	var borderless := DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS)
 	var preset := WindowPreset.WINDOWED
+
 	if mode == DisplayServer.WINDOW_MODE_FULLSCREEN:
 		preset = WindowPreset.FULLSCREEN
 	elif mode == DisplayServer.WINDOW_MODE_MAXIMIZED and borderless:
@@ -128,15 +134,16 @@ func _sync_ui_from_current() -> void:
 	elif mode == DisplayServer.WINDOW_MODE_MAXIMIZED:
 		preset = WindowPreset.MAXIMIZED
 
+	# Select the matching preset in the UI
 	for i in range(display_mode_option.item_count):
 		if display_mode_option.get_item_id(i) == preset:
 			display_mode_option.select(i)
 			break
 
-	# always on top
+	# Sync "always on top" UI state
 	always_on_top_toggle.button_pressed = DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP)
 
-	# AA
+	# Sync AA UI state
 	_sync_aa_ui()
 
 	_suppress = false
@@ -147,7 +154,7 @@ func _sync_aa_ui() -> void:
 
 	var preset := AAPreset.AA_OFF
 
-	# MSAA優先で判定
+	# Prefer MSAA if enabled; otherwise fall back to TAA/FXAA/off
 	match target_vp.msaa_3d:
 		Viewport.MSAA_2X: preset = AAPreset.MSAA_2X
 		Viewport.MSAA_4X: preset = AAPreset.MSAA_4X
@@ -165,9 +172,11 @@ func _sync_aa_ui() -> void:
 			aa_option.select(i)
 			break
 
-# 画面モード変更後はサイズ反映が次フレームになることが多いので通知
+# Notify after window changes, since size updates often apply on the next frame
 signal window_changed
+
 func _emit_window_changed_soon() -> void:
 	call_deferred("_emit_window_changed")
+
 func _emit_window_changed() -> void:
 	emit_signal("window_changed")

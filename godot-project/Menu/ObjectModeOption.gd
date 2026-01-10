@@ -27,6 +27,7 @@ func _setup_items() -> void:
 	add_item("Geometry", Preset.GEOMETRY)
 
 func _on_item_selected(index: int) -> void:
+	# Ignore callbacks triggered by programmatic changes (select/apply)
 	if _suppress:
 		return
 	var preset := get_item_id(index)
@@ -36,6 +37,7 @@ func _apply_preset(preset: int) -> void:
 	if dynamic_object_mesh == null:
 		return
 
+	# Guard: target node must implement the expected API
 	if not dynamic_object_mesh.has_method("set_3d_model_mode"):
 		push_warning("DynamicObjectMesh does not implement set_3d_model_mode(enabled)")
 		return
@@ -45,7 +47,6 @@ func _apply_preset(preset: int) -> void:
 			dynamic_object_mesh.call("set_3d_model_mode", true)
 		Preset.GEOMETRY:
 			dynamic_object_mesh.call("set_3d_model_mode", false)
-
 
 func _find_index_by_id(id: int) -> int:
 	for i in range(item_count):
