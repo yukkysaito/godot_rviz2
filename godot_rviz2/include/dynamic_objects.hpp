@@ -29,8 +29,9 @@ class DynamicObjects : public RefCounted
   TOPIC_SUBSCRIBER(DynamicObjects, autoware_perception_msgs::msg::PredictedObjects);
 
 public:
-  Array get_triangle_list(bool only_known_objects = false);
-  Array get_dynamic_object_list(bool only_known_objects = false);
+  Array get_triangle_list(bool ignore_unknown_object = false);
+  Array get_dynamic_object_list(bool ignore_unknown_object = false);
+  Array get_unknown_object_triangle_list();
 
   DynamicObjects() = default;
   ~DynamicObjects() = default;

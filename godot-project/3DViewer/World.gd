@@ -16,9 +16,6 @@ func _ready():
 	if _sky_material != null and _sky_material.has_method("get_sky_top_color"):
 		_default_sky_top_color = _sky_material.call("get_sky_top_color")
 
-func _process(delta):
-	pass
-
 func set_night_mode(enabled: bool) -> void:
 	# Sun
 	if sun:

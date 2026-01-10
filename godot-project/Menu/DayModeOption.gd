@@ -2,6 +2,8 @@ extends OptionButton
 
 @export var world_path: NodePath
 @onready var world: Node = get_node(world_path) as Node
+@export var ego_vehicle_path: NodePath
+@onready var ego_vehicle: Node = get_node(ego_vehicle_path) as Node
 
 enum Preset { DAY, NIGHT }
 
@@ -11,7 +13,7 @@ func _ready() -> void:
 	_setup_items()
 	item_selected.connect(_on_item_selected)
 
-	# 初期状態反映
+	# Synchronize initial state
 	_suppress = true
 	select(Preset.DAY)
 	_apply_preset(Preset.DAY)
@@ -35,5 +37,7 @@ func _apply_preset(preset: int) -> void:
 	match preset:
 		Preset.DAY:
 			world.set_night_mode(false)
+			ego_vehicle.set_night_mode(false)
 		Preset.NIGHT:
 			world.set_night_mode(true)
+			ego_vehicle.set_night_mode(true)

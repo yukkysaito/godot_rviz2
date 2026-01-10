@@ -1,4 +1,4 @@
-[gd_scene load_steps=66 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=65 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
@@ -11,11 +11,9 @@
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
 [ext_resource type="Script" path="res://3DViewer/Camera.gd" id="9"]
 [ext_resource type="Script" path="res://3DViewer/DynamicObject/DynamicObjectMesh.gd" id="10"]
-[ext_resource type="Script" path="res://3DViewer/Vehicle/HeadBeamLight.gd" id="14"]
 [ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
 [ext_resource type="PackedScene" uid="uid://biwx0nd3tu8lg" path="res://3DViewer/TrafficLight/Board/TrafficLightBoard.tscn" id="15_3ypoo"]
 [ext_resource type="PackedScene" uid="uid://c1jhsuxmew4q7" path="res://3DViewer/TrafficLight/TrafficLightGroupActor.tscn" id="15_hw4ln"]
-[ext_resource type="Script" path="res://3DViewer/Menu.gd" id="17"]
 [ext_resource type="Script" path="res://3DViewer/OpeationControl.gd" id="18_utxm1"]
 [ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus/Steering.gd" id="19"]
 [ext_resource type="Texture2D" uid="uid://dheocmceyan8" path="res://3DViewer/VehicleActuatorStatus/steering.png" id="20"]
@@ -36,6 +34,7 @@
 [ext_resource type="Texture2D" uid="uid://did771q82ss7k" path="res://3DViewer/TopStatusBar/thunder.png" id="34_mbrfa"]
 [ext_resource type="Texture2D" uid="uid://dcjlak8lpl4gj" path="res://3DViewer/TopStatusBar/unknown.png" id="35_cirdu"]
 [ext_resource type="Script" path="res://Menu/MenuSlide.gd" id="36_jtj5y"]
+[ext_resource type="Script" path="res://Menu/ObjectModeOption.gd" id="37_782fw"]
 [ext_resource type="Script" path="res://Menu/Selection.gd" id="37_ow1tw"]
 [ext_resource type="Script" path="res://Menu/DayModeOption.gd" id="38_2kqhp"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
@@ -210,16 +209,10 @@ sky_mode = 1
 
 [node name="EgoVehicle" type="Node3D" parent="."]
 script = ExtResource("2")
+vehicle_body_path = NodePath("EgoVehicleKinematicBody/VehicleBody3D")
+head_beam_light_path = NodePath("EgoVehicleKinematicBody/HeadBeamLight")
 
 [node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="EgoVehicle"]
-
-[node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.32562, 1.10939, 0)
-light_energy = 10.0
-light_specular = 3.0
-spot_range = 200.0
-spot_angle = 54.1078
-script = ExtResource("14")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0)
@@ -227,6 +220,13 @@ shape = SubResource("1")
 
 [node name="VehicleBody3D" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource("1")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
+
+[node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.32562, 1.10939, 5.68434e-14)
+light_energy = 10.0
+light_specular = 3.0
+spot_range = 200.0
+spot_angle = 54.1078
 
 [node name="Camera3D" type="Node3D" parent="EgoVehicle"]
 script = ExtResource("9")
@@ -245,14 +245,14 @@ far = 500.0
 material_override = SubResource("12")
 mesh = SubResource("4")
 script = ExtResource("6")
-visualize_pointcloud_map_toggle = NodePath("../Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle")
+visualize_pointcloud_map_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle")
 
 [node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("obstacle_segmentation_toggle")]
 material_override = SubResource("13")
 mesh = SubResource("10")
 skeleton = NodePath("../EgoVehicle")
 script = ExtResource("7")
-obstacle_segmentation_toggle = NodePath("../Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle")
+obstacle_segmentation_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle")
 transparency_speed = 4.0
 cycle_time = 2.5
 
@@ -288,78 +288,11 @@ material_override = SubResource("24")
 mesh = SubResource("23")
 script = ExtResource("8")
 
-[node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("ignore_unknown_object_toggle", "object_mode_toggle")]
+[node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("ignore_unknown_object_toggle")]
 material_override = SubResource("26")
 mesh = SubResource("27")
 script = ExtResource("10")
-ignore_unknown_object_toggle = NodePath("../Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle")
-object_mode_toggle = NodePath("../Menu/Object3DModelButton")
-
-[node name="Menu" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-script = ExtResource("17")
-
-[node name="PointCloudMapMeshCheckButton" type="CheckButton" parent="Menu"]
-visible = false
-layout_mode = 0
-offset_right = 76.0
-offset_bottom = 40.0
-focus_mode = 0
-button_pressed = true
-text = "PointCloud Map"
-
-[node name="NightModeCheckButton" type="CheckButton" parent="Menu"]
-visible = false
-layout_mode = 0
-offset_top = 40.0
-focus_mode = 0
-text = "Night Mode"
-
-[node name="OnlyKnownObjectCheckButton" type="CheckButton" parent="Menu"]
-layout_mode = 0
-offset_top = 80.0
-focus_mode = 0
-button_pressed = true
-text = "Only Known Objects"
-
-[node name="Object3DModelButton" type="CheckButton" parent="Menu"]
-layout_mode = 0
-offset_top = 121.0
-offset_right = 224.0
-offset_bottom = 152.0
-focus_mode = 0
-button_pressed = true
-text = "3D Model Mode"
-
-[node name="EnableObstacleSegmentationButton" type="CheckButton" parent="Menu"]
-visible = false
-layout_mode = 0
-offset_top = 159.0
-offset_right = 224.0
-offset_bottom = 190.0
-focus_mode = 0
-button_pressed = true
-text = "ObstacleSegmentation"
-
-[node name="RenderingQuality" type="HBoxContainer" parent="Menu"]
-visible = false
-layout_mode = 0
-offset_left = 6.0
-offset_top = 202.0
-offset_right = 356.0
-offset_bottom = 225.0
-
-[node name="Label" type="Label" parent="Menu/RenderingQuality"]
-layout_mode = 2
-text = "Rendering Quality (Low-High)"
-
-[node name="MSAASlider" type="HSlider" parent="Menu/RenderingQuality"]
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 3.0
-tick_count = 4
-ticks_on_borders = true
+ignore_unknown_object_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -378,7 +311,7 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("20_ox2ly")
-vehicle_actuator_status_toggle = NodePath("../../Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle")
+vehicle_actuator_status_toggle = NodePath("../../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HUD/VehicleActuatorStatus"]
 layout_mode = 1
@@ -446,11 +379,11 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("18_utxm1")
 top_status_bar_path = NodePath("../TopStatusBar")
-operation_control_toggle = NodePath("../../Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle")
+operation_control_toggle = NodePath("../../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle")
 
 [node name="TopStatusBar" parent="HUD" node_paths=PackedStringArray("top_status_bar_toggle") instance=ExtResource("27_3n38x")]
 mouse_filter = 2
-top_status_bar_toggle = NodePath("../../Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle")
+top_status_bar_toggle = NodePath("../../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle")
 
 [node name="WeatherController" type="Node" parent="HUD"]
 script = ExtResource("28_g20aq")
@@ -467,10 +400,10 @@ icon_unknown = ExtResource("35_cirdu")
 
 [node name="WeatherRequest" type="HTTPRequest" parent="HUD/WeatherController"]
 
-[node name="Menuu" type="CanvasLayer" parent="."]
+[node name="Menu" type="CanvasLayer" parent="."]
 layer = 2
 
-[node name="MenuSlide" type="Control" parent="Menuu"]
+[node name="MenuSlide" type="Control" parent="Menu"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -483,7 +416,7 @@ menu_panel_path = NodePath("MenuPanel")
 edge_handle_path = NodePath("EdgeHandle")
 window_settings_path = NodePath("MenuPanel/WindowSettings")
 
-[node name="MenuPanel" type="PanelContainer" parent="Menuu/MenuSlide"]
+[node name="MenuPanel" type="PanelContainer" parent="Menu/MenuSlide"]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -491,240 +424,243 @@ offset_right = 400.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2kruo")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel"]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Content" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer"]
+[node name="Content" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SelectionDisplay" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
+[node name="SelectionDisplay" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
 mouse_filter = 0
 script = ExtResource("37_ow1tw")
 title = "Display"
 
-[node name="Header" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay"]
+[node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Header"]
+[node name="Title" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Chevron" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Header"]
+[node name="Chevron" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Header"]
 layout_mode = 2
 
-[node name="Body" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay"]
+[node name="Body" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay"]
 layout_mode = 2
 
-[node name="DisplayModeContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
+[node name="DisplayModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
 layout_mode = 2
 
-[node name="DisplayModeLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer"]
+[node name="DisplayModeLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Display mode"
 
-[node name="DisplayModeOption" type="OptionButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer"]
+[node name="DisplayModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer"]
 layout_mode = 2
 focus_mode = 0
 
-[node name="AAModeContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
+[node name="AAModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
 layout_mode = 2
 
-[node name="AALabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
+[node name="AALabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Anti Alias"
 
-[node name="AAOption" type="OptionButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
+[node name="AAOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
 layout_mode = 2
 
-[node name="AlwaysOnTopContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
+[node name="AlwaysOnTopContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
 layout_mode = 2
 
-[node name="AlwaysOnTopLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer"]
+[node name="AlwaysOnTopLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Always on top"
 
-[node name="AlwaysOnTopToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer"]
+[node name="AlwaysOnTopToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer"]
 layout_mode = 2
 focus_mode = 0
 
-[node name="SelectionData" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
+[node name="SelectionData" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
 script = ExtResource("37_ow1tw")
 title = "Data"
 
-[node name="Header" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData"]
+[node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Header"]
+[node name="Title" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Chevron" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Header"]
+[node name="Chevron" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Header"]
 layout_mode = 2
 
-[node name="Body" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData"]
+[node name="Body" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData"]
 layout_mode = 2
 
-[node name="PointCloudMapContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body"]
+[node name="PointCloudMapContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body"]
 layout_mode = 2
 
-[node name="PointCloudMapLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
+[node name="PointCloudMapLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Pointcloud Map"
 
-[node name="PointCloudMapToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
+[node name="PointCloudMapToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
 
-[node name="ObstacleSegmentationContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body"]
+[node name="ObstacleSegmentationContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body"]
 layout_mode = 2
 
-[node name="ObstacleSegmentationLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
+[node name="ObstacleSegmentationLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Obstacle Segmentation"
 
-[node name="ObstacleSegmentationToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
+[node name="ObstacleSegmentationToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
 
-[node name="Selection3DEnvironment" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
+[node name="Selection3DEnvironment" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
 script = ExtResource("37_ow1tw")
 title = "3D Environment"
 
-[node name="Header" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment"]
+[node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Header"]
+[node name="Title" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Chevron" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Header"]
+[node name="Chevron" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Header"]
 layout_mode = 2
 
-[node name="Body" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment"]
+[node name="Body" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment"]
 layout_mode = 2
 
-[node name="IgnoreUnknownObjectContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+[node name="IgnoreUnknownObjectContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
 
-[node name="IgnoreUnknownObjectLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
+[node name="IgnoreUnknownObjectLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Ignore Unknown Object"
 
-[node name="IgnoreUnknownObjectToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
+[node name="IgnoreUnknownObjectToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
 layout_mode = 2
 focus_mode = 0
 
-[node name="ObjectModeContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+[node name="ObjectModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
 
-[node name="ObjectModeLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
+[node name="ObjectModeLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Object Mode"
 
-[node name="ObjectModeOption" type="OptionButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
+[node name="ObjectModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
 layout_mode = 2
 focus_mode = 0
+script = ExtResource("37_782fw")
+dynamic_object_mesh_path = NodePath("../../../../../../../../../../DynamicObjectMesh")
 
-[node name="DayModeContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+[node name="DayModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
 
-[node name="DayModeLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
+[node name="DayModeLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Day Mode"
 
-[node name="DayModeOption" type="OptionButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
+[node name="DayModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
 layout_mode = 2
 focus_mode = 0
 script = ExtResource("38_2kqhp")
 world_path = NodePath("../../../../../../../../../../World")
+ego_vehicle_path = NodePath("../../../../../../../../../../EgoVehicle")
 
-[node name="SelectionHUD" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
+[node name="SelectionHUD" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
 script = ExtResource("37_ow1tw")
 title = "HUD"
 
-[node name="Header" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD"]
+[node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Header"]
+[node name="Title" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Chevron" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Header"]
+[node name="Chevron" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Header"]
 layout_mode = 2
 
-[node name="Body" type="VBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD"]
+[node name="Body" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD"]
 layout_mode = 2
 
-[node name="TopStatusBarContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
+[node name="TopStatusBarContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
 layout_mode = 2
 
-[node name="TopStatusBarLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
+[node name="TopStatusBarLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Top Bar"
 
-[node name="TopStatusBarToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
+[node name="TopStatusBarToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
 
-[node name="OperationControlContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
+[node name="OperationControlContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
 layout_mode = 2
 
-[node name="OperationControlsLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
+[node name="OperationControlsLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Message Panel"
 
-[node name="OperationControlToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
+[node name="OperationControlToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
 
-[node name="VehicleActuatorStatusContainer" type="HBoxContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
+[node name="VehicleActuatorStatusContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
 layout_mode = 2
 
-[node name="VehicleActuatorStatusLabel" type="Label" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
+[node name="VehicleActuatorStatusLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Steering/Meter"
 
-[node name="VehicleActuatorStatusToggle" type="CheckButton" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
+[node name="VehicleActuatorStatusToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
 
-[node name="MarginContainer2" type="MarginContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer"]
+[node name="MarginContainer2" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="QuitButton" type="Button" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer"]
+[node name="QuitButton" type="Button" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(70, 28)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -735,17 +671,17 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_usaqh")
 text = "QUIT"
 script = ExtResource("38_d4rqi")
 
-[node name="MarginContainer3" type="MarginContainer" parent="Menuu/MenuSlide/MenuPanel/VBoxContainer"]
+[node name="MarginContainer3" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="WindowSettings" type="Node" parent="Menuu/MenuSlide/MenuPanel"]
+[node name="WindowSettings" type="Node" parent="Menu/MenuSlide/MenuPanel"]
 script = ExtResource("39_w7msr")
 display_mode_option_path = NodePath("../VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer/DisplayModeOption")
 always_on_top_toggle_path = NodePath("../VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer/AlwaysOnTopToggle")
 anti_alias_option_path = NodePath("../VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer/AAOption")
 
-[node name="EdgeHandle" type="Button" parent="Menuu/MenuSlide"]
+[node name="EdgeHandle" type="Button" parent="Menu/MenuSlide"]
 custom_minimum_size = Vector2(5, 100)
 layout_mode = 1
 anchors_preset = 4
@@ -762,11 +698,9 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_gwddm")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_6yj7s")
 text = ">"
 
-[connection signal="toggled" from="Menu/Object3DModelButton" to="DynamicObjectMesh" method="_on_d_model_object_toggled"]
-[connection signal="value_changed" from="Menu/RenderingQuality/MSAASlider" to="." method="_on_MSAASlider_value_changed"]
-[connection signal="toggled" from="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle" to="PointCloudMapMesh" method="_on_point_cloud_map_toggle_toggled"]
-[connection signal="toggled" from="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle" to="ObstacleSegmentationMesh" method="_on_obstacle_segmentation_toggle_toggled"]
-[connection signal="toggled" from="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle" to="DynamicObjectMesh" method="_on_ignore_unknown_object_toggle_toggled"]
-[connection signal="toggled" from="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle" to="HUD/TopStatusBar" method="_on_top_bar_toggle_toggled"]
-[connection signal="toggled" from="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle" to="HUD/OperationControl" method="_on_operation_control_toggle_toggled"]
-[connection signal="toggled" from="Menuu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle" to="HUD/VehicleActuatorStatus" method="_on_vehicle_actuator_atatus_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle" to="PointCloudMapMesh" method="_on_point_cloud_map_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle" to="ObstacleSegmentationMesh" method="_on_obstacle_segmentation_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle" to="DynamicObjectMesh" method="_on_ignore_unknown_object_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle" to="HUD/TopStatusBar" method="_on_top_bar_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle" to="HUD/OperationControl" method="_on_operation_control_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle" to="HUD/VehicleActuatorStatus" method="_on_vehicle_actuator_atatus_toggle_toggled"]
