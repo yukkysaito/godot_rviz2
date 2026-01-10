@@ -3,7 +3,7 @@ class_name DynamicObjectRenderer
 
 # ================== Editor-exposed settings ==================
 var only_known_object: bool
-@export var only_known_object_toggle: BaseButton
+@export var ignore_unknown_object_toggle: BaseButton
 var object_3d_model_mode: bool
 @export var object_mode_toggle: BaseButton
 
@@ -70,7 +70,7 @@ func _ready() -> void:
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
 
 	# Synchronize UI status
-	only_known_object = only_known_object_toggle.button_pressed
+	only_known_object = ignore_unknown_object_toggle.button_pressed
 	object_3d_model_mode = object_mode_toggle.button_pressed
 	
 	# Initialize pools
@@ -335,8 +335,8 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 	return p
 
 # ------------------ UI callbacks ------------------
-func _on_OnlyKnownObjectCheckButton_toggled(button_pressed: bool) -> void:
-	only_known_object = button_pressed
-
 func _on_d_model_object_toggled(toggled_on: bool) -> void:
 	object_3d_model_mode = toggled_on
+
+func _on_ignore_unknown_object_toggle_toggled(toggled_on):
+	only_known_object = toggled_on

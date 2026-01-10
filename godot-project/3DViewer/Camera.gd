@@ -65,7 +65,7 @@ func _process(delta):
 	var target_pos = _mode_offset(current_view_mode) * camera_zoom_ratio
 	view_camera.set_position(lerp(view_camera.get_position(), target_pos, delta * 5))
 
-func _input(event):
+func _unhandled_input(event):
 	# Toggle view mode and apply mode rotation/position, then reset rot/zoom as in original
 	if Input.is_action_just_pressed("ui_view_switch"):
 		current_view_mode = (current_view_mode + 1) % view_mode.size()
