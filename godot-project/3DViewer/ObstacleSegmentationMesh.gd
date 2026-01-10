@@ -1,6 +1,5 @@
 extends MeshInstance3D
 
-
 @export var obstacle_segmentation_toggle: BaseButton
 
 var pointcloud = PointCloud.new()
@@ -48,6 +47,5 @@ func _process(delta):
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arr)
 	pointcloud.set_old()
 
-
-func _on_enable_obstacle_segmentation_button_toggled(toggled_on):
+func _on_obstacle_segmentation_toggle_toggled(toggled_on):
 	visible = toggled_on

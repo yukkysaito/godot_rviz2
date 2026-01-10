@@ -6,7 +6,7 @@ var visualize_again = false
 @export var visualize_pointcloud_map_toggle: BaseButton
 
 func _ready():
-	pointcloud.subscribe("/map/pointcloud_map", true)
+	pointcloud.subscribe("/map/pointcloud_map", true)	
 	visible = visualize_pointcloud_map_toggle.button_pressed
 
 func _process(_delta):
@@ -30,10 +30,10 @@ func _process(_delta):
 	visualize_again = false
 	pointcloud.set_old()
 
-func _on_CheckButton_toggled(button_pressed):
 
-	visible = button_pressed
+func _on_point_cloud_map_toggle_toggled(toggled_on):
+	visible = toggled_on
 	if not visible:
 		mesh.clear_surfaces()
-	elif visible:
+	else:
 		visualize_again = true

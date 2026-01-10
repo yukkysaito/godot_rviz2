@@ -17,6 +17,9 @@ var navidation_state := NavigationState.new()
 @export var start_button_scene: PackedScene = preload("res://UI/StartButton.tscn")
 @export var message_panel_scene: PackedScene = preload("res://UI/MessagePanel.tscn")
 
+# Visible Toggle
+@export var operation_control_toggle: BaseButton
+
 # --- Internal UI caches ---
 var _start_root: Control = null         # Start button root (e.g., CenterContainer)
 var _msg_root: Control = null   # Message panel root
@@ -32,6 +35,7 @@ var _last_ui_state: int = -1
 # Lifecycle
 # -----------------------------------------------------------------------------
 func _ready() -> void:
+	visible = operation_control_toggle.button_pressed
 	operation_mode_state.subscribe("/api/operation_mode/state", true)
 	navidation_state.subscribe("/api/routing/state", true)
 
@@ -217,3 +221,7 @@ func _reconcile_start_button() -> void:
 				_start_root.queue_free()
 				_start_root = null
 		)
+
+
+func _on_operation_control_toggle_toggled(toggled_on):
+	visible = toggled_on

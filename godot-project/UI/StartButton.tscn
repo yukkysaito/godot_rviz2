@@ -45,6 +45,7 @@ shadow_size = 6
 [node name="CenterContainer" type="CenterContainer"]
 offset_right = 40.0
 offset_bottom = 40.0
+mouse_filter = 2
 
 [node name="StartButton" type="Button" parent="."]
 layout_mode = 2

@@ -1,6 +1,7 @@
-[gd_scene load_steps=20 format=3 uid="uid://c12wli2xky3ja"]
+[gd_scene load_steps=21 format=3 uid="uid://c12wli2xky3ja"]
 
 [ext_resource type="PackedScene" uid="uid://5ayw2a03ou6w" path="res://3DViewer/Vehicle/RX450h/RX450h.glb" id="1_qgkfj"]
+[ext_resource type="Script" path="res://3DViewer/Vehicle/RX450h/VehicleBodyController.gd" id="2_iercg"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/BrakeLight.gd" id="22"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/TurnSignal.gd" id="23"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/Light.gd" id="28"]
@@ -81,6 +82,19 @@ refraction_scale = 0.1
 grow_amount = 0.481
 
 [node name="RX450h" instance=ExtResource("1_qgkfj")]
+script = ExtResource("2_iercg")
+wheel_back_r_path = NodePath("WheelBackR")
+wheel_back_l_path = NodePath("WheelBackL")
+wheel_front_r_path = NodePath("WheelFrontR")
+wheel_front_l_path = NodePath("WheelFrontL")
+turn_signal_r_path = NodePath("TurnSignalR")
+turn_signal_r_small_path = NodePath("BodyCar/TurnSignalR_002")
+turn_signal_l_path = NodePath("TurnSignalL")
+turn_signal_l_small_path = NodePath("BodyCar/TurnSignalL_002")
+head_light_path = NodePath("HeadLight")
+head_small_light_path = NodePath("BodyCar/HeadLight_002")
+fog_light_path = NodePath("FogLight")
+brake_light_path = NodePath("BreakLight")
 
 [node name="FogLight" parent="." index="0"]
 surface_material_override/0 = SubResource("StandardMaterial3D_xu21l")
@@ -107,6 +121,24 @@ script = ExtResource("23")
 
 [node name="SteeringWheel" parent="." index="2"]
 surface_material_override/0 = SubResource("StandardMaterial3D_blef2")
+
+[node name="WheelBackLBreaks" parent="." index="3"]
+visible = false
+
+[node name="WheelFrontLBreaks" parent="." index="4"]
+visible = false
+
+[node name="WheelFrontRBreaks" parent="." index="5"]
+visible = false
+
+[node name="WheelBackRBreaks" parent="." index="6"]
+visible = false
+
+[node name="RelingsLidarFront" parent="." index="7"]
+visible = false
+
+[node name="RelingsLidarBack" parent="." index="8"]
+visible = false
 
 [node name="TurnSignalR" parent="." index="9"]
 surface_material_override/0 = SubResource("StandardMaterial3D_gyqh1")

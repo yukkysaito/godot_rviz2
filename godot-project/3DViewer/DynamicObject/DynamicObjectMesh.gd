@@ -2,10 +2,9 @@ extends MeshInstance3D
 class_name DynamicObjectRenderer
 
 # ================== Editor-exposed settings ==================
-var only_known_object: bool
-@export var only_known_object_toggle: BaseButton
+var ignore_unknown_object: bool
+@export var ignore_unknown_object_toggle: BaseButton
 var object_3d_model_mode: bool
-@export var object_mode_toggle: BaseButton
 
 @export var initial_pool: int = 16     # Initial pool size per type
 @export var pool_growth_step: int = 8  # Pool growth step when shortage occurs
@@ -70,8 +69,7 @@ func _ready() -> void:
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
 
 	# Synchronize UI status
-	only_known_object = only_known_object_toggle.button_pressed
-	object_3d_model_mode = object_mode_toggle.button_pressed
+	ignore_unknown_object = ignore_unknown_object_toggle.button_pressed
 	
 	# Initialize pools
 	_initialize_model_pools(initial_pool)
@@ -86,10 +84,12 @@ func _process(_delta: float) -> void:
 		return
 
 	# Fetch once and reuse for both model/triangle and icons
-	var objects := dynamic_objects.get_dynamic_object_list(only_known_object)
+	var objects := dynamic_objects.get_dynamic_object_list(ignore_unknown_object)
 
 	if object_3d_model_mode:
 		_render_models(objects)
+		if not ignore_unknown_object:
+			_render_unknown_triangles() 
 	else:
 		_render_triangles()
 
@@ -150,7 +150,7 @@ func _render_triangles() -> void:
 		icon_pools[t]["used"] = 0
 
 	# Build triangle arrays
-	var triangles := dynamic_objects.get_triangle_list(only_known_object)
+	var triangles := dynamic_objects.get_triangle_list(ignore_unknown_object)
 	var verts := PackedVector3Array()
 	var norms := PackedVector3Array()
 
@@ -158,6 +158,31 @@ func _render_triangles() -> void:
 		verts.append(_to_v3(p.get("position", Vector3.ZERO), Vector3.ZERO))
 		norms.append(_to_v3(p.get("normal",   Vector3.UP),   Vector3.UP))
 
+	array_mesh.clear_surfaces()
+	if not verts.is_empty():
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = verts
+		arr[Mesh.ARRAY_NORMAL] = norms
+		array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+
+	if mesh != array_mesh:
+		mesh = array_mesh
+
+func _render_unknown_triangles() -> void:
+	var triangles := dynamic_objects.get_unknown_object_triangle_list() as Array
+
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+
+	for p in triangles:
+		verts.append(_to_v3(p.get("position", Vector3.ZERO), Vector3.ZERO))
+		norms.append(_to_v3(p.get("normal",   Vector3.UP),   Vector3.UP))
+
+	# ★ Important:
+	# In model mode, array_mesh currently has 0 surfaces (cleared in _render_models()).
+	# We add exactly one surface for unknown triangles.
+	# In triangle mode, _render_triangles() clears and then adds the "all triangles" surface.
 	array_mesh.clear_surfaces()
 	if not verts.is_empty():
 		var arr := []
@@ -335,8 +360,8 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 	return p
 
 # ------------------ UI callbacks ------------------
-func _on_OnlyKnownObjectCheckButton_toggled(button_pressed: bool) -> void:
-	only_known_object = button_pressed
+func set_3d_model_mode(enabled: bool) -> void:
+	object_3d_model_mode = enabled
 
-func _on_d_model_object_toggled(toggled_on: bool) -> void:
-	object_3d_model_mode = toggled_on
+func _on_ignore_unknown_object_toggle_toggled(toggled_on):
+	ignore_unknown_object = toggled_on

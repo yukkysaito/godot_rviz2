@@ -77,6 +77,8 @@ func set_temperature_text(text: String) -> void:
 @export var mode_badge_path: NodePath = NodePath("Margin/Row/Right/ModeBadge")
 @export var mode_label_path: NodePath = NodePath("Margin/Row/Right/ModeBadge/ModeLabel")
 
+# Visible Toggle
+@export var top_status_bar_toggle: BaseButton
 # -----------------------------------------------------------------------------
 # Private state
 # -----------------------------------------------------------------------------
@@ -98,6 +100,7 @@ const _MONTHS: Array[String] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 # Lifecycle
 # -----------------------------------------------------------------------------
 func _ready() -> void:
+	visible = top_status_bar_toggle.button_pressed
 	_bind_nodes()
 
 	# Initial render (order matters)
@@ -261,3 +264,7 @@ func _format_datetime_en_like_bar(include_seconds: bool) -> String:
 		return "%s %s %d %02d:%02d:%02d" % [wd, mo, dd, hh, mm, ss]
 
 	return "%s %s %d %02d:%02d" % [wd, mo, dd, hh, mm]
+
+
+func _on_top_bar_toggle_toggled(toggled_on):
+	visible = toggled_on
