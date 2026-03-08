@@ -288,11 +288,12 @@ material_override = SubResource("24")
 mesh = SubResource("23")
 script = ExtResource("8")
 
-[node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("ignore_unknown_object_toggle")]
+[node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("ignore_unknown_object_toggle", "icon_visibility_toggle")]
 material_override = SubResource("26")
 mesh = SubResource("27")
 script = ExtResource("10")
 ignore_unknown_object_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle")
+icon_visibility_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer/ObjectIconToggle")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -584,6 +585,19 @@ focus_mode = 0
 script = ExtResource("37_782fw")
 dynamic_object_mesh_path = NodePath("../../../../../../../../../../DynamicObjectMesh")
 
+[node name="ObjectIconContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="ObjectIconLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Object Icon"
+
+[node name="ObjectIconToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer"]
+layout_mode = 2
+focus_mode = 0
+button_pressed = true
+
 [node name="DayModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
 
@@ -701,6 +715,7 @@ text = ">"
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle" to="PointCloudMapMesh" method="_on_point_cloud_map_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle" to="ObstacleSegmentationMesh" method="_on_obstacle_segmentation_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle" to="DynamicObjectMesh" method="_on_ignore_unknown_object_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer/ObjectIconToggle" to="DynamicObjectMesh" method="set_icon_visibility"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle" to="HUD/TopStatusBar" method="_on_top_bar_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle" to="HUD/OperationControl" method="_on_operation_control_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle" to="HUD/VehicleActuatorStatus" method="_on_vehicle_actuator_atatus_toggle_toggled"]

@@ -4,6 +4,7 @@ class_name DynamicObjectRenderer
 # ================== Editor-exposed settings ==================
 var ignore_unknown_object: bool
 @export var ignore_unknown_object_toggle: BaseButton
+@export var icon_visibility_toggle: BaseButton
 var object_3d_model_mode: bool
 
 @export var initial_pool: int = 16     # Initial pool size per type
@@ -70,6 +71,8 @@ func _ready() -> void:
 
 	# Synchronize UI status
 	ignore_unknown_object = ignore_unknown_object_toggle.button_pressed
+	if icon_visibility_toggle != null:
+		show_icons = icon_visibility_toggle.button_pressed
 	
 	# Initialize pools
 	_initialize_model_pools(initial_pool)
@@ -133,9 +136,6 @@ func _render_models(objects: Array) -> void:
 				speed_mps = vel.length()
 			node.set_meta("speed_mps", speed_mps)
 
-		# Also place an icon above this object
-		if show_icons:
-			_place_icon_for_object(t, pos, size)
 
 	_hide_unused_nodes()
 
@@ -362,6 +362,12 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 # ------------------ UI callbacks ------------------
 func set_3d_model_mode(enabled: bool) -> void:
 	object_3d_model_mode = enabled
+
+func set_icon_visibility(enabled: bool) -> void:
+	show_icons = enabled
+	if not show_icons:
+		_reset_icon_usage_counters()
+		_hide_unused_icons()
 
 func _on_ignore_unknown_object_toggle_toggled(toggled_on):
 	ignore_unknown_object = toggled_on

@@ -6,7 +6,7 @@ class_name DynamicObjectRenderModeOption
 
 enum Preset {
 	MODEL_3D,
-	GEOMETRY
+	GEOMETRY,
 }
 
 var _suppress := false
