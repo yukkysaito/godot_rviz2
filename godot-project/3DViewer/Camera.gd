@@ -24,6 +24,8 @@ var camera_rotation_v = 0.0
 var camera_zoom_ratio = 1.0
 var camera_zoom_change_ratio = 0.95
 var enable_camera_rotation = false
+var touch_points := {}
+var prev_pinch_distance := -1.0
 
 # --- Small helpers for readability (pure accessors, no logic change) ---
 func _mode_name(idx: int) -> String:
@@ -90,3 +92,23 @@ func _unhandled_input(event):
 			camera_zoom_ratio *= 2.0 - camera_zoom_change_ratio
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			enable_camera_rotation = event.pressed
+
+	# Track screen touches for pinch zoom
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			touch_points[event.index] = event.position
+		else:
+			touch_points.erase(event.index)
+		if touch_points.size() != 2:
+			prev_pinch_distance = -1.0
+
+	# Two-finger pinch to zoom on touch devices
+	if event is InputEventScreenDrag:
+		if touch_points.has(event.index):
+			touch_points[event.index] = event.position
+		if touch_points.size() == 2:
+			var points = touch_points.values()
+			var pinch_distance = points[0].distance_to(points[1])
+			if prev_pinch_distance > 0.0 and pinch_distance > 0.0:
+				camera_zoom_ratio *= prev_pinch_distance / pinch_distance
+			prev_pinch_distance = pinch_distance
