@@ -27,6 +27,9 @@ var enable_camera_rotation = false
 var touch_points := {}
 var prev_pinch_distance := -1.0
 
+func _is_touch_gesture_active() -> bool:
+	return touch_points.size() > 0
+
 # --- Small helpers for readability (pure accessors, no logic change) ---
 func _mode_name(idx: int) -> String:
 	return view_mode[idx][MODE_NAME]
@@ -78,7 +81,7 @@ func _unhandled_input(event):
 
 	# Mouse drag to rotate: horizontal always, vertical only when not "bev"
 	if event is InputEventMouseMotion:
-		if enable_camera_rotation:
+		if enable_camera_rotation and not _is_touch_gesture_active():
 			camera_rotation_h += -event.relative.x * mouse_sensitivity
 			# Apply vertical rotation only for non-"bev" modes (preserve original condition)
 			if _mode_name(current_view_mode) != "bev":
@@ -90,11 +93,12 @@ func _unhandled_input(event):
 			camera_zoom_ratio *= camera_zoom_change_ratio
 		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			camera_zoom_ratio *= 2.0 - camera_zoom_change_ratio
-		if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.button_index == MOUSE_BUTTON_LEFT and not _is_touch_gesture_active():
 			enable_camera_rotation = event.pressed
 
 	# Track screen touches for pinch zoom
 	if event is InputEventScreenTouch:
+		enable_camera_rotation = false
 		if event.pressed:
 			touch_points[event.index] = event.position
 		else:
@@ -106,7 +110,11 @@ func _unhandled_input(event):
 	if event is InputEventScreenDrag:
 		if touch_points.has(event.index):
 			touch_points[event.index] = event.position
-		if touch_points.size() == 2:
+		if touch_points.size() == 1:
+			camera_rotation_h += -event.relative.x * mouse_sensitivity
+			if _mode_name(current_view_mode) != "bev":
+				camera_rotation_v += -event.relative.y * mouse_sensitivity
+		elif touch_points.size() == 2:
 			var points = touch_points.values()
 			var pinch_distance = points[0].distance_to(points[1])
 			if prev_pinch_distance > 0.0 and pinch_distance > 0.0:
