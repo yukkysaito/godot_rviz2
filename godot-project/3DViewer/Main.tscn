@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=66 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
@@ -39,6 +39,7 @@
 [ext_resource type="Script" path="res://Menu/DayModeOption.gd" id="38_2kqhp"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
 [ext_resource type="Script" path="res://Menu/WindowSettings.gd" id="39_w7msr"]
+[ext_resource type="Script" path="res://Menu/VehicleActuatorStatusSizeOption.gd" id="40_0if0g"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
 sky_top_color = Color(0, 0, 0, 1)
@@ -682,6 +683,19 @@ layout_mode = 2
 focus_mode = 0
 button_pressed = true
 
+[node name="VehicleActuatorStatusSizeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
+layout_mode = 2
+
+[node name="VehicleActuatorStatusSizeLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusSizeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Steering/Meter Size"
+
+[node name="VehicleActuatorStatusSizeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusSizeContainer"]
+layout_mode = 2
+focus_mode = 0
+script = ExtResource("40_0if0g")
+
 [node name="MarginContainer2" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
@@ -732,3 +746,4 @@ text = ">"
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle" to="HUD/TopStatusBar" method="_on_top_bar_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle" to="HUD/OperationControl" method="_on_operation_control_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle" to="HUD/VehicleActuatorStatus" method="_on_vehicle_actuator_atatus_toggle_toggled"]
+[connection signal="item_selected" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusSizeContainer/VehicleActuatorStatusSizeOption" to="HUD/VehicleActuatorStatus" method="set_size_preset"]
