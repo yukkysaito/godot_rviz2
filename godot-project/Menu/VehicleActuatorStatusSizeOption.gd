@@ -1,28 +1,14 @@
 extends OptionButton
 
-enum Preset {
-	PERCENT_50,
-	PERCENT_75,
-	PERCENT_100,
-	PERCENT_125,
-	PERCENT_150,
-}
+const SIZE_LABELS := ["50%", "75%", "100%", "125%", "150%"]
+const DEFAULT_SIZE_PRESET := 2
 
 func _ready() -> void:
 	clear()
-	add_item("50%", Preset.PERCENT_50)
-	add_item("75%", Preset.PERCENT_75)
-	add_item("100%", Preset.PERCENT_100)
-	add_item("125%", Preset.PERCENT_125)
-	add_item("150%", Preset.PERCENT_150)
-	select(_find_index_by_id(Preset.PERCENT_100))
+	for label in SIZE_LABELS:
+		add_item(label)
+	select(DEFAULT_SIZE_PRESET)
 	call_deferred("_emit_initial_selection")
 
 func _emit_initial_selection() -> void:
-	item_selected.emit(_find_index_by_id(Preset.PERCENT_100))
-
-func _find_index_by_id(id: int) -> int:
-	for i in range(item_count):
-		if get_item_id(i) == id:
-			return i
-	return 0
+	item_selected.emit(DEFAULT_SIZE_PRESET)
