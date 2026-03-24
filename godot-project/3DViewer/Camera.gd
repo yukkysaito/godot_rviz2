@@ -26,6 +26,10 @@ var camera_zoom_change_ratio = 0.95
 var enable_camera_rotation = false
 var touch_points := {}
 var prev_pinch_distance := -1.0
+var auto_return_enabled = true
+var auto_return_speed = 2.0
+var auto_return_delay = 2.0
+var _auto_return_timer = 0.0
 
 func _is_touch_gesture_active() -> bool:
 	return touch_points.size() > 0
@@ -62,6 +66,15 @@ func _ready():
 	pass
 
 func _process(delta):
+	# Auto-return: when not dragging, gradually reset rotation and zoom
+	if auto_return_enabled and not enable_camera_rotation and not _is_touch_gesture_active():
+		_auto_return_timer += delta
+		if _auto_return_timer > auto_return_delay:
+			var t = auto_return_speed * delta
+			camera_rotation_h = lerpf(camera_rotation_h, 0.0, t)
+			camera_rotation_v = lerpf(camera_rotation_v, 0.0, t)
+			camera_zoom_ratio = lerpf(camera_zoom_ratio, 1.0, t)
+
 	# Smoothly interpolate pivot rotations towards target (degrees)
 	horizon.rotation_degrees.y = lerp(horizon.rotation_degrees.y, camera_rotation_h, delta * 10)
 	vertical.rotation_degrees.z = lerp(vertical.rotation_degrees.z, camera_rotation_v, delta * 10)
@@ -83,18 +96,21 @@ func _unhandled_input(event):
 	if event is InputEventMouseMotion:
 		if enable_camera_rotation and not _is_touch_gesture_active():
 			camera_rotation_h += -event.relative.x * mouse_sensitivity
-			# Apply vertical rotation only for non-"bev" modes (preserve original condition)
 			if _mode_name(current_view_mode) != "bev":
 				camera_rotation_v += -event.relative.y * mouse_sensitivity
+			_auto_return_timer = 0.0
 
-	# Mouse wheel to zoom, left button to enable/disable rotation
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			camera_zoom_ratio *= camera_zoom_change_ratio
+			_auto_return_timer = 0.0
 		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			camera_zoom_ratio *= 2.0 - camera_zoom_change_ratio
+			_auto_return_timer = 0.0
 		if event.button_index == MOUSE_BUTTON_LEFT and not _is_touch_gesture_active():
 			enable_camera_rotation = event.pressed
+			if not event.pressed:
+				_auto_return_timer = 0.0
 
 	# Track screen touches for pinch zoom
 	if event is InputEventScreenTouch:
@@ -105,6 +121,7 @@ func _unhandled_input(event):
 			touch_points.erase(event.index)
 		if touch_points.size() != 2:
 			prev_pinch_distance = -1.0
+		_auto_return_timer = 0.0
 
 	# Two-finger pinch to zoom on touch devices
 	if event is InputEventScreenDrag:
@@ -120,3 +137,7 @@ func _unhandled_input(event):
 			if prev_pinch_distance > 0.0 and pinch_distance > 0.0:
 				camera_zoom_ratio *= prev_pinch_distance / pinch_distance
 			prev_pinch_distance = pinch_distance
+		_auto_return_timer = 0.0
+
+func _on_camera_auto_return_toggle_toggled(toggled_on: bool):
+	auto_return_enabled = toggled_on
