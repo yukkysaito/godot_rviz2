@@ -625,6 +625,19 @@ text = "High Contrast"
 layout_mode = 2
 focus_mode = 0
 
+[node name="CameraAutoReturnContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="CameraAutoReturnLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Camera Auto Return"
+
+[node name="CameraAutoReturnToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer"]
+layout_mode = 2
+focus_mode = 0
+button_pressed = true
+
 [node name="SelectionHUD" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
 script = ExtResource("37_ow1tw")
@@ -729,6 +742,7 @@ text = ">"
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle" to="DynamicObjectMesh" method="_on_ignore_unknown_object_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer/ObjectIconToggle" to="DynamicObjectMesh" method="set_icon_visibility"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/HighContrastContainer/HighContrastToggle" to="TrajectoryMesh" method="_on_high_contrast_toggle_toggled"]
+[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer/CameraAutoReturnToggle" to="EgoVehicle/Camera3D" method="_on_camera_auto_return_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle" to="HUD/TopStatusBar" method="_on_top_bar_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle" to="HUD/OperationControl" method="_on_operation_control_toggle_toggled"]
 [connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle" to="HUD/VehicleActuatorStatus" method="_on_vehicle_actuator_atatus_toggle_toggled"]
