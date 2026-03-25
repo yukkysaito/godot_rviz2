@@ -44,6 +44,9 @@ func _process(delta):
 			vehicle_body.turn_off_left_signal()
 		vehicle_status.set_old()
 
+func is_turn_indicator_active() -> bool:
+	return vehicle_status.is_turn_on_right() or vehicle_status.is_turn_on_left()
+
 func set_night_mode(enabled: bool) -> void:
 	vehicle_body.set_night_mode(enabled)
 	head_beam_light.visible = enabled
