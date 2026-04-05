@@ -31,7 +31,10 @@ bool OperationModeState::is_autonomous_mode_available()
   const auto last_msg = get_last_msg();
   if (!last_msg) return operation_mode_state;
 
-  return last_msg.value()->is_autonomous_mode_available;
+  const bool is_autonomous_mode =
+    (last_msg.value()->mode == autoware_adapi_v1_msgs::msg::OperationModeState::AUTONOMOUS);
+
+  return last_msg.value()->is_autonomous_mode_available && !is_autonomous_mode;
 }
 
 bool OperationModeState::is_autonomous_mode()
@@ -40,5 +43,9 @@ bool OperationModeState::is_autonomous_mode()
   const auto last_msg = get_last_msg();
   if (!last_msg) return operation_mode_state;
 
-  return (last_msg.value()->mode == autoware_adapi_v1_msgs::msg::OperationModeState::AUTONOMOUS);
+  const bool is_autonomous_mode =
+    (last_msg.value()->mode == autoware_adapi_v1_msgs::msg::OperationModeState::AUTONOMOUS);
+  const bool under_autoware_control = last_msg.value()->is_autoware_control_enabled;
+
+  return is_autonomous_mode && under_autoware_control;
 }
