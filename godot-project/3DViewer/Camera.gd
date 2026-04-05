@@ -31,6 +31,7 @@ var enable_camera_rotation: bool = false
 var touch_points := {}
 var prev_pinch_distance: float = -1.0
 var auto_return_enabled: bool = true
+var adaptive_camera_work_enabled: bool = true
 var auto_return_speed: float = 2.0
 var auto_return_delay: float = 2.0
 var _auto_return_timer: float = 0.0
@@ -94,7 +95,7 @@ func _ready():
 
 func _process(delta):
 	var turn_signal_target_blend: float = 0.0
-	if _is_turn_signal_active():
+	if adaptive_camera_work_enabled and _is_turn_signal_active():
 		turn_signal_target_blend = 1.0
 	turn_signal_view_blend = lerpf(turn_signal_view_blend, turn_signal_target_blend, delta * turn_signal_transition_speed)
 
@@ -175,3 +176,6 @@ func _unhandled_input(event):
 
 func _on_camera_auto_return_toggle_toggled(toggled_on: bool):
 	auto_return_enabled = toggled_on
+
+func _on_adaptive_camera_work_toggle_toggled(toggled_on: bool):
+	adaptive_camera_work_enabled = toggled_on
