@@ -1,26 +1,37 @@
-[gd_scene load_steps=6 format=3 uid="uid://c6p8ta0as71ky"]
+[gd_scene load_steps=9 format=3 uid="uid://c6p8ta0as71ky"]
 
 [ext_resource type="Script" path="res://UI/MessagePanel.gd" id="1_rje2d"]
+[ext_resource type="Material" path="res://UI/Theme/glass_panel_material.tres" id="2_glass"]
+[ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="3_font"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nv4wi"]
-content_margin_left = 28.0
-content_margin_top = 20.0
-content_margin_right = 28.0
-content_margin_bottom = 20.0
-bg_color = Color(0.14902, 0.196078, 0.219608, 0.843137)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.313726)
-shadow_size = 12
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+corner_detail = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_accent"]
+content_margin_left = 32.0
+content_margin_top = 22.0
+content_margin_right = 30.0
+content_margin_bottom = 22.0
+draw_center = false
+border_width_left = 4
+border_color = Color(0, 0.898039, 1, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+corner_detail = 10
 
 [sub_resource type="Animation" id="Animation_5yc08"]
 resource_name = "fade_in"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("CenterContainer/PanelContainer/VBoxContainer/Label:modulate:a")
+tracks/0/path = NodePath("CenterContainer/PanelContainer/Accent/VBoxContainer/Label:modulate:a")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -47,7 +58,7 @@ resource_name = "fade_out"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("CenterContainer/PanelContainer/VBoxContainer/Label:modulate:a")
+tracks/0/path = NodePath("CenterContainer/PanelContainer/Accent/VBoxContainer/Label:modulate:a")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -98,21 +109,29 @@ mouse_filter = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
 modulate = Color(1, 1, 1, 0)
+material = ExtResource("2_glass")
 layout_mode = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_nv4wi")
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer"]
+[node name="Accent" type="PanelContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_accent")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/Accent"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/Accent/VBoxContainer"]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 44
+theme_override_colors/font_color = Color(0.878431, 0.94902, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.898039, 1, 0.25)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 40
 text = "Hi there! Please choose your destination."
 horizontal_alignment = 1
 vertical_alignment = 1

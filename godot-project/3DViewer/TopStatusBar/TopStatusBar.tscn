@@ -4,21 +4,26 @@
 [ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="2_7hyhy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mx7co"]
-bg_color = Color(1, 1, 1, 0.0980392)
+content_margin_left = 18.0
+content_margin_top = 4.0
+content_margin_right = 18.0
+content_margin_bottom = 4.0
+bg_color = Color(0.0392157, 0.054902, 0.0784314, 0.72)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(1, 1, 1, 0.501961)
+border_color = Color(1, 1, 1, 0.08)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
+corner_detail = 8
 expand_margin_left = 20.0
 expand_margin_right = 20.0
-shadow_color = Color(0, 0, 0, 0.32549)
-shadow_size = 2
-shadow_offset = Vector2(3, 2)
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e83jf"]
 
@@ -34,10 +39,6 @@ offset_bottom = 42.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_mx7co")
 script = ExtResource("1_5aahv")
-manual_badge_bg = Color(0.117647, 0.811765, 0.184314, 1)
-manual_badge_fg = Color(1, 1, 1, 1)
-autonomous_badge_fg = Color(1, 1, 1, 1)
-badge_alpha = 1.0
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
@@ -47,9 +48,11 @@ layout_mode = 2
 
 [node name="Left" type="HBoxContainer" parent="Margin/Row"]
 layout_mode = 2
+theme_override_constants/separation = 10
 
 [node name="TimeLabel" type="Label" parent="Margin/Row/Left"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.878431, 0.94902, 1, 0.92)
 theme_override_fonts/font = ExtResource("2_7hyhy")
 theme_override_font_sizes/font_size = 14
 
@@ -61,6 +64,7 @@ stretch_mode = 5
 
 [node name="TempLabel" type="Label" parent="Margin/Row/Left"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.878431, 0.94902, 1, 0.92)
 theme_override_fonts/font = ExtResource("2_7hyhy")
 theme_override_font_sizes/font_size = 14
 
@@ -85,6 +89,5 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_e83jf")
 [node name="ModeLabel" type="Label" parent="Margin/Row/Right/ModeBadge"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/outline_size = 1
 theme_override_fonts/font = ExtResource("2_7hyhy")
 theme_override_font_sizes/font_size = 14

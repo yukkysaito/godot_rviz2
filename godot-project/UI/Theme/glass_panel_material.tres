@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://UI/Theme/glass_panel.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/tint = Color(0.0392157, 0.054902, 0.0784314, 0.55)
+shader_parameter/blur_lod = 2.5
+shader_parameter/highlight_strength = 0.06
+shader_parameter/highlight_height_px = 26.0

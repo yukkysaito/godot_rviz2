@@ -2,7 +2,7 @@
 extends Control
 
 @onready var anim: AnimationPlayer = $AnimationPlayer
-@onready var label: Label = $CenterContainer/PanelContainer/VBoxContainer/Label
+@onready var label: Label = $CenterContainer/PanelContainer/Accent/VBoxContainer/Label
 
 func _ready() -> void:
 	# Optional: small delay so it doesn't pop in on scene enter

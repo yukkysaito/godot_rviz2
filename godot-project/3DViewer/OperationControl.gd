@@ -6,7 +6,7 @@ class_name OperationControl
 # Topic states
 # -----------------------------------------------------------------------------
 var operation_mode_state := OperationModeState.new()
-var navidation_state := NavigationState.new()
+var navigation_state := NavigationState.new()
 
 # -----------------------------------------------------------------------------
 # External UI references
@@ -37,7 +37,7 @@ var _last_ui_state: int = -1
 func _ready() -> void:
 	visible = operation_control_toggle.button_pressed
 	operation_mode_state.subscribe("/api/operation_mode/state", true)
-	navidation_state.subscribe("/api/routing/state", true)
+	navigation_state.subscribe("/api/routing/state", true)
 
 	# First paint even if has_new() is false on first frame
 	_update_and_apply_ui()
@@ -46,8 +46,8 @@ func _process(_delta: float) -> void:
 
 	var changed := false
 
-	if navidation_state.has_new():
-		navidation_state.set_old()
+	if navigation_state.has_new():
+		navigation_state.set_old()
 		changed = true
 
 	if operation_mode_state.has_new():
@@ -76,13 +76,13 @@ func _update_and_apply_ui() -> void:
 # Read current navigation into enum
 func _read_route_state() -> int:
 	# Order matters: more specific first
-	if navidation_state.has_no_route():
+	if navigation_state.has_no_route():
 		#print("- NO_ROUTE")
 		return RouteState.NO_ROUTE
-	if navidation_state.is_arrived():
+	if navigation_state.is_arrived():
 		#print("- ARRIVED")
 		return RouteState.ARRIVED
-	if navidation_state.has_route():
+	if navigation_state.has_route():
 		#print("- HAS_ROUTE")
 		return RouteState.HAS_ROUTE
 	#print("- UNKNOWN")

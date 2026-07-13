@@ -56,14 +56,22 @@ func set_temperature_text(text: String) -> void:
 		autonomous_text = value
 		_apply_driving_mode_style()
 
-@export_group("Mode Badge Colors (Cool)")
-@export var manual_badge_bg: Color = Color("#1E3A2F") # deep green
-@export var manual_badge_fg: Color = Color("#A7F3D0") # mint
+@export_group("Mode Badge Colors (Holo)")
+## Manual = amber pill (warning accent of the holographic cockpit palette).
+@export var manual_badge_bg: Color = Color(1.0, 0.701961, 0.0) # amber #FFB300
+@export var manual_badge_fg: Color = Color(1.0, 0.85, 0.45) # bright amber
 
-@export var autonomous_badge_bg: Color = Color("#0f54ff") # blue
-@export var autonomous_badge_fg: Color = Color("#7DD3FC") # cyan-blue
+## Autonomous = cyan glow pill.
+@export var autonomous_badge_bg: Color = Color(0.0, 0.898039, 1.0) # cyan #00E5FF
+@export var autonomous_badge_fg: Color = Color(0.62, 0.97, 1.0) # bright cyan
 
-@export_range(0.0, 1.0, 0.01) var badge_alpha: float = 0.88
+## Alpha applied to the pill background (kept low for the glass look).
+@export_range(0.0, 1.0, 0.01) var badge_alpha: float = 0.18
+
+## Subtle pulse animation on the badge while in autonomous mode.
+@export var autonomous_pulse_enabled: bool = true
+@export_range(0.2, 5.0, 0.1) var pulse_period_sec: float = 1.8
+@export_range(0.0, 1.0, 0.01) var pulse_min_alpha: float = 0.72
 
 @export_group("Nodes")
 ## NodePath is more robust than hard-coded $ paths for public repos.
@@ -157,19 +165,19 @@ func _prepare_badge_style() -> void:
 	_badge_style.content_margin_top = 0
 	_badge_style.content_margin_bottom = 0
 
-	# Optional shadow / border (keep your current tuning)
-	# NOTE: Some Godot versions may not have these properties. If you get errors,
-	# comment out the shadow_* or anti_aliasing lines.
-	_badge_style.shadow_size = 4
-	_badge_style.shadow_color = Color(0.9, 0.9, 0.9, 0.5)
+	# Soft glow behind the pill; color is set per driving mode.
+	_badge_style.shadow_size = 6
+	_badge_style.shadow_offset = Vector2.ZERO
+	_badge_style.shadow_color = Color(0.0, 0.898039, 1.0, 0.35)
 
-	_badge_style.border_width_left = 0
-	_badge_style.border_width_right = 0
-	_badge_style.border_width_top = 0
-	_badge_style.border_width_bottom = 0
-	_badge_style.border_color = Color(0.5, 0.5, 0.5, 0.3)
+	# Thin luminous border; color is set per driving mode.
+	_badge_style.border_width_left = 1
+	_badge_style.border_width_right = 1
+	_badge_style.border_width_top = 1
+	_badge_style.border_width_bottom = 1
+	_badge_style.border_color = Color(0.0, 0.898039, 1.0, 0.55)
 
-	_badge_style.anti_aliasing = false
+	_badge_style.anti_aliasing = true
 
 	_mode_badge.add_theme_stylebox_override("panel", _badge_style)
 
@@ -218,20 +226,49 @@ func _apply_driving_mode_style() -> void:
 		DrivingMode.AUTONOMOUS:
 			_mode_label.text = autonomous_text
 			_apply_badge_colors(autonomous_badge_bg, autonomous_badge_fg)
+			_start_badge_pulse()
 		DrivingMode.MANUAL:
 			_mode_label.text = manual_text
 			_apply_badge_colors(manual_badge_bg, manual_badge_fg)
+			_stop_badge_pulse()
 
 func _apply_badge_colors(bg: Color, fg: Color) -> void:
 	# Text
 	_mode_label.modulate = fg
 
-	# Background (solid)
+	# Background (translucent glass pill)
 	var base: Color = bg
 	base.a = badge_alpha
 	_badge_style.bg_color = base
 
+	# Luminous border + glow matching the mode color
+	_badge_style.border_color = Color(fg.r, fg.g, fg.b, 0.55)
+	_badge_style.shadow_color = Color(bg.r, bg.g, bg.b, 0.35)
+
 	_mode_badge.queue_redraw()
+
+# -----------------------------------------------------------------------------
+# Private: badge pulse (subtle breathing glow while autonomous)
+# -----------------------------------------------------------------------------
+var _pulse_tween: Tween
+
+func _start_badge_pulse() -> void:
+	if not autonomous_pulse_enabled:
+		return
+	if _mode_badge == null or not is_inside_tree():
+		return
+	_stop_badge_pulse()
+	var half: float = pulse_period_sec * 0.5
+	_pulse_tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_pulse_tween.tween_property(_mode_badge, "modulate:a", pulse_min_alpha, half)
+	_pulse_tween.tween_property(_mode_badge, "modulate:a", 1.0, half)
+
+func _stop_badge_pulse() -> void:
+	if _pulse_tween != null and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	_pulse_tween = null
+	if _mode_badge != null:
+		_mode_badge.modulate.a = 1.0
 
 # -----------------------------------------------------------------------------
 # Private: time formatting

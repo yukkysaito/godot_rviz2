@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=64 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
@@ -14,14 +14,11 @@
 [ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
 [ext_resource type="PackedScene" uid="uid://biwx0nd3tu8lg" path="res://3DViewer/TrafficLight/Board/TrafficLightBoard.tscn" id="15_3ypoo"]
 [ext_resource type="PackedScene" uid="uid://c1jhsuxmew4q7" path="res://3DViewer/TrafficLight/TrafficLightGroupActor.tscn" id="15_hw4ln"]
-[ext_resource type="Script" path="res://3DViewer/OpeationControl.gd" id="18_utxm1"]
-[ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus/Steering.gd" id="19"]
-[ext_resource type="Texture2D" uid="uid://dheocmceyan8" path="res://3DViewer/VehicleActuatorStatus/steering.png" id="20"]
+[ext_resource type="Script" path="res://3DViewer/OperationControl.gd" id="18_utxm1"]
 [ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus.gd" id="20_ox2ly"]
-[ext_resource type="Texture2D" uid="uid://8nsarni0u0kg" path="res://3DViewer/VehicleActuatorStatus/console_meter.png" id="21"]
 [ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="22"]
-[ext_resource type="Texture2D" uid="uid://dxngfcjijk4iq" path="res://3DViewer/VehicleActuatorStatus/console_meter_hand.png" id="23"]
-[ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus/ConsoleMeter.gd" id="24"]
+[ext_resource type="PackedScene" path="res://3DViewer/VehicleActuatorStatus/SpeedGauge.tscn" id="23_spdgg"]
+[ext_resource type="PackedScene" path="res://3DViewer/VehicleActuatorStatus/SteeringGauge.tscn" id="24_strgg"]
 [ext_resource type="Script" path="res://3DViewer/VectorMap.gd" id="25"]
 [ext_resource type="Script" path="res://3DViewer/PathMesh.gd" id="26"]
 [ext_resource type="PackedScene" uid="uid://da7j2bxx5eirv" path="res://3DViewer/TopStatusBar/TopStatusBar.tscn" id="27_3n38x"]
@@ -39,27 +36,45 @@
 [ext_resource type="Script" path="res://Menu/DayModeOption.gd" id="38_2kqhp"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
 [ext_resource type="Script" path="res://Menu/WindowSettings.gd" id="39_w7msr"]
+[ext_resource type="Shader" path="res://3DViewer/Environment/sky.gdshader" id="40_skysh"]
+[ext_resource type="Material" path="res://UI/Theme/glass_panel_material.tres" id="41_glass"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
-sky_top_color = Color(0, 0, 0, 1)
-sky_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
-sky_curve = 0.00437356
-ground_bottom_color = Color(0.207843, 0.223529, 0.294118, 1)
-ground_horizon_color = Color(0.119363, 0.466633, 0.961925, 1)
-ground_curve = 0.00233258
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky01"]
+shader = ExtResource("40_skysh")
+shader_parameter/night_blend = 0.0
 
 [sub_resource type="Sky" id="Sky_fb0c3"]
-sky_material = SubResource("ProceduralSkyMaterial_m8ng5")
+sky_material = SubResource("ShaderMaterial_sky01")
 process_mode = 3
 
 [sub_resource type="Environment" id="Environment_hn68x"]
 resource_name = "environment"
 background_mode = 2
-background_color = Color(1, 1, 1, 1)
 sky = SubResource("Sky_fb0c3")
 ambient_light_source = 3
+ambient_light_energy = 1.0
+tonemap_mode = 3
+tonemap_white = 6.0
+ssao_enabled = true
+ssao_radius = 2.0
+ssao_intensity = 2.0
 glow_enabled = true
-glow_intensity = 8.0
+glow_levels/1 = 0.4
+glow_levels/2 = 0.8
+glow_levels/4 = 0.6
+glow_intensity = 1.0
+glow_bloom = 0.1
+glow_hdr_threshold = 1.0
+volumetric_fog_density = 0.0
+volumetric_fog_albedo = Color(0.75, 0.95, 1, 1)
+volumetric_fog_emission = Color(0, 0.045, 0.06, 1)
+volumetric_fog_emission_energy = 0.25
+volumetric_fog_anisotropy = 0.55
+volumetric_fog_length = 96.0
+volumetric_fog_sky_affect = 0.25
+adjustment_enabled = true
+adjustment_contrast = 1.05
+adjustment_saturation = 1.08
 
 [sub_resource type="BoxShape3D" id="1"]
 size = Vector3(4.8091, 1.60975, 2.14476)
@@ -146,35 +161,45 @@ distance_fade_max_distance = 25.0
 resource_name = "mesh"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2kruo"]
-bg_color = Color(0.196078, 0.196078, 0.196078, 0.952941)
-corner_radius_top_right = 30
-corner_radius_bottom_right = 30
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_065lq"]
-bg_color = Color(0.364706, 0, 0, 1)
+bg_color = Color(0.286275, 0.0392157, 0.0666667, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85098, 0.239216, 0.290196, 0.7)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
-shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qkqfu"]
-bg_color = Color(0.909804, 0, 0, 1)
+bg_color = Color(0.427451, 0.0666667, 0.101961, 0.7)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.360784, 0.415686, 0.9)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
-shadow_color = Color(0.380392, 0.380392, 0.380392, 0.6)
-shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_usaqh"]
-bg_color = Color(0.721569, 0, 0, 1)
+bg_color = Color(0.192157, 0.0313726, 0.0509804, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.74902, 0.2, 0.247059, 0.8)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
-shadow_color = Color(0.305882, 0.305882, 0.305882, 0.6)
-shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uddxr"]
 bg_color = Color(0.247059, 0.247059, 0.247059, 0.419608)
@@ -195,6 +220,7 @@ corner_radius_bottom_right = 20
 script = ExtResource("3")
 
 [node name="World" type="Node" parent="." node_paths=PackedStringArray("world_env", "sun")]
+unique_name_in_owner = true
 script = ExtResource("2_e7vl0")
 world_env = NodePath("BackGround")
 sun = NodePath("Sun")
@@ -203,11 +229,18 @@ sun = NodePath("Sun")
 environment = SubResource("Environment_hn68x")
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
-transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.75, -0.43301, 0, 3, 0)
-directional_shadow_mode = 0
-sky_mode = 1
+transform = Transform3D(-0.642788, -0.439385, 0.627507, 0, 0.819152, 0.573576, -0.766044, 0.368687, -0.526541, 0, 3, 0)
+light_color = Color(1, 0.933333, 0.819608, 1)
+light_energy = 1.3
+shadow_enabled = true
+shadow_bias = 0.05
+directional_shadow_mode = 1
+directional_shadow_split_1 = 0.12
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 150.0
 
 [node name="EgoVehicle" type="Node3D" parent="."]
+unique_name_in_owner = true
 script = ExtResource("2")
 vehicle_body_path = NodePath("EgoVehicleKinematicBody/VehicleBody3D")
 head_beam_light_path = NodePath("EgoVehicleKinematicBody/HeadBeamLight")
@@ -245,14 +278,14 @@ far = 500.0
 material_override = SubResource("12")
 mesh = SubResource("4")
 script = ExtResource("6")
-visualize_pointcloud_map_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle")
+visualize_pointcloud_map_toggle = NodePath("%PointCloudMapToggle")
 
 [node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("obstacle_segmentation_toggle")]
 material_override = SubResource("13")
 mesh = SubResource("10")
 skeleton = NodePath("../EgoVehicle")
 script = ExtResource("7")
-obstacle_segmentation_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle")
+obstacle_segmentation_toggle = NodePath("%ObstacleSegmentationToggle")
 transparency_speed = 4.0
 cycle_time = 2.5
 
@@ -289,11 +322,12 @@ mesh = SubResource("23")
 script = ExtResource("8")
 
 [node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("ignore_unknown_object_toggle", "icon_visibility_toggle")]
+unique_name_in_owner = true
 material_override = SubResource("26")
 mesh = SubResource("27")
 script = ExtResource("10")
-ignore_unknown_object_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle")
-icon_visibility_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer/ObjectIconToggle")
+ignore_unknown_object_toggle = NodePath("%IgnoreUnknownObjectToggle")
+icon_visibility_toggle = NodePath("%ObjectIconToggle")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -304,9 +338,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -137.0
-offset_top = -149.0
-offset_right = 137.0
+offset_left = -175.0
+offset_top = -191.0
+offset_right = 175.0
 offset_bottom = -21.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -324,17 +358,11 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="SteeringSlot" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
-custom_minimum_size = Vector2(128, 128)
+custom_minimum_size = Vector2(170, 170)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Steering" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/SteeringSlot"]
-position = Vector2(64, 64)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("20")
-flip_h = true
-region_rect = Rect2(100, 0, 256, 256)
-script = ExtResource("19")
+[node name="SteeringGauge" parent="HUD/VehicleActuatorStatus/HBoxContainer/SteeringSlot" instance=ExtResource("24_strgg")]
 
 [node name="Spacer" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
 custom_minimum_size = Vector2(10, 0)
@@ -342,31 +370,11 @@ layout_mode = 2
 mouse_filter = 2
 
 [node name="ConsoleMeterSlot" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
-custom_minimum_size = Vector2(128, 128)
+custom_minimum_size = Vector2(170, 170)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="ConsoleMeter" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot"]
-position = Vector2(64, 43)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("21")
-script = ExtResource("24")
-
-[node name="VelocityLabel" type="Label" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
-offset_left = -210.0
-offset_top = 58.0
-offset_right = 216.0
-offset_bottom = 185.0
-theme_override_colors/font_color = Color(0.321569, 0.321569, 0.321569, 1)
-theme_override_fonts/font = ExtResource("22")
-theme_override_font_sizes/font_size = 70
-text = "0Km"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Hand" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
-position = Vector2(0, 50)
-texture = ExtResource("23")
+[node name="SpeedGauge" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot" instance=ExtResource("23_spdgg")]
 
 [node name="OperationControl" type="Control" parent="HUD" node_paths=PackedStringArray("operation_control_toggle")]
 layout_mode = 3
@@ -418,6 +426,7 @@ edge_handle_path = NodePath("EdgeHandle")
 window_settings_path = NodePath("MenuPanel/WindowSettings")
 
 [node name="MenuPanel" type="PanelContainer" parent="Menu/MenuSlide"]
+material = ExtResource("41_glass")
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -524,6 +533,7 @@ size_flags_horizontal = 3
 text = "Pointcloud Map"
 
 [node name="PointCloudMapToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
@@ -537,6 +547,7 @@ size_flags_horizontal = 3
 text = "Obstacle Segmentation"
 
 [node name="ObstacleSegmentationToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
@@ -568,6 +579,7 @@ size_flags_horizontal = 3
 text = "Ignore Unknown Object"
 
 [node name="IgnoreUnknownObjectToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 
@@ -583,7 +595,7 @@ text = "Object Mode"
 layout_mode = 2
 focus_mode = 0
 script = ExtResource("37_782fw")
-dynamic_object_mesh_path = NodePath("../../../../../../../../../../DynamicObjectMesh")
+dynamic_object_mesh_path = NodePath("%DynamicObjectMesh")
 
 [node name="ObjectIconContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -594,6 +606,7 @@ size_flags_horizontal = 3
 text = "Object Icon"
 
 [node name="ObjectIconToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 button_pressed = true
@@ -610,8 +623,8 @@ text = "Day Mode"
 layout_mode = 2
 focus_mode = 0
 script = ExtResource("38_2kqhp")
-world_path = NodePath("../../../../../../../../../../World")
-ego_vehicle_path = NodePath("../../../../../../../../../../EgoVehicle")
+world_path = NodePath("%World")
+ego_vehicle_path = NodePath("%EgoVehicle")
 
 [node name="HighContrastContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2

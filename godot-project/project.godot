@@ -19,6 +19,10 @@ boot_splash/image="res://icon.png"
 boot_splash/fullsize=false
 config/icon="res://icon.png"
 
+[gui]
+
+theme/custom="res://UI/Theme/theme.tres"
+
 [input]
 
 ui_view_switch={

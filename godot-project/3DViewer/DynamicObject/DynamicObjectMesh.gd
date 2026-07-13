@@ -23,14 +23,34 @@ var object_3d_model_mode: bool
 # - true : degrees  (we assign rotation_degrees)
 @export var rotation_is_degrees: bool = false
 
+# ===== Frame smoothing (perception arrives ~10Hz; render every frame) =====
+@export var smoothing_rate: float = 12.0   # lerp rate multiplier (per second)
+
 # ===== 2D Icon (billboard) settings =====
 @export var show_icons: bool = true
+@export var icon_bob_amplitude: float = 0.06  # gentle vertical bob [m]
+@export var icon_bob_speed: float = 1.8
 const PX_TO_M := 0.001                      # 1 pixel = 0.001 m
 const ICON_EXTRA_OFFSET_M := 0.5            # Additional +1.0 m above object height
+
+# ===== Holographic look =====
+const HOLOGRAM_BOX_SHADER := preload("res://3DViewer/Shaders/obj_hologram_box.gdshader")
+const GROUND_RING_SHADER := preload("res://3DViewer/Shaders/obj_ground_ring.gdshader")
+const HOLO_CYAN := Color(0.0, 0.898, 1.0)      # #00E5FF
+const HOLO_MAGENTA := Color(1.0, 0.176, 0.584) # #FF2D95
+const RING_SCALE_FACTOR := 1.3                 # ring diameter vs object footprint
+const RING_GROUND_OFFSET := 0.05               # lift above ground to avoid z-fighting
 
 # ================== Internal state ==================
 var dynamic_objects := DynamicObjects.new()
 var array_mesh := ArrayMesh.new()  # Surface for triangle mode
+
+# Hologram materials (built in _ready; scene material_override is discarded)
+var _holo_known_mat := ShaderMaterial.new()
+var _holo_unknown_mat := ShaderMaterial.new()
+var _ring_known_mat := ShaderMaterial.new()
+var _ring_unknown_mat := ShaderMaterial.new()
+var _ring_mesh := PlaneMesh.new()  # unit quad lying flat, shared by all rings
 
 # Model pools: pools[type] = { "scene": PackedScene, "pool": Array[Node3D], "used": int }
 var pools := {
@@ -65,6 +85,22 @@ var icon_pools := {
 	"motorcycle": {"pool": [] as Array[MeshInstance3D], "used": 0},
 }
 
+# Ground ring pool (single pool for all classes)
+var _ring_pool: Array[MeshInstance3D] = []
+var _ring_used: int = 0
+
+# Smoothing targets — rebuilt on every perception message (~10Hz), consumed
+# every rendered frame. Only slots in use this cycle are present.
+var _smooth_model_nodes: Array[Node3D] = []
+var _smooth_model_pos := PackedVector3Array()
+var _smooth_model_rot := PackedVector3Array()  # radians
+var _smooth_icon_nodes: Array[MeshInstance3D] = []
+var _smooth_icon_pos := PackedVector3Array()
+var _smooth_ring_nodes: Array[MeshInstance3D] = []
+var _smooth_ring_pos := PackedVector3Array()
+
+var _time: float = 0.0
+
 func _ready() -> void:
 	# Subscribe to dynamic object topic
 	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
@@ -73,33 +109,98 @@ func _ready() -> void:
 	ignore_unknown_object = ignore_unknown_object_toggle.button_pressed
 	if icon_visibility_toggle != null:
 		show_icons = icon_visibility_toggle.button_pressed
-	
+
+	# Holographic materials: drop the scene-assigned override so per-surface
+	# materials (known = cyan / unknown = magenta) take effect.
+	material_override = null
+	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	_holo_known_mat.shader = HOLOGRAM_BOX_SHADER
+	_holo_known_mat.render_priority = 2  # draw over road / ground overlays
+	_holo_unknown_mat.shader = HOLOGRAM_BOX_SHADER
+	_holo_unknown_mat.render_priority = 2
+	_holo_unknown_mat.set_shader_parameter("edge_color", HOLO_MAGENTA)
+	_holo_unknown_mat.set_shader_parameter("face_color", Color(0.35, 0.04, 0.18))
+
+	_ring_known_mat.shader = GROUND_RING_SHADER
+	_ring_known_mat.render_priority = 1
+	_ring_unknown_mat.shader = GROUND_RING_SHADER
+	_ring_unknown_mat.render_priority = 1
+	_ring_unknown_mat.set_shader_parameter("ring_color", HOLO_MAGENTA)
+
+	_ring_mesh.size = Vector2(1.0, 1.0)  # unit quad; per-object footprint via node.scale
+
 	# Initialize pools
 	_initialize_model_pools(initial_pool)
 	_initialize_icon_pools(initial_pool)
+	_initialize_ring_pool(initial_pool)
 
 	# Prepare triangle mode mesh
 	mesh = array_mesh
 
 # ================== Main loop ==================
-func _process(_delta: float) -> void:
-	if not dynamic_objects.has_new():
-		return
+func _process(delta: float) -> void:
+	_time += delta
 
-	# Fetch once and reuse for both model/triangle and icons
-	var objects := dynamic_objects.get_dynamic_object_list(ignore_unknown_object)
+	# New perception message: update targets only. Actual motion happens in
+	# _update_smoothing() every rendered frame.
+	if dynamic_objects.has_new():
+		var objects := dynamic_objects.get_dynamic_object_list(ignore_unknown_object)
 
-	if object_3d_model_mode:
-		_render_models(objects)
-		if not ignore_unknown_object:
-			_render_unknown_triangles() 
-	else:
-		_render_triangles()
+		if object_3d_model_mode:
+			_render_models(objects)
+			if not ignore_unknown_object:
+				_render_unknown_triangles()
+		else:
+			_render_triangles()
 
-	if show_icons:
-		_render_icons(objects)
+		if show_icons:
+			_render_icons(objects)
+		else:
+			_clear_icon_targets()
 
-	dynamic_objects.set_old()
+		_render_rings(objects)
+
+		dynamic_objects.set_old()
+
+	_update_smoothing(delta)
+
+# ================== Frame smoothing ==================
+func _update_smoothing(delta: float) -> void:
+	var alpha := clampf(delta * smoothing_rate, 0.0, 1.0)
+
+	for i in _smooth_model_nodes.size():
+		var node := _smooth_model_nodes[i]
+		node.position = node.position.lerp(_smooth_model_pos[i], alpha)
+		var target_rot := _smooth_model_rot[i]
+		node.rotation = Vector3(
+			lerp_angle(node.rotation.x, target_rot.x, alpha),
+			lerp_angle(node.rotation.y, target_rot.y, alpha),
+			lerp_angle(node.rotation.z, target_rot.z, alpha)
+		)
+
+	for i in _smooth_icon_nodes.size():
+		var icon := _smooth_icon_nodes[i]
+		# Lerp toward a gently bobbing target: smoothing + bob in one pass.
+		var bob := sin(_time * icon_bob_speed + float(i) * 1.7) * icon_bob_amplitude
+		icon.position = icon.position.lerp(_smooth_icon_pos[i] + Vector3(0.0, bob, 0.0), alpha)
+
+	for i in _smooth_ring_nodes.size():
+		var ring := _smooth_ring_nodes[i]
+		ring.position = ring.position.lerp(_smooth_ring_pos[i], alpha)
+
+func _clear_model_targets() -> void:
+	_smooth_model_nodes.clear()
+	_smooth_model_pos.clear()
+	_smooth_model_rot.clear()
+
+func _clear_icon_targets() -> void:
+	_smooth_icon_nodes.clear()
+	_smooth_icon_pos.clear()
+
+func _clear_ring_targets() -> void:
+	_smooth_ring_nodes.clear()
+	_smooth_ring_pos.clear()
 
 # ================== Models ==================
 func _render_models(objects: Array) -> void:
@@ -107,12 +208,14 @@ func _render_models(objects: Array) -> void:
 	array_mesh.clear_surfaces()
 
 	_reset_usage_counters()
+	_clear_model_targets()
 	for obj in objects:
 		var t: String = obj.get("class", "")
 		if not pools.has(t):
 			continue
 
 		var node := _borrow_model_node(t)
+		var newly_borrowed := not node.visible
 		var pos: Vector3  = _to_v3(obj.get("position",  Vector3.ZERO), Vector3.ZERO)
 		var size: Vector3 = _to_v3(obj.get("size",      Vector3.ONE),  Vector3.ONE)
 		var rot:  Vector3 = _to_v3(obj.get("rotation",  Vector3.ZERO), Vector3.ZERO)
@@ -120,13 +223,21 @@ func _render_models(objects: Array) -> void:
 		# Apply ground offset consistently with "position_is_ground_contact"
 		pos = _apply_ground_offset(pos, size)
 
-		# Assign transform
-		node.position = pos
+		# Store target in radians (node.rotation expects radians)
+		var rot_rad := rot
 		if rotation_is_degrees:
-			node.rotation_degrees = rot
-		else:
-			node.rotation = rot
+			rot_rad = Vector3(deg_to_rad(rot.x), deg_to_rad(rot.y), deg_to_rad(rot.z))
+
+		# Newly borrowed nodes snap to the target (no lerp from stale pose);
+		# already-active nodes glide there in _update_smoothing().
+		if newly_borrowed:
+			node.position = pos
+			node.rotation = rot_rad
 		node.visible = true
+
+		_smooth_model_nodes.append(node)
+		_smooth_model_pos.append(pos)
+		_smooth_model_rot.append(rot_rad)
 
 		if t == "pedestrian":
 			var vel: Vector3 = _to_v3(obj.get("velocity", Vector3.ZERO), Vector3.ZERO)
@@ -144,6 +255,7 @@ func _render_triangles() -> void:
 	for t in pools.keys():
 		_disable_all_in_pool(pools[t]["pool"])
 		pools[t]["used"] = 0
+	_clear_model_targets()
 
 	# Reset icon usage (icons will be placed from object list later)
 	for t in icon_pools.keys():
@@ -165,6 +277,7 @@ func _render_triangles() -> void:
 		arr[Mesh.ARRAY_VERTEX] = verts
 		arr[Mesh.ARRAY_NORMAL] = norms
 		array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		array_mesh.surface_set_material(0, _holo_known_mat)
 
 	if mesh != array_mesh:
 		mesh = array_mesh
@@ -190,6 +303,7 @@ func _render_unknown_triangles() -> void:
 		arr[Mesh.ARRAY_VERTEX] = verts
 		arr[Mesh.ARRAY_NORMAL] = norms
 		array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		array_mesh.surface_set_material(0, _holo_unknown_mat)
 
 	if mesh != array_mesh:
 		mesh = array_mesh
@@ -198,6 +312,7 @@ func _render_unknown_triangles() -> void:
 func _render_icons(objects: Array) -> void:
 	# Place exactly one icon per dynamic object
 	_reset_icon_usage_counters()
+	_clear_icon_targets()
 	for obj in objects:
 		var t: String = obj.get("class", "")
 		var pos: Vector3  = _to_v3(obj.get("position",  Vector3.ZERO), Vector3.ZERO)
@@ -216,6 +331,7 @@ func _place_icon_for_object(t: String, obj_center_pos: Vector3, obj_size: Vector
 
 	# Borrow icon node for this type
 	var icon_node := _borrow_icon_node(t)
+	var newly_borrowed := not icon_node.visible
 
 	# Compute quad size in meters from texture pixels
 	var tex_size: Vector2i = tex.get_size()
@@ -242,9 +358,45 @@ func _place_icon_for_object(t: String, obj_center_pos: Vector3, obj_size: Vector
 	# Vertical placement:
 	var icon_center_y := obj_center_pos.y + float(obj_size.y) + ICON_EXTRA_OFFSET_M + (0.5 * h_m)
 
-	# Final icon position; facing is handled by BILLBOARD_FIXED_Y (no rotation needed)
-	icon_node.position = Vector3(obj_center_pos.x, icon_center_y, obj_center_pos.z)
+	# Target icon position; facing is handled by BILLBOARD_FIXED_Y (no rotation needed)
+	var target := Vector3(obj_center_pos.x, icon_center_y, obj_center_pos.z)
+	if newly_borrowed:
+		icon_node.position = target
 	icon_node.visible = true
+
+	_smooth_icon_nodes.append(icon_node)
+	_smooth_icon_pos.append(target)
+
+# ================== Ground rings ==================
+func _render_rings(objects: Array) -> void:
+	# One animated holographic ring under every dynamic object, in both
+	# 3D-model and triangle modes.
+	_ring_used = 0
+	_clear_ring_targets()
+	for obj in objects:
+		var t: String = obj.get("class", "")
+		var pos: Vector3  = _to_v3(obj.get("position",  Vector3.ZERO), Vector3.ZERO)
+		var size: Vector3 = _to_v3(obj.get("size",      Vector3.ONE),  Vector3.ONE)
+
+		# Same ground reference as the models use.
+		pos = _apply_ground_offset(pos, size)
+
+		var ring := _borrow_ring_node()
+		var newly_borrowed := not ring.visible
+
+		var diameter := maxf(size.x, size.z) * RING_SCALE_FACTOR
+		ring.scale = Vector3(diameter, 1.0, diameter)
+		ring.set_surface_override_material(0, _ring_unknown_mat if t == "unknown" else _ring_known_mat)
+
+		var target := Vector3(pos.x, pos.y + RING_GROUND_OFFSET, pos.z)
+		if newly_borrowed:
+			ring.position = target
+		ring.visible = true
+
+		_smooth_ring_nodes.append(ring)
+		_smooth_ring_pos.append(target)
+
+	_hide_unused_rings()
 
 # ================== Pool helpers ==================
 func _initialize_model_pools(count: int) -> void:
@@ -337,6 +489,32 @@ func _hide_unused_icons() -> void:
 			if pool[i].visible:
 				pool[i].visible = false
 
+# ================== Ring pool helpers ==================
+func _initialize_ring_pool(count: int) -> void:
+	_grow_ring_pool(count)
+
+func _grow_ring_pool(count: int) -> void:
+	for i in range(count):
+		var mi := MeshInstance3D.new()
+		mi.mesh = _ring_mesh
+		mi.set_surface_override_material(0, _ring_known_mat)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.visible = false
+		add_child(mi)
+		_ring_pool.append(mi)
+
+func _borrow_ring_node() -> MeshInstance3D:
+	if _ring_used >= _ring_pool.size():
+		_grow_ring_pool(pool_growth_step)
+	var node := _ring_pool[_ring_used]
+	_ring_used += 1
+	return node
+
+func _hide_unused_rings() -> void:
+	for i in range(_ring_used, _ring_pool.size()):
+		if _ring_pool[i].visible:
+			_ring_pool[i].visible = false
+
 # ================== Utilities ==================
 # Accepts Vector3 or Dictionary {x,y,z}; returns 'default' otherwise.
 func _to_v3(v: Variant, default: Vector3) -> Vector3:
@@ -368,6 +546,7 @@ func set_icon_visibility(enabled: bool) -> void:
 	if not show_icons:
 		_reset_icon_usage_counters()
 		_hide_unused_icons()
+		_clear_icon_targets()
 
 func _on_ignore_unknown_object_toggle_toggled(toggled_on):
 	ignore_unknown_object = toggled_on
