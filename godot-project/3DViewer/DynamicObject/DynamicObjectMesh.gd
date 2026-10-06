@@ -3,8 +3,6 @@ class_name DynamicObjectRenderer
 
 # ================== Editor-exposed settings ==================
 var ignore_unknown_object: bool
-@export var ignore_unknown_object_toggle: BaseButton
-@export var icon_visibility_toggle: BaseButton
 var object_3d_model_mode: bool
 
 @export var initial_pool: int = 16     # Initial pool size per type
@@ -69,11 +67,6 @@ var icon_pools := {
 }
 
 func _ready() -> void:
-	# Synchronize UI status
-	ignore_unknown_object = ignore_unknown_object_toggle.button_pressed
-	if icon_visibility_toggle != null:
-		show_icons = icon_visibility_toggle.button_pressed
-	
 	# Initialize pools
 	_initialize_model_pools(initial_pool)
 	_initialize_icon_assets()
@@ -81,6 +74,8 @@ func _ready() -> void:
 
 	# Prepare triangle mode mesh
 	mesh = array_mesh
+
+	_bind_settings()
 
 # ================== Main loop ==================
 func _process(_delta: float) -> void:
@@ -346,7 +341,12 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 		p.y -= 0.5 * float(size.y)
 	return p
 
-# ------------------ UI callbacks ------------------
+# ------------------ Settings ------------------
+func _bind_settings() -> void:
+	Settings.bind("view/ignore_unknown_objects", _on_ignore_unknown_object_toggle_toggled)
+	Settings.bind("view/object_icons", set_icon_visibility)
+	Settings.bind("view/object_mode", func(mode): set_3d_model_mode(mode == "model"))
+
 func set_3d_model_mode(enabled: bool) -> void:
 	object_3d_model_mode = enabled
 

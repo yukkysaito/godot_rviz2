@@ -15,6 +15,7 @@ func _ready():
 	_sky_material = world_env.environment.sky.sky_material
 	if _sky_material != null and _sky_material.has_method("get_sky_top_color"):
 		_default_sky_top_color = _sky_material.call("get_sky_top_color")
+	Settings.bind("view/day_mode", func(mode): set_night_mode(mode == "night"))
 
 func set_night_mode(enabled: bool) -> void:
 	# Sun

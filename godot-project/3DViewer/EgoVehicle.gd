@@ -12,6 +12,9 @@ var ego_pose = EgoPose.new()
 var _turn_left := false
 var _turn_right := false
 
+func _ready():
+	Settings.bind("view/day_mode", func(mode): set_night_mode(mode == "night"))
+
 func _process(delta):
 	# Ego pose
 	set_position(ego_pose.get_ego_position())

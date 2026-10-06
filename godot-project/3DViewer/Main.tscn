@@ -1,10 +1,12 @@
-[gd_scene load_steps=64 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=63 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
 [ext_resource type="Script" path="res://3DViewer/MapLayerMesh.gd" id="4"]
+[ext_resource type="Script" path="res://UI/SettingToggle.gd" id="ui_setting_toggle"]
+[ext_resource type="Script" path="res://UI/SettingOption.gd" id="ui_setting_option"]
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
@@ -33,11 +35,8 @@
 [ext_resource type="Texture2D" uid="uid://did771q82ss7k" path="res://3DViewer/TopStatusBar/thunder.png" id="34_mbrfa"]
 [ext_resource type="Texture2D" uid="uid://dcjlak8lpl4gj" path="res://3DViewer/TopStatusBar/unknown.png" id="35_cirdu"]
 [ext_resource type="Script" path="res://Menu/MenuSlide.gd" id="36_jtj5y"]
-[ext_resource type="Script" path="res://Menu/ObjectModeOption.gd" id="37_782fw"]
 [ext_resource type="Script" path="res://Menu/Selection.gd" id="37_ow1tw"]
-[ext_resource type="Script" path="res://Menu/DayModeOption.gd" id="38_2kqhp"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
-[ext_resource type="Script" path="res://Menu/WindowSettings.gd" id="39_w7msr"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
 sky_top_color = Color(0, 0, 0, 1)
@@ -122,7 +121,6 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="24"]
 shading_mode = 0
 vertex_color_use_as_albedo = true
-albedo_color = Color(1, 1, 1, 1)
 distance_fade_mode = 1
 distance_fade_max_distance = 60.0
 
@@ -240,18 +238,16 @@ size = 90.53
 near = 0.2
 far = 500.0
 
-[node name="PointCloudMapMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("visualize_pointcloud_map_toggle")]
+[node name="PointCloudMapMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("12")
 mesh = SubResource("4")
 script = ExtResource("6")
-visualize_pointcloud_map_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle")
 
-[node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("obstacle_segmentation_toggle")]
+[node name="ObstacleSegmentationMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("13")
 mesh = SubResource("10")
 skeleton = NodePath("../EgoVehicle")
 script = ExtResource("7")
-obstacle_segmentation_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle")
 transparency_speed = 4.0
 cycle_time = 2.5
 
@@ -287,16 +283,14 @@ material_override = SubResource("24")
 mesh = SubResource("23")
 script = ExtResource("8")
 
-[node name="DynamicObjectMesh" type="MeshInstance3D" parent="." node_paths=PackedStringArray("ignore_unknown_object_toggle", "icon_visibility_toggle")]
+[node name="DynamicObjectMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("26")
 mesh = SubResource("27")
 script = ExtResource("10")
-ignore_unknown_object_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle")
-icon_visibility_toggle = NodePath("../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer/ObjectIconToggle")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="VehicleActuatorStatus" type="Control" parent="HUD" node_paths=PackedStringArray("vehicle_actuator_status_toggle")]
+[node name="VehicleActuatorStatus" type="Control" parent="HUD"]
 layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
@@ -311,7 +305,6 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("20_ox2ly")
-vehicle_actuator_status_toggle = NodePath("../../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HUD/VehicleActuatorStatus"]
 layout_mode = 1
@@ -367,7 +360,7 @@ vertical_alignment = 1
 position = Vector2(0, 50)
 texture = ExtResource("23")
 
-[node name="OperationControl" type="Control" parent="HUD" node_paths=PackedStringArray("operation_control_toggle")]
+[node name="OperationControl" type="Control" parent="HUD"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -379,11 +372,9 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("18_utxm1")
 top_status_bar_path = NodePath("../TopStatusBar")
-operation_control_toggle = NodePath("../../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle")
 
-[node name="TopStatusBar" parent="HUD" node_paths=PackedStringArray("top_status_bar_toggle") instance=ExtResource("27_3n38x")]
+[node name="TopStatusBar" parent="HUD" instance=ExtResource("27_3n38x")]
 mouse_filter = 2
-top_status_bar_toggle = NodePath("../../Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle")
 
 [node name="WeatherController" type="Node" parent="HUD"]
 script = ExtResource("28_g20aq")
@@ -414,7 +405,6 @@ mouse_filter = 2
 script = ExtResource("36_jtj5y")
 menu_panel_path = NodePath("MenuPanel")
 edge_handle_path = NodePath("EdgeHandle")
-window_settings_path = NodePath("MenuPanel/WindowSettings")
 
 [node name="MenuPanel" type="PanelContainer" parent="Menu/MenuSlide"]
 layout_mode = 1
@@ -472,6 +462,10 @@ text = "Display mode"
 [node name="DisplayModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer"]
 layout_mode = 2
 focus_mode = 0
+script = ExtResource("ui_setting_option")
+key = "display/window_mode"
+values = PackedStringArray("windowed", "maximized", "borderless_maximized", "fullscreen")
+labels = PackedStringArray("Windowed", "Maximized", "Borderless Maximized", "Fullscreen")
 
 [node name="AAModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
 layout_mode = 2
@@ -483,6 +477,10 @@ text = "Anti Alias"
 
 [node name="AAOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
 layout_mode = 2
+script = ExtResource("ui_setting_option")
+key = "display/anti_aliasing"
+values = PackedStringArray("off", "fxaa", "taa", "msaa_2x", "msaa_4x", "msaa_8x")
+labels = PackedStringArray("AA Off", "FXAA", "TAA", "MSAA 2x", "MSAA 4x", "MSAA 8x")
 
 [node name="AlwaysOnTopContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
 layout_mode = 2
@@ -495,6 +493,8 @@ text = "Always on top"
 [node name="AlwaysOnTopToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer"]
 layout_mode = 2
 focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "display/always_on_top"
 
 [node name="SelectionData" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
@@ -525,7 +525,8 @@ text = "Pointcloud Map"
 [node name="PointCloudMapToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "data/pointcloud_map"
 
 [node name="ObstacleSegmentationContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body"]
 layout_mode = 2
@@ -538,7 +539,8 @@ text = "Obstacle Segmentation"
 [node name="ObstacleSegmentationToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "data/obstacle_segmentation"
 
 [node name="Selection3DEnvironment" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
@@ -569,6 +571,8 @@ text = "Ignore Unknown Object"
 [node name="IgnoreUnknownObjectToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
 layout_mode = 2
 focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "view/ignore_unknown_objects"
 
 [node name="ObjectModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -581,8 +585,10 @@ text = "Object Mode"
 [node name="ObjectModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
 layout_mode = 2
 focus_mode = 0
-script = ExtResource("37_782fw")
-dynamic_object_mesh_path = NodePath("../../../../../../../../../../DynamicObjectMesh")
+script = ExtResource("ui_setting_option")
+key = "view/object_mode"
+values = PackedStringArray("model", "geometry")
+labels = PackedStringArray("3D Model", "Geometry")
 
 [node name="ObjectIconContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -595,7 +601,8 @@ text = "Object Icon"
 [node name="ObjectIconToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "view/object_icons"
 
 [node name="DayModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -608,9 +615,10 @@ text = "Day Mode"
 [node name="DayModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
 layout_mode = 2
 focus_mode = 0
-script = ExtResource("38_2kqhp")
-world_path = NodePath("../../../../../../../../../../World")
-ego_vehicle_path = NodePath("../../../../../../../../../../EgoVehicle")
+script = ExtResource("ui_setting_option")
+key = "view/day_mode"
+values = PackedStringArray("day", "night")
+labels = PackedStringArray("Day", "Night")
 
 [node name="HighContrastContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -623,6 +631,8 @@ text = "High Contrast"
 [node name="HighContrastToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/HighContrastContainer"]
 layout_mode = 2
 focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "view/high_contrast"
 
 [node name="CameraAutoReturnContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -635,7 +645,8 @@ text = "Camera Auto Return"
 [node name="CameraAutoReturnToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "view/camera_auto_return"
 
 [node name="AdaptiveCameraWorkContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -648,7 +659,8 @@ text = "Adaptive Camera Work"
 [node name="AdaptiveCameraWorkToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/AdaptiveCameraWorkContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "view/adaptive_camera_work"
 
 [node name="SelectionHUD" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2
@@ -679,7 +691,8 @@ text = "Top Bar"
 [node name="TopStatusBarToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "hud/top_status_bar"
 
 [node name="OperationControlContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
 layout_mode = 2
@@ -692,7 +705,8 @@ text = "Message Panel"
 [node name="OperationControlToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "hud/operation_control"
 
 [node name="VehicleActuatorStatusContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
 layout_mode = 2
@@ -705,7 +719,8 @@ text = "Steering/Meter"
 [node name="VehicleActuatorStatusToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2
 focus_mode = 0
-button_pressed = true
+script = ExtResource("ui_setting_toggle")
+key = "hud/vehicle_actuator_status"
 
 [node name="MarginContainer2" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 10)
@@ -726,12 +741,6 @@ script = ExtResource("38_d4rqi")
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="WindowSettings" type="Node" parent="Menu/MenuSlide/MenuPanel"]
-script = ExtResource("39_w7msr")
-display_mode_option_path = NodePath("../VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/DisplayModeContainer/DisplayModeOption")
-always_on_top_toggle_path = NodePath("../VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AlwaysOnTopContainer/AlwaysOnTopToggle")
-anti_alias_option_path = NodePath("../VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer/AAOption")
-
 [node name="EdgeHandle" type="Button" parent="Menu/MenuSlide"]
 custom_minimum_size = Vector2(5, 100)
 layout_mode = 1
@@ -749,13 +758,3 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_gwddm")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_6yj7s")
 text = ">"
 
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer/PointCloudMapToggle" to="PointCloudMapMesh" method="_on_point_cloud_map_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer/ObstacleSegmentationToggle" to="ObstacleSegmentationMesh" method="_on_obstacle_segmentation_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer/IgnoreUnknownObjectToggle" to="DynamicObjectMesh" method="_on_ignore_unknown_object_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer/ObjectIconToggle" to="DynamicObjectMesh" method="set_icon_visibility"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/HighContrastContainer/HighContrastToggle" to="TrajectoryMesh" method="_on_high_contrast_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer/CameraAutoReturnToggle" to="EgoVehicle/Camera3D" method="_on_camera_auto_return_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/AdaptiveCameraWorkContainer/AdaptiveCameraWorkToggle" to="EgoVehicle/Camera3D" method="_on_adaptive_camera_work_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer/TopStatusBarToggle" to="HUD/TopStatusBar" method="_on_top_bar_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer/OperationControlToggle" to="HUD/OperationControl" method="_on_operation_control_toggle_toggled"]
-[connection signal="toggled" from="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer/VehicleActuatorStatusToggle" to="HUD/VehicleActuatorStatus" method="_on_vehicle_actuator_atatus_toggle_toggled"]
