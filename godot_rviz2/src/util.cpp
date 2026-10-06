@@ -134,14 +134,11 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
   const tf2_ros::Buffer & tf_buffer, const std::string & source_frame_id,
   const std::string & target_frame_id, const rclcpp::Time & time)
 {
+  // Do not wait for the transform: this is called from the render loop, and the TF listener
+  // fills the buffer on its own thread, so waiting only blocks the frame while TF is unavailable.
   try {
-    geometry_msgs::msg::TransformStamped transform_stamped;
-    if (!tf_buffer.canTransform(
-          target_frame_id, source_frame_id, time, rclcpp::Duration::from_seconds(0.5)))
-      return std::nullopt;
-    transform_stamped = tf_buffer.lookupTransform(
-      target_frame_id, source_frame_id, time, rclcpp::Duration::from_seconds(0.5));
-    return transform_stamped.transform;
+    if (!tf_buffer.canTransform(target_frame_id, source_frame_id, time)) return std::nullopt;
+    return tf_buffer.lookupTransform(target_frame_id, source_frame_id, time).transform;
   } catch (...) {
     return std::nullopt;
   }
