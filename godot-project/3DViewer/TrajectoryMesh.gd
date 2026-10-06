@@ -1,7 +1,7 @@
 extends MeshInstance3D
 
 var trajectory: Trajectory = RosBridge.trajectory
-@export var wheelbase_to_front: float = 3.78
+var wheelbase_to_front: float = VehicleProfile.current().wheelbase_to_front
 var high_contrast_enabled: bool = false
 
 func velocity_to_normalized_value(velocity):

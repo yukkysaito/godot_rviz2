@@ -4,7 +4,8 @@ extends Node
 #
 # Values are layered: DEFAULTS < preset (res://Config/Presets/<name>.cfg, chosen with
 # "-- --preset=<name>", e.g. for a real vehicle or a Jetson) < the user's settings
-# (user://settings.cfg, saved whenever a value changes from the UI).
+# (user://settings.cfg, saved whenever a value changes from the UI) < command line overrides
+# (not saved): "-- --vehicle=<Name>" selects res://3DViewer/Vehicle/<Name>/<Name>.tres.
 #
 # The UI only changes values here (see UI/SettingToggle.gd, UI/SettingOption.gd) and the 3D view
 # and HUD follow them with bind(), so they do not need to know each other.
@@ -41,11 +42,14 @@ var _save_pending := false
 
 func _enter_tree() -> void:
 	_values = DEFAULTS.duplicate()
-	var preset := _preset_name()
+	var preset := _cmdline_value("--preset=")
 	if not preset.is_empty():
 		_merge(PRESET_DIR + preset + ".cfg")
 	if _user.load(USER_FILE) == OK:
 		_merge_config(_user)
+	var vehicle := _cmdline_value("--vehicle=")
+	if not vehicle.is_empty():
+		_values["vehicle/profile"] = "res://3DViewer/Vehicle/%s/%s.tres" % [vehicle, vehicle]
 	_apply_display()
 
 func get_value(key: String) -> Variant:
@@ -83,10 +87,10 @@ func _notify(key: String, value: Variant) -> void:
 		_apply_display()
 	changed.emit(key, value)
 
-func _preset_name() -> String:
+func _cmdline_value(prefix: String) -> String:
 	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--preset="):
-			return arg.trim_prefix("--preset=")
+		if arg.begins_with(prefix):
+			return arg.trim_prefix(prefix)
 	return ""
 
 func _merge(path: String) -> void:

@@ -1,6 +1,5 @@
-[gd_scene load_steps=63 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=62 format=3 uid="uid://cwhqdw3ex4dso"]
 
-[ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
@@ -206,7 +205,6 @@ sky_mode = 1
 
 [node name="EgoVehicle" type="Node3D" parent="."]
 script = ExtResource("2")
-vehicle_body_path = NodePath("EgoVehicleKinematicBody/VehicleBody3D")
 head_beam_light_path = NodePath("EgoVehicleKinematicBody/HeadBeamLight")
 
 [node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="EgoVehicle"]
@@ -214,9 +212,6 @@ head_beam_light_path = NodePath("EgoVehicleKinematicBody/HeadBeamLight")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0)
 shape = SubResource("1")
-
-[node name="VehicleBody3D" parent="EgoVehicle/EgoVehicleKinematicBody" instance=ExtResource("1")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
 
 [node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.32562, 1.10939, 5.68434e-14)
