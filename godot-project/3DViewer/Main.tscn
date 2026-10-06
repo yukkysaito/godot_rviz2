@@ -1,11 +1,10 @@
-[gd_scene load_steps=65 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=64 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="PackedScene" uid="uid://c12wli2xky3ja" path="res://3DViewer/Vehicle/RX450h/RX450h.tscn" id="1"]
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
-[ext_resource type="Script" path="res://3DViewer/RoadSurfaceMesh.gd" id="4"]
-[ext_resource type="Script" path="res://3DViewer/RoadMarkerMesh.gd" id="5"]
+[ext_resource type="Script" path="res://3DViewer/MapLayerMesh.gd" id="4"]
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
@@ -269,7 +268,7 @@ script = ExtResource("4")
 material_override = SubResource("19")
 mesh = SubResource("18")
 skeleton = NodePath("../RoadSurfaceMesh")
-script = ExtResource("5")
+script = ExtResource("4")
 
 [node name="TrafficLightGroupsManager" type="Node3D" parent="VectorMap"]
 script = ExtResource("14_pvyag")

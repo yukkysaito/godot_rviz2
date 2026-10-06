@@ -74,19 +74,22 @@ public:
    *
    * @param layers Array of Dictionary {"name": String, "parts": Array of [kind, layer(, width)]}
    *   with kind "lanelet", "polygon" or "linestring" (see the get_*_triangle_list methods).
+   * @param tile_size Each layer is split into square tiles of this size [m] on the ground plane
+   *   (by triangle centroid), so that only the tiles in view need meshes. 0: a single tile.
    * @return false if there is no map message or a build is already running.
    *
    * While a build runs, the other getters must not be used (they share the decoded map).
    * The message is released once the build started, to free its memory.
    */
-  bool start_build(const Array & layers);
+  bool start_build(const Array & layers, double tile_size);
 
   /// True when a build started with start_build() has finished.
   bool is_build_done();
 
   /**
    * @brief Takes the result of the finished build.
-   * @return Dictionary {"layers": {name: PackedVector3Array of triangle vertices},
+   * @return Dictionary {"layers": {name: Array of tiles {"center": Vector3, "vertices":
+   *   PackedVector3Array of triangle vertices relative to center}},
    *   "traffic_lights": Array (see get_traffic_light_list())}
    */
   Dictionary take_build_result();
@@ -127,6 +130,7 @@ private:
 
   bool decode(const autoware_map_msgs::msg::LaneletMapBin & msg);
   PackedVector3Array build_layer(const Array & parts);
+  static Array split_into_tiles(const PackedVector3Array & vertices, double tile_size);
 
   Array get_as_triangle_list(const lanelet::ConstPolygons3d & polygons) const;
   Array get_as_triangle_list(const lanelet::ConstLanelets & lanelets) const;

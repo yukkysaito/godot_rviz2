@@ -11,8 +11,8 @@ func _ready():
 func _apply_map() -> void:
 	PerfMonitor.measure_begin("vector_map_build")
 	var layers: Dictionary = RosBridge.map_geometry.get("layers", {})
-	$RoadSurfaceMesh.visualize_vertices(layers.get("road_surface", PackedVector3Array()))
-	$RoadMarkerMesh.visualize_vertices(layers.get("road_marker", PackedVector3Array()))
+	$RoadSurfaceMesh.set_tiles(layers.get("road_surface", []), RosBridge.MAP_TILE_SIZE)
+	$RoadMarkerMesh.set_tiles(layers.get("road_marker", []), RosBridge.MAP_TILE_SIZE)
 	($TrafficLightGroupsManager as TrafficLightGroupsManager).set_map(
 		RosBridge.map_geometry.get("traffic_lights", []))
 	PerfMonitor.measure_end("vector_map_build")
