@@ -23,6 +23,11 @@
 
 #include "autoware_perception_msgs/msg/traffic_light_group_array.hpp"
 
+#include <chrono>
+#include <cstdint>
+#include <unordered_map>
+#include <vector>
+
 class TrafficLights : public RefCounted
 {
   GDCLASS(TrafficLights, RefCounted);
@@ -30,6 +35,15 @@ class TrafficLights : public RefCounted
 
 public:
   Array get_traffic_light_status();
+
+  /**
+   * @brief Returns only the groups whose status changed since the previous call.
+   *
+   * Groups that were not received for longer than stale_seconds are returned once with empty
+   * status_elements, so the caller can turn them off. Cheap when nothing changed, unlike
+   * get_traffic_light_status() which converts every group of the map on each call.
+   */
+  Array get_traffic_light_status_changes(double stale_seconds);
 
   TrafficLights() = default;
   ~TrafficLights() = default;
@@ -39,4 +53,14 @@ protected:
    * @brief Binds methods to the Godot system.
    */
   static void _bind_methods();
+
+private:
+  struct GroupState
+  {
+    std::vector<uint32_t> elements;  // packed (color, shape, status) per element
+    std::chrono::steady_clock::time_point last_seen;
+  };
+
+  std::unordered_map<int64_t, GroupState> group_states_;
+  const void * last_processed_msg_ = nullptr;
 };

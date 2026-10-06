@@ -21,11 +21,7 @@
 
 /**
  * @class GodotRviz2Spinner
- * @brief The GodotRviz2Spinner class is responsible for handling ROS 2 node spinning within the
- * Godot environment.
- *
- * This class provides a method to spin the ROS 2 node, allowing callbacks to be processed. It is
- * designed to integrate ROS 2 node activity within a Godot application.
+ * @brief Kept for compatibility: callbacks are processed on the executor thread of GodotRviz2.
  */
 class GodotRviz2Spinner : public RefCounted
 {
@@ -36,12 +32,10 @@ public:
   ~GodotRviz2Spinner(){};
 
   /**
-   * @brief Spins the ROS 2 node to process callbacks.
-   *
-   * This method invokes rclcpp::spin_some, allowing the ROS 2 node to handle incoming messages and
-   * service requests.
+   * @brief Starts ROS (node and executor thread) if not started yet. Callbacks no longer need to
+   * be spun from the main loop.
    */
-  inline void spin_some() { rclcpp::spin_some(GodotRviz2::get_instance().get_node()); }
+  inline void spin_some() { GodotRviz2::get_instance(); }
 
 protected:
   /**

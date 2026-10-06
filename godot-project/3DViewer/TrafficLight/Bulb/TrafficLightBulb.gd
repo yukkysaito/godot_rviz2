@@ -29,9 +29,9 @@ const Z_GLOW: float = 0.005
 var _lens: MeshInstance3D
 var _glow: MeshInstance3D
 
-# Materials (reused, do NOT recreate every frame)
-var _lens_mat: StandardMaterial3D
-var _glow_mat: StandardMaterial3D
+# Materials are shared by all bulbs with the same look (texture + settings), so hundreds of
+# traffic lights do not create hundreds of materials.
+static var _material_cache: Dictionary = {}
 
 # Identity (which bulb type this is in HDMap)
 var _base_color: String = "none"
@@ -45,6 +45,7 @@ func _ready() -> void:
 	_ensure_built()
 	# Default appearance: dark lens, glow off
 	_apply_lens_appearance()
+	_apply_glow_texture()
 	_apply_lit(false)
 
 
@@ -76,18 +77,16 @@ func setup_identity(color: String, arrow: String) -> void:
 	_base_color = color
 	_base_arrow = arrow
 	_apply_lens_appearance()
-
-	# If currently lit, refresh glow texture to match identity.
-	if _is_lit:
-		_apply_glow_texture()
+	_apply_glow_texture()
 
 # 3) State only (on/off). Does NOT change identity.
 func set_lit(on: bool) -> void:
-	_apply_lit(on)
+	if on != _is_lit:
+		_apply_lit(on)
 
 # Compatibility with your previous calls
 func turn_off() -> void:
-	_apply_lit(false)
+	set_lit(false)
 
 # Convenience: old "one-shot" setup (kept for compatibility)
 func setup_from_hdmap(pos: Vector3, normal: Vector3, radius: float, color: String, arrow: String) -> void:
@@ -112,14 +111,6 @@ func _ensure_built() -> void:
 	_lens.mesh = lens_mesh
 	_lens.position.z = Z_LENS
 
-	_lens_mat = StandardMaterial3D.new()
-	_lens_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_lens_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_lens_mat.albedo_color = lens_tint
-	if double_sided:
-		_lens_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_lens.material_override = _lens_mat
-
 	add_child(_lens)
 
 	# --- Glow mesh ---
@@ -131,39 +122,42 @@ func _ensure_built() -> void:
 	_glow.position.z = Z_GLOW
 	_glow.visible = false
 
-	_glow_mat = StandardMaterial3D.new()
-	_glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	_glow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glow_mat.emission_enabled = true
-	_glow_mat.emission_energy_multiplier = emission_power
-	if double_sided:
-		_glow_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_glow.material_override = _glow_mat
-
 	add_child(_glow)
 
 func _apply_lit(on: bool) -> void:
 	_ensure_built()
 	_is_lit = on
-
-	if not on:
-		_glow.visible = false
-		return
-
-	_apply_glow_texture()
-	_glow.visible = true
+	_glow.visible = on
 
 func _apply_lens_appearance() -> void:
 	_ensure_built()
 	var tex: Texture2D = _get_tex(_base_color, _base_arrow)
-	_lens_mat.albedo_texture = tex
-	# Darken by tint (keeps "off" look)
-	_lens_mat.albedo_color = lens_tint
+	_lens.material_override = _shared_material("lens", tex)
 
 func _apply_glow_texture() -> void:
-	var tex: Texture2D = _get_tex(_base_color, _base_arrow)
-	_glow_mat.albedo_texture = tex
-	_glow_mat.emission_texture = tex
+	_ensure_built()
+	_glow.material_override = _shared_material("glow", _get_tex(_base_color, _base_arrow))
+
+func _shared_material(kind: String, tex: Texture2D) -> StandardMaterial3D:
+	var key := "%s|%s|%s|%s|%s|%s" % [kind, tex.resource_path, lens_tint, emission_power, double_sided, Z_GLOW]
+	if _material_cache.has(key):
+		return _material_cache[key]
+
+	var mat := StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = tex
+	if double_sided:
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if kind == "lens":
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_color = lens_tint  # darkened lens keeps the "off" look
+	else:
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+		mat.emission_enabled = true
+		mat.emission_texture = tex
+		mat.emission_energy_multiplier = emission_power
+	_material_cache[key] = mat
+	return mat
 
 func _get_tex(color: String, arrow: String) -> Texture2D:
 	var k := TrafficLightBulb._make_key(color, arrow) # call static properly

@@ -19,6 +19,7 @@
 #include "core/object/ref_counted.h"
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
+#include "async_task.hpp"
 #include "topic_subscriber.hpp"
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -45,6 +46,29 @@ public:
    */
   PackedVector3Array get_pointcloud(const String & frame_id = "map");
 
+  /**
+   * @brief Retrieves the point cloud downsampled and split into square tiles (for large maps).
+   *
+   * Keeps one point per voxel of voxel_size [m] (0 disables downsampling) and groups the points
+   * into tile_size [m] tiles on the ground plane, so each tile can be culled separately.
+   *
+   * @return Array of Dictionary {"center": Vector3, "points": PackedVector3Array} in Godot
+   * coordinates; points are relative to center.
+   */
+  Array get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size);
+
+  /**
+   * @brief Same as get_pointcloud_tiles(), but runs on a worker thread (for large maps).
+   * @return false if there is no message or tiling is already running.
+   */
+  bool start_tiles(const String & frame_id, double voxel_size, double tile_size);
+
+  /// True when tiling started with start_tiles() has finished.
+  bool is_tiles_done();
+
+  /// Takes the result of the finished tiling (see get_pointcloud_tiles()).
+  Array take_tiles();
+
   PointCloud() = default;
   ~PointCloud() = default;
 
@@ -53,4 +77,7 @@ protected:
    * @brief Binds methods to the Godot system.
    */
   static void _bind_methods();
+
+private:
+  AsyncTask<Array> tiles_task_;
 };

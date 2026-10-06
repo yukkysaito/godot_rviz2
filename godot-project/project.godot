@@ -19,6 +19,11 @@ boot_splash/image="res://icon.png"
 boot_splash/fullsize=false
 config/icon="res://icon.png"
 
+[autoload]
+
+PerfMonitor="*res://Debug/PerfMonitor.gd"
+RosBridge="*res://Core/RosBridge.gd"
+
 [input]
 
 ui_view_switch={

@@ -1,12 +1,9 @@
 extends MeshInstance3D
 
-var path = BehaviorPath.new()
+var path: BehaviorPath = RosBridge.behavior_path
 
-func _ready():
-	path.subscribe("/planning/scenario_planning/lane_driving/behavior_planning/path", false)
-	
 func _process(_delta):
-	if !path.has_new():
+	if not is_visible_in_tree() or !path.has_new():
 		return
 
 	# Drivable area

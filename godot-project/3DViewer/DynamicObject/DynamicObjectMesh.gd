@@ -29,7 +29,7 @@ const PX_TO_M := 0.001                      # 1 pixel = 0.001 m
 const ICON_EXTRA_OFFSET_M := 0.5            # Additional +1.0 m above object height
 
 # ================== Internal state ==================
-var dynamic_objects := DynamicObjects.new()
+var dynamic_objects: DynamicObjects = RosBridge.objects
 var array_mesh := ArrayMesh.new()  # Surface for triangle mode
 
 # Model pools: pools[type] = { "scene": PackedScene, "pool": Array[Node3D], "used": int }
@@ -54,6 +54,9 @@ const ICON_TEX := {
 	"motorcycle": preload("res://3DViewer/DynamicObject/Motorcycle.png"),
 }
 
+# Icon mesh/material shared by all icons of a type: icon_assets[type] = { "mesh", "material" }
+var icon_assets := {}
+
 # Icon pools: icon_pools[type] = { "pool": Array[MeshInstance3D], "used": int }
 var icon_pools := {
 	"car": {"pool": [] as Array[MeshInstance3D], "used": 0},
@@ -66,9 +69,6 @@ var icon_pools := {
 }
 
 func _ready() -> void:
-	# Subscribe to dynamic object topic
-	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
-
 	# Synchronize UI status
 	ignore_unknown_object = ignore_unknown_object_toggle.button_pressed
 	if icon_visibility_toggle != null:
@@ -76,6 +76,7 @@ func _ready() -> void:
 	
 	# Initialize pools
 	_initialize_model_pools(initial_pool)
+	_initialize_icon_assets()
 	_initialize_icon_pools(initial_pool)
 
 	# Prepare triangle mode mesh
@@ -83,6 +84,8 @@ func _ready() -> void:
 
 # ================== Main loop ==================
 func _process(_delta: float) -> void:
+	if dynamic_objects.has_new():
+		PerfMonitor.mark("dynamic_objects_received")
 	if not dynamic_objects.has_new():
 		return
 
@@ -209,40 +212,17 @@ func _render_icons(objects: Array) -> void:
 	_hide_unused_icons()
 
 func _place_icon_for_object(t: String, obj_center_pos: Vector3, obj_size: Vector3) -> void:
-	# Resolve texture by class; skip if none
-	if not ICON_TEX.has(t):
+	# Resolve icon by class; skip if none (e.g. "unknown")
+	if not icon_assets.has(t):
 		return
-	var tex: Texture2D = ICON_TEX[t]
 
-	# Borrow icon node for this type
 	var icon_node := _borrow_icon_node(t)
+	var h_m: float = (icon_assets[t]["mesh"] as QuadMesh).size.y
 
-	# Compute quad size in meters from texture pixels
-	var tex_size: Vector2i = tex.get_size()
-	var w_m := float(tex_size.x) * PX_TO_M
-	var h_m := float(tex_size.y) * PX_TO_M
-
-	# Ensure mesh size matches the texture (per-instance)
-	var qm := icon_node.mesh as QuadMesh
-	if qm.size.x != w_m or qm.size.y != h_m:
-		qm.size = Vector2(w_m, h_m)
-
-	# Ensure material is configured and texture is set
-	var mat := icon_node.get_active_material(0)
-	if mat is StandardMaterial3D:
-		var sm := mat as StandardMaterial3D
-		if sm.albedo_texture != tex:
-			sm.albedo_texture = tex
-		# Keep billboard/alpha settings stable
-		sm.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
-		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		sm.cull_mode = BaseMaterial3D.CULL_BACK
-
-	# Vertical placement:
+	# Vertical placement: above the object top
 	var icon_center_y := obj_center_pos.y + float(obj_size.y) + ICON_EXTRA_OFFSET_M + (0.5 * h_m)
 
-	# Final icon position; facing is handled by BILLBOARD_FIXED_Y (no rotation needed)
+	# Facing is handled by the billboard material (no rotation needed)
 	icon_node.position = Vector3(obj_center_pos.x, icon_center_y, obj_center_pos.z)
 	icon_node.visible = true
 
@@ -287,6 +267,21 @@ func _reset_usage_counters() -> void:
 		pools[t]["used"] = 0
 
 # ================== Icon pool helpers ==================
+func _initialize_icon_assets() -> void:
+	for t in ICON_TEX.keys():
+		var tex: Texture2D = ICON_TEX[t]
+		var qm := QuadMesh.new()
+		qm.size = Vector2(tex.get_size()) * PX_TO_M  # quad size in meters from texture pixels
+
+		var mat := StandardMaterial3D.new()
+		mat.albedo_texture = tex
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		# Fully camera-facing: a Y-only billboard turns edge-on in top-down (BEV) views
+		mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		mat.cull_mode = BaseMaterial3D.CULL_BACK
+		icon_assets[t] = {"mesh": qm, "material": mat}
+
 func _initialize_icon_pools(count: int) -> void:
 	for t in icon_pools.keys():
 		_grow_icon_pool(t, count)
@@ -294,25 +289,17 @@ func _initialize_icon_pools(count: int) -> void:
 func _grow_icon_pool(t: String, count: int) -> void:
 	var pool: Array[MeshInstance3D] = icon_pools[t]["pool"]
 	for i in range(count):
-		var mi := _make_icon_node()
+		var mi := _make_icon_node(t)
 		add_child(mi)
 		pool.append(mi)
 
-func _make_icon_node() -> MeshInstance3D:
-	# Create a MeshInstance3D with QuadMesh + StandardMaterial3D (billboard)
+func _make_icon_node(t: String) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
-
-	var qm := QuadMesh.new()
-	mi.mesh = qm
-
-	var mat := StandardMaterial3D.new()
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
-	mat.vertex_color_use_as_albedo = false
-	mat.cull_mode = BaseMaterial3D.CULL_BACK
-	mi.set_surface_override_material(0, mat)
-
+	mi.mesh = icon_assets[t]["mesh"]
+	mi.material_override = icon_assets[t]["material"]
+	# The billboard rotates the quad in the shader; widen the cull bounds so it is not culled
+	mi.extra_cull_margin = 1.0
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.visible = false
 	return mi
 

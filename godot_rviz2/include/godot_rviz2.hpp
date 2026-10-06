@@ -18,76 +18,93 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "sensor_msgs/msg/point_cloud2.hpp"
-
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <memory>
+#include <string>
+#include <thread>
+
 /**
  * @class GodotRviz2
- * @brief The GodotRviz2 class is a singleton that initializes and manages ROS 2 node and TF2 buffer
- * for Godot integration.
+ * @brief Singleton that owns the ROS 2 node, the TF2 buffer and the executor thread.
  *
- * This class is responsible for setting up the ROS 2 environment, creating a node, and managing the
- * TF2 buffer and listener for the Godot engine to interact with ROS 2 applications. It follows the
- * singleton pattern to ensure only one instance of the class exists.
+ * Callbacks run on a background executor thread (independent of the frame rate, and large
+ * messages such as the point cloud map are deserialized there instead of on the render loop).
+ * Subscribers only store the latest message (see topic_subscriber.hpp); Godot objects are never
+ * touched from the executor thread.
  */
 class GodotRviz2
 {
 public:  // for singleton
   GodotRviz2(const GodotRviz2 &) = delete;
-  GodotRviz2 & operator=(const GodotRviz2 &) = default;
+  GodotRviz2 & operator=(const GodotRviz2 &) = delete;
   GodotRviz2(GodotRviz2 &&) = delete;
   GodotRviz2 & operator=(GodotRviz2 &&) = delete;
 
-  /**
-   * @brief Gets the singleton instance of the GodotRviz2 class.
-   *
-   * @return GodotRviz2& Reference to the singleton instance.
-   */
   static GodotRviz2 & get_instance()
   {
     static GodotRviz2 instance;
     return instance;
   }
 
-  /**
-   * @brief Gets the ROS 2 node.
-   *
-   * @return std::shared_ptr<rclcpp::Node> Shared pointer to the ROS 2 node.
-   */
   std::shared_ptr<rclcpp::Node> get_node() { return node_; }
 
-  /**
-   * @brief Gets the TF2 buffer.
-   *
-   * @return std::shared_ptr<tf2_ros::Buffer> Shared pointer to the TF2 buffer.
-   */
   std::shared_ptr<tf2_ros::Buffer> get_tf_buffer() { return tf_buffer_; }
 
-private:
-  std::shared_ptr<rclcpp::Node> node_;
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  /**
+   * @brief Creates a subscription served by the executor thread (callbacks may run concurrently
+   * with each other and with the Godot main thread).
+   */
+  template <class MsgT, class CallbackT>
+  typename rclcpp::Subscription<MsgT>::SharedPtr create_subscription(
+    const std::string & topic, const rclcpp::QoS & qos, CallbackT && callback)
+  {
+    rclcpp::SubscriptionOptions options;
+    options.callback_group = callback_group_;
+    return node_->create_subscription<MsgT>(
+      topic, qos, std::forward<CallbackT>(callback), options);
+  }
+
+  /**
+   * @brief Creates a service client served by the executor thread.
+   */
+  template <class ServiceT>
+  typename rclcpp::Client<ServiceT>::SharedPtr create_client(const std::string & service_name)
+  {
+    return node_->create_client<ServiceT>(
+      service_name, rmw_qos_profile_services_default, callback_group_);
+  }
 
 private:
-  /**
-   * @brief Constructor for GodotRviz2.
-   *
-   * Initializes the ROS 2 environment and sets up the node, TF2 buffer, and listener.
-   */
+  static constexpr size_t kExecutorThreads = 2;
+
+  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::CallbackGroup::SharedPtr callback_group_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::unique_ptr<rclcpp::executors::MultiThreadedExecutor> executor_;
+  std::thread executor_thread_;
+
   GodotRviz2()
   {
     rclcpp::init(0, nullptr);
     node_ = std::make_shared<rclcpp::Node>("godot_rviz2_node");
+    callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
+    // The listener spins its own node on its own thread
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+    executor_ = std::make_unique<rclcpp::executors::MultiThreadedExecutor>(
+      rclcpp::ExecutorOptions(), kExecutorThreads);
+    executor_->add_node(node_);
+    executor_thread_ = std::thread([this]() { executor_->spin(); });
   }
 
-  /**
-   * @brief Destructor for GodotRviz2.
-   *
-   * Shuts down the ROS 2 environment upon object destruction.
-   */
-  ~GodotRviz2() { rclcpp::shutdown(); }
+  ~GodotRviz2()
+  {
+    executor_->cancel();
+    if (executor_thread_.joinable()) executor_thread_.join();
+    rclcpp::shutdown();
+  }
 };

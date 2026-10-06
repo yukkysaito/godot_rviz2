@@ -2,6 +2,10 @@ extends Control
 
 # Loading screen: loads the main scene in the background while an orb of smoke shows the
 # progress (see Shaders/orb.gdshader), then lets the smoke drift away and switches scenes.
+#
+# Besides the main scene, it waits until the vector map is built and the ego pose is known (both
+# are received by RosBridge from start-up), so the main screen starts complete. Without Autoware
+# (no map publisher) it does not wait for them; each wait also has a time limit.
 
 @export var main_scene_path: String = "res://3DViewer/Main.tscn"
 
@@ -15,21 +19,25 @@ extends Control
 @export var exit_seconds: float = 3.0
 @export var fade_out_seconds: float = 1.2
 
-# The loader reports progress only in coarse steps; in between, the shown progress creeps
-# toward creep_limit over about creep_seconds so it never looks stuck.
-@export var creep_seconds: float = 6.0
-@export var creep_limit: float = 0.85
+# Waiting for Autoware: time to discover the map publisher, the longest wait for the map, and
+# the longest wait for the ego pose after the map is ready
+@export var discovery_seconds: float = 2.0
+@export var map_wait_seconds: float = 20.0
+@export var pose_wait_seconds: float = 3.0
 
 const PROGRESS_SPEED := 0.5         # max change of the shown progress per second
 const PROGRESS_SPEED_LOADED := 1.6  # ... once loading finished
 const STATUS_FADE_IN_SECONDS := 0.8
 
-const STATUS_STEPS := [
-	[0.0, "initializing"],
-	[0.3, "loading assets"],
-	[0.7, "building scene"],
-	[1.0, "ready"],
-]
+# Stage -> [progress at start, progress at end, typical duration in seconds]. Within a stage the
+# shown progress creeps toward its end, so it never looks stuck.
+const STAGES := {
+	"loading scene": [0.0, 0.5, 1.5],
+	"receiving map": [0.5, 0.6, 1.0],
+	"building map": [0.6, 0.9, 3.0],
+	"localizing": [0.9, 0.97, 2.0],
+}
+const STAGE_READY := "ready"
 
 const U_TIME := &"u_time"
 const U_PROGRESS := &"u_progress"
@@ -43,8 +51,12 @@ var _load_progress: Array = [0.0]  # filled by ResourceLoader.load_threaded_get_
 var _shown_progress: float = 0.0
 var _start_msec: int = 0
 var _is_finishing: bool = false
+var _stage: String = ""
+var _stage_start: float = 0.0  # [s] since the splash started
+var _pose_wait_start: float = -1.0
 
 func _ready() -> void:
+	PerfMonitor.mark("splash_ready")
 	_start_msec = Time.get_ticks_msec()
 	_fade.modulate.a = 0.0
 
@@ -67,34 +79,58 @@ func _process(delta: float) -> void:
 		return
 
 	var loaded := status == ResourceLoader.THREAD_LOAD_LOADED
+	if loaded:
+		PerfMonitor.mark("main_scene_loaded")
 	var elapsed := _elapsed_seconds()
-	var speed := PROGRESS_SPEED_LOADED if loaded else PROGRESS_SPEED
-	_set_progress(move_toward(_shown_progress, _target_progress(loaded, elapsed), delta * speed))
+	var stage := _current_stage(loaded, elapsed)
+	if stage != _stage:
+		_stage = stage
+		_stage_start = elapsed
+		PerfMonitor.mark("splash_stage_" + stage.replace(" ", "_"))
 
-	if loaded and _shown_progress >= 1.0 and elapsed >= min_splash_seconds:
+	var ready := stage == STAGE_READY
+	var speed := PROGRESS_SPEED_LOADED if ready else PROGRESS_SPEED
+	var target := maxf(_target_progress(elapsed), _shown_progress)  # never goes back
+	_set_progress(move_toward(_shown_progress, target, delta * speed))
+
+	if ready and _shown_progress >= 1.0 and elapsed >= min_splash_seconds:
 		_is_finishing = true
 		_finish()
 
 func _elapsed_seconds() -> float:
 	return float(Time.get_ticks_msec() - _start_msec) / 1000.0
 
-func _target_progress(loaded: bool, elapsed: float) -> float:
-	if loaded:
+# What the splash is waiting for (STAGE_READY when it can finish)
+func _current_stage(loaded: bool, elapsed: float) -> String:
+	if not loaded:
+		return "loading scene"
+	# Without a map publisher (Autoware not running) there is nothing to wait for
+	var autoware := RosBridge.has_map_publisher() or RosBridge.is_map_ready or RosBridge.is_map_building
+	if not autoware and elapsed < discovery_seconds:
+		return "receiving map"
+	if autoware and not RosBridge.is_map_ready and elapsed < map_wait_seconds:
+		return "building map" if RosBridge.is_map_building else "receiving map"
+	if autoware and not RosBridge.is_ego_pose_ready():
+		if _pose_wait_start < 0.0:
+			_pose_wait_start = elapsed
+		if elapsed - _pose_wait_start < pose_wait_seconds:
+			return "localizing"
+	return STAGE_READY
+
+func _target_progress(elapsed: float) -> float:
+	if _stage == STAGE_READY:
 		return 1.0
-	var creep := creep_limit * (1.0 - exp(-2.0 * elapsed / maxf(creep_seconds, 0.01)))
-	return maxf(float(_load_progress[0]), creep)
+	var stage: Array = STAGES[_stage]
+	var t := (elapsed - _stage_start) / maxf(float(stage[2]), 0.01)
+	var target: float = lerpf(stage[0], stage[1], 1.0 - exp(-2.0 * t))
+	if _stage == "loading scene":
+		target = maxf(target, float(_load_progress[0]) * float(stage[1]))
+	return target
 
 func _set_progress(value: float) -> void:
 	_shown_progress = value
 	_material.set_shader_parameter(U_PROGRESS, value)
-	_status_label.text = "%s   %d%%" % [_status_text(value), int(round(value * 100.0))]
-
-func _status_text(progress: float) -> String:
-	var text: String = STATUS_STEPS[0][1]
-	for step in STATUS_STEPS:
-		if progress >= step[0]:
-			text = step[1]
-	return text
+	_status_label.text = "%s   %d%%" % [_stage, int(round(value * 100.0))]
 
 func _show_error(message: String) -> void:
 	_status_label.text = message
@@ -119,4 +155,5 @@ func _finish() -> void:
 		_show_error("invalid main scene")
 		return
 
+	PerfMonitor.mark("splash_finished")
 	get_tree().change_scene_to_packed(packed)

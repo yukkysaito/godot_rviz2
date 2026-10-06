@@ -24,6 +24,9 @@
 
 #include "autoware_adapi_v1_msgs/srv/change_operation_mode.hpp"
 
+#include <atomic>
+#include <memory>
+
 class OperationModeChanger : public RefCounted
 {
   GDCLASS(OperationModeChanger, RefCounted);
@@ -31,12 +34,27 @@ class OperationModeChanger : public RefCounted
 public:
   bool create_client(const String & service_name);
   bool is_server_ready();
+
+  /**
+   * @brief Sends the request without waiting (the response is handled on the executor thread).
+   * @return true if the request was sent (false: no client, service not ready or still pending)
+   */
   bool change_to_autonomous_mode();
+
+  /**
+   * @brief State of the last request: "idle", "pending", "succeeded" or "failed".
+   */
+  String get_request_state();
   OperationModeChanger() = default;
   ~OperationModeChanger() = default;
 
 private:
+  enum class RequestState : int { Idle, Pending, Succeeded, Failed };
+
   rclcpp::Client<autoware_adapi_v1_msgs::srv::ChangeOperationMode>::SharedPtr client_;
+  // Written from the executor thread when the response arrives
+  std::shared_ptr<std::atomic<int>> request_state_ =
+    std::make_shared<std::atomic<int>>(static_cast<int>(RequestState::Idle));
 
 protected:
   /**

@@ -70,9 +70,8 @@ func set_all_off() -> void:
 			b.turn_off()
 
 func apply_status(status_elements: Array) -> void:
-	# Turn off everything once per update, then enable matched bulbs.
-	set_all_off()
-
+	# Collect the bulbs that should be lit, then switch only the bulbs whose state changes.
+	var lit: Dictionary = {}  # Used as a "set": bulb -> true
 	for se_any in status_elements:
 		if typeof(se_any) != TYPE_DICTIONARY:
 			continue
@@ -88,7 +87,11 @@ func apply_status(status_elements: Array) -> void:
 
 		for b in bulbs_for_key:
 			if b != null:
-				b.set_lit(true)
+				lit[b] = true
+
+	for b in _all_bulbs:
+		if b != null:
+			b.set_lit(lit.has(b))
 
 # -----------------------------
 # Internal helpers

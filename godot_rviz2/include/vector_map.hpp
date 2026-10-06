@@ -21,6 +21,7 @@
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
 #include "lanelet2_core/LaneletMap.h"
+#include "async_task.hpp"
 #include "topic_subscriber.hpp"
 
 #include "autoware_map_msgs/msg/lanelet_map_bin.hpp"
@@ -68,6 +69,27 @@ public:
   Array get_linestring_triangle_list(const String & name, const float width);
   Array get_traffic_light_list();
 
+  /**
+   * @brief Decodes the last map and builds the requested geometry on a worker thread.
+   *
+   * @param layers Array of Dictionary {"name": String, "parts": Array of [kind, layer(, width)]}
+   *   with kind "lanelet", "polygon" or "linestring" (see the get_*_triangle_list methods).
+   * @return false if there is no map message or a build is already running.
+   *
+   * While a build runs, the other getters must not be used (they share the decoded map).
+   */
+  bool start_build(const Array & layers);
+
+  /// True when a build started with start_build() has finished.
+  bool is_build_done();
+
+  /**
+   * @brief Takes the result of the finished build.
+   * @return Dictionary {"layers": {name: PackedVector3Array of triangle vertices},
+   *   "traffic_lights": Array (see get_traffic_light_list())}
+   */
+  Dictionary take_build_result();
+
   VectorMap();
   ~VectorMap() = default;
 
@@ -98,6 +120,12 @@ private:
   lanelet::ConstPolygons3d obstacle_polygons_;
 
   std::vector<lanelet::AutowareTrafficLightConstPtr> traffic_lights_;
+
+  // Declared last: waits for a running build (which uses the members above) on destruction
+  AsyncTask<Dictionary> build_task_;
+
+  bool decode(const autoware_map_msgs::msg::LaneletMapBin & msg);
+  PackedVector3Array build_layer(const Array & parts);
 
   Array get_as_triangle_list(const lanelet::ConstPolygons3d & polygons) const;
   Array get_as_triangle_list(const lanelet::ConstLanelets & lanelets) const;

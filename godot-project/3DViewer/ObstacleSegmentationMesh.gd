@@ -2,14 +2,13 @@ extends MeshInstance3D
 
 @export var obstacle_segmentation_toggle: BaseButton
 
-var pointcloud = PointCloud.new()
+var pointcloud: PointCloud = RosBridge.obstacle_segmentation
 var sum_time = 0.0
 @export var transparency_speed = 3.0
 @export var transparency_scale = 1.0
 @export var cycle_time = 3.0
 
 func _ready():
-	pointcloud.subscribe("/perception/obstacle_segmentation/pointcloud", false)
 	visible = obstacle_segmentation_toggle.button_pressed
 
 func _process(delta):

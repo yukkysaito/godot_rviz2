@@ -1,6 +1,6 @@
 extends Node3D
 
-var spinner = GodotRviz2Spinner.new()
+# ROS is started by the RosBridge autoload (receiving on its own thread from app start-up).
 
-func _process(_delta):
-	spinner.spin_some()
+func _ready():
+	PerfMonitor.mark("main_ready")
