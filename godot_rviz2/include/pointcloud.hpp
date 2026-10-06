@@ -45,6 +45,17 @@ public:
    */
   PackedVector3Array get_pointcloud(const String & frame_id = "map");
 
+  /**
+   * @brief Retrieves the point cloud downsampled and split into square tiles (for large maps).
+   *
+   * Keeps one point per voxel of voxel_size [m] (0 disables downsampling) and groups the points
+   * into tile_size [m] tiles on the ground plane, so each tile can be culled separately.
+   *
+   * @return Array of Dictionary {"center": Vector3, "points": PackedVector3Array} in Godot
+   * coordinates; points are relative to center.
+   */
+  Array get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size);
+
   PointCloud() = default;
   ~PointCloud() = default;
 
