@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <functional>
 #include <optional>
 #include <unordered_map>
 #include <utility>
@@ -39,8 +40,9 @@ void PointCloud::_bind_methods()
     D_METHOD("get_pointcloud_tiles", "frame_id", "voxel_size", "tile_size"),
     &PointCloud::get_pointcloud_tiles);
   ClassDB::bind_method(
-    D_METHOD("start_tiles", "frame_id", "voxel_size", "tile_size"), &PointCloud::start_tiles);
-  ClassDB::bind_method(D_METHOD("is_tiles_done"), &PointCloud::is_tiles_done);
+    D_METHOD("start_tiles", "frame_id", "voxel_size", "tile_size", "origin"),
+    &PointCloud::start_tiles);
+  ClassDB::bind_method(D_METHOD("is_tiling"), &PointCloud::is_tiling);
   ClassDB::bind_method(D_METHOD("take_tiles"), &PointCloud::take_tiles);
   TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
@@ -155,18 +157,22 @@ int float_field_offset(const sensor_msgs::msg::PointCloud2 & msg, const std::str
 }
 }  // namespace
 
-static Array make_tiles(
+/**
+ * @brief Downsamples msg and splits it into tiles (see PointCloud::get_pointcloud_tiles()),
+ * passing each tile to emit, nearest to (origin_x, origin_y) [ROS coordinates] first.
+ */
+static void make_tiles(
   const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr, double voxel_size,
-  double tile_size)
+  double tile_size, double origin_x, double origin_y,
+  const std::function<void(const Dictionary &)> & emit)
 {
-  Array tiles;
-  if (!msg_ptr || tile_size <= 0.0) return tiles;
+  if (!msg_ptr || tile_size <= 0.0) return;
 
   const auto & msg = *msg_ptr;
   const int off_x = float_field_offset(msg, "x");
   const int off_y = float_field_offset(msg, "y");
   const int off_z = float_field_offset(msg, "z");
-  if (off_x < 0 || off_y < 0 || off_z < 0) return tiles;
+  if (off_x < 0 || off_y < 0 || off_z < 0) return;
 
   const size_t num_points = static_cast<size_t>(msg.width) * msg.height;
   const uint8_t * data = msg.data.data();
@@ -209,11 +215,24 @@ static Array make_tiles(
   }
   std::vector<uint32_t>().swap(point_tile);
 
+  // Process the tiles nearest to the origin first (they are shown first while tiling runs)
+  std::vector<uint32_t> tile_order(tile_counts.size());
+  std::vector<double> tile_distance(tile_counts.size());
+  for (size_t t = 0; t < tile_counts.size(); ++t) {
+    tile_order[t] = static_cast<uint32_t>(t);
+    const double dx = (tile_indices[t].first + 0.5) * tile_size - origin_x;
+    const double dy = (tile_indices[t].second + 0.5) * tile_size - origin_y;
+    tile_distance[t] = dx * dx + dy * dy;
+  }
+  std::sort(tile_order.begin(), tile_order.end(), [&](uint32_t a, uint32_t b) {
+    return tile_distance[a] < tile_distance[b];
+  });
+
   // 2. Per tile: keep one point per voxel, convert relative to the tile center
   const bool downsample = voxel_size > 0.0;
   VoxelSet voxels;
   std::vector<Vector3> kept;
-  for (size_t t = 0; t < tile_counts.size(); ++t) {
+  for (const uint32_t t : tile_order) {
     kept.clear();
     if (downsample) voxels.reset(tile_counts[t]);
     double sum_x = 0.0, sum_y = 0.0, sum_z = 0.0;
@@ -247,26 +266,58 @@ static Array make_tiles(
     Dictionary tile_dict;
     tile_dict["center"] = center;
     tile_dict["points"] = points;
-    tiles.append(tile_dict);
+    emit(tile_dict);
   }
-  return tiles;
 }
 
 Array PointCloud::get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size)
 {
-  return make_tiles(get_msg_in_frame(get_last_msg(), to_std(frame_id)), voxel_size, tile_size);
+  Array tiles;
+  make_tiles(
+    get_msg_in_frame(get_last_msg(), to_std(frame_id)), voxel_size, tile_size, 0.0, 0.0,
+    [&tiles](const Dictionary & tile) { tiles.append(tile); });
+  return tiles;
 }
 
-bool PointCloud::start_tiles(const String & frame_id, double voxel_size, double tile_size)
+bool PointCloud::start_tiles(
+  const String & frame_id, double voxel_size, double tile_size, const Vector3 & origin)
 {
   if (tiles_task_.is_running()) return false;
   const auto last_msg = get_last_msg();
   if (!last_msg) return false;
-  return tiles_task_.start([last_msg, frame = to_std(frame_id), voxel_size, tile_size]() {
-    return make_tiles(get_msg_in_frame(last_msg, frame), voxel_size, tile_size);
+  release_last_msg();  // the worker holds the only reference: freed once tiling finished
+
+  {
+    std::lock_guard<std::mutex> lock(tile_queue_->mutex);
+    tile_queue_->tiles.clear();
+  }
+  const auto queue = tile_queue_;
+  // Godot -> ROS coordinates (see ros2_to_godot())
+  const double origin_x = origin.x;
+  const double origin_y = -origin.z;
+  return tiles_task_.start([last_msg, frame = to_std(frame_id), voxel_size, tile_size, origin_x,
+                            origin_y, queue]() {
+    make_tiles(
+      get_msg_in_frame(last_msg, frame), voxel_size, tile_size, origin_x, origin_y,
+      [&queue](const Dictionary & tile) {
+        std::lock_guard<std::mutex> lock(queue->mutex);
+        queue->tiles.append(tile);
+      });
+    return true;
   });
 }
 
-bool PointCloud::is_tiles_done() { return tiles_task_.is_done(); }
+bool PointCloud::is_tiling()
+{
+  if (tiles_task_.is_running()) return true;
+  std::lock_guard<std::mutex> lock(tile_queue_->mutex);
+  return !tile_queue_->tiles.is_empty();
+}
 
-Array PointCloud::take_tiles() { return tiles_task_.take(); }
+Array PointCloud::take_tiles()
+{
+  std::lock_guard<std::mutex> lock(tile_queue_->mutex);
+  Array tiles = tile_queue_->tiles;
+  tile_queue_->tiles = Array();
+  return tiles;
+}

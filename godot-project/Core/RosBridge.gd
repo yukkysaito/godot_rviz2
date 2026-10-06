@@ -121,9 +121,13 @@ func _update_map() -> void:
 func has_map_publisher() -> bool:
 	return vector_map.get_publisher_count() > 0
 
+# Ego position in Godot coordinates (Vector3.ZERO while unknown)
+func get_ego_position() -> Vector3:
+	return _ego_pose.get_ego_position()
+
 # True once the ego pose (map -> base_link) is available
 func is_ego_pose_ready() -> bool:
-	return _ego_pose.get_ego_position() != Vector3.ZERO
+	return get_ego_position() != Vector3.ZERO
 
 func create_operation_mode_changer() -> OperationModeChanger:
 	var changer := OperationModeChanger.new()

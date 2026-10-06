@@ -77,6 +77,7 @@ public:
    * @return false if there is no map message or a build is already running.
    *
    * While a build runs, the other getters must not be used (they share the decoded map).
+   * The message is released once the build started, to free its memory.
    */
   bool start_build(const Array & layers);
 

@@ -237,6 +237,7 @@ bool VectorMap::start_build(const Array & layers)
   if (!last_msg) return false;
 
   const auto msg = last_msg.value();
+  release_last_msg();  // the worker holds the only reference: freed once the build finished
   return build_task_.start([this, msg, layers]() {
     Dictionary result;
     Dictionary layer_vertices;

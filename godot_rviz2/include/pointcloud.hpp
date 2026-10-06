@@ -24,6 +24,9 @@
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
+#include <memory>
+#include <mutex>
+
 /**
  * @class PointCloud
  * @brief The PointCloud class provides an interface to process and retrieve data from PointCloud2
@@ -59,14 +62,19 @@ public:
 
   /**
    * @brief Same as get_pointcloud_tiles(), but runs on a worker thread (for large maps).
+   *
+   * Tiles are produced nearest to origin (Godot coordinates, e.g. the ego position) first and
+   * can be taken while tiling runs. The message is released once tiling started, to free its
+   * memory: start_tiles() works again only after a new message arrives.
+   *
    * @return false if there is no message or tiling is already running.
    */
-  bool start_tiles(const String & frame_id, double voxel_size, double tile_size);
+  bool start_tiles(const String & frame_id, double voxel_size, double tile_size, const Vector3 & origin);
 
-  /// True when tiling started with start_tiles() has finished.
-  bool is_tiles_done();
+  /// True while tiling runs or produced tiles have not been taken yet.
+  bool is_tiling();
 
-  /// Takes the result of the finished tiling (see get_pointcloud_tiles()).
+  /// Takes the tiles produced since the last call (see get_pointcloud_tiles()).
   Array take_tiles();
 
   PointCloud() = default;
@@ -79,5 +87,12 @@ protected:
   static void _bind_methods();
 
 private:
-  AsyncTask<Array> tiles_task_;
+  struct TileQueue
+  {
+    std::mutex mutex;
+    Array tiles;
+  };
+  // Shared with the worker thread
+  std::shared_ptr<TileQueue> tile_queue_ = std::make_shared<TileQueue>();
+  AsyncTask<bool> tiles_task_;
 };
