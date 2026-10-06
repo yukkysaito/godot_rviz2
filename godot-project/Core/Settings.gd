@@ -2,7 +2,9 @@ extends Node
 
 # Application settings (autoload).
 #
-# Values are layered: DEFAULTS < preset (res://Config/Presets/<name>.cfg, chosen with
+# Values are layered: DEFAULTS < project settings (res://Config/project.cfg, optional: lets a
+# derived project, e.g. one with its own vehicles, change the defaults by adding this file
+# instead of editing this script) < preset (res://Config/Presets/<name>.cfg, chosen with
 # "-- --preset=<name>", e.g. for a real vehicle or a Jetson) < the user's settings
 # (user://settings.cfg, saved whenever a value changes from the UI) < command line overrides
 # (not saved): "-- --vehicle=<Name>" selects res://3DViewer/Vehicle/<Name>/<Name>.tres.
@@ -30,6 +32,7 @@ const DEFAULTS := {
 	"vehicle/profile": "res://3DViewer/Vehicle/RX450h/RX450h.tres",
 }
 
+const PROJECT_FILE := "res://Config/project.cfg"
 const USER_FILE := "user://settings.cfg"
 const PRESET_DIR := "res://Config/Presets/"
 
@@ -42,6 +45,8 @@ var _save_pending := false
 
 func _enter_tree() -> void:
 	_values = DEFAULTS.duplicate()
+	if FileAccess.file_exists(PROJECT_FILE):
+		_merge(PROJECT_FILE)
 	var preset := _cmdline_value("--preset=")
 	if not preset.is_empty():
 		_merge(PRESET_DIR + preset + ".cfg")
