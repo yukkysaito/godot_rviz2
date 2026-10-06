@@ -19,8 +19,6 @@ var traffic_light_recognition := TrafficLights.new()
 # gid(int) -> TrafficLightGroupActor
 var _actors: Dictionary = {}
 
-# gid(int) -> last time(sec) we applied recognition results for that group
-var _last_seen_sec: Dictionary = {}
 
 @onready var _root: Node3D = _ensure_root()
 
@@ -31,8 +29,10 @@ func _ready() -> void:
 	)
 
 func _process(_delta: float) -> void:
-	_apply_recognition_if_new()
-	_auto_turn_off_if_stale()
+	# Only groups whose status changed are returned (stale groups come back with no elements),
+	# so this stays cheap even for maps with hundreds of traffic lights.
+	var stale_seconds := auto_off_seconds if auto_off_seconds > 0.0 else INF
+	_apply_status_list(traffic_light_recognition.get_traffic_light_status_changes(stale_seconds))
 
 # -----------------------------------------------------------------------------
 # Public API
@@ -45,7 +45,6 @@ func set_map(groups: Array) -> void:
 	# 2) removes actors that no longer exist in the incoming list
 
 	var alive: Dictionary = {}  # Used as a "set": gid -> true
-	var now: float = _now_sec()
 
 	for g_any in groups:
 		if typeof(g_any) != TYPE_DICTIONARY:
@@ -62,70 +61,29 @@ func set_map(groups: Array) -> void:
 		actor.build_from_hdmap(group)
 
 		# Ensure the group starts from "all off" at map-update time.
-		# (Recognition will re-light it on the next update.)
 		actor.set_all_off()
 
-		# Initialize last seen so newly created actors do not immediately auto-off.
-		_last_seen_sec[gid] = now
-
 	_remove_missing_actors(alive)
+
+	# Re-light the rebuilt actors from the latest recognition result
+	_apply_status_list(traffic_light_recognition.get_traffic_light_status())
 
 # -----------------------------------------------------------------------------
 # Recognition update
 # -----------------------------------------------------------------------------
 
-func _apply_recognition_if_new() -> void:
-	if not traffic_light_recognition.has_new():
-		return
-
-	var now: float = _now_sec()
-	var status_list: Array = traffic_light_recognition.get_traffic_light_status()
-
+func _apply_status_list(status_list: Array) -> void:
 	for st_any in status_list:
 		if typeof(st_any) != TYPE_DICTIONARY:
 			continue
 		var status: Dictionary = st_any as Dictionary
 
-		var gid: int = int(status.get("group_id", -1))
-		if gid < 0:
-			continue
-
-		var actor: TrafficLightGroupActor = _get_actor(gid)
+		var actor: TrafficLightGroupActor = _get_actor(int(status.get("group_id", -1)))
 		if actor == null:
 			continue  # Group not loaded / not present
 
-		# status_elements should be an Array of dictionaries {color, arrow, ...}
-		var elems: Array = _extract_array(status, "status_elements")
-
-		actor.apply_status(elems)
-		_last_seen_sec[gid] = now
-
-	traffic_light_recognition.set_old()
-
-func _auto_turn_off_if_stale() -> void:
-	if auto_off_seconds <= 0.0:
-		return
-
-	var now: float = _now_sec()
-
-	for k_any in _actors.keys():
-		var gid: int = int(k_any)
-
-		# If we have never seen recognition for this gid, do nothing.
-		# (This avoids accidental "immediate stale" when initialization order changes.)
-		if not _last_seen_sec.has(gid):
-			continue
-
-		var last: float = float(_last_seen_sec[gid])
-		if (now - last) <= auto_off_seconds:
-			continue
-
-		var actor: TrafficLightGroupActor = _get_actor(gid)
-		if actor != null:
-			actor.set_all_off()
-
-		# Update last seen to avoid turning off every frame after timeout.
-		_last_seen_sec[gid] = now
+		# status_elements: Array of dictionaries {color, arrow, ...}; empty turns the group off
+		actor.apply_status(_extract_array(status, "status_elements"))
 
 # -----------------------------------------------------------------------------
 # Actor life-cycle
@@ -147,7 +105,6 @@ func _get_or_create_actor(gid: int) -> TrafficLightGroupActor:
 	_configure_actor(actor)
 
 	_actors[gid] = actor
-	_last_seen_sec[gid] = _now_sec()
 	return actor
 
 func _instantiate_actor() -> TrafficLightGroupActor:
@@ -183,7 +140,6 @@ func _remove_actor(gid: int) -> void:
 		return
 
 	_actors.erase(gid)
-	_last_seen_sec.erase(gid)
 	actor.queue_free()
 
 func _ensure_root() -> Node3D:
@@ -196,9 +152,6 @@ func _ensure_root() -> Node3D:
 	n.name = "ActorsRoot"
 	add_child(n)
 	return n
-
-func _now_sec() -> float:
-	return Time.get_ticks_msec() / 1000.0
 
 func _extract_array(d: Dictionary, key: String) -> Array:
 	# Safely extract an Array from a Dictionary without triggering Variant type inference warnings.
