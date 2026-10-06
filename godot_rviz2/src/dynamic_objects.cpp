@@ -37,6 +37,36 @@ void DynamicObjects::_bind_methods()
   TOPIC_SUBSCRIBER_BIND_METHODS(DynamicObjects);
 }
 
+namespace
+{
+// Label with the highest probability (the classification list is not sorted by probability).
+// UNKNOWN when the list is empty.
+uint8_t main_label(const autoware_perception_msgs::msg::PredictedObject & object)
+{
+  uint8_t label = Label::UNKNOWN;
+  float best = -1.0f;
+  for (const auto & classification : object.classification) {
+    if (classification.probability > best) {
+      best = classification.probability;
+      label = classification.label;
+    }
+  }
+  return label;
+}
+
+String to_uuid_string(const autoware_perception_msgs::msg::PredictedObject & object)
+{
+  static const char * hex = "0123456789abcdef";
+  std::string id;
+  id.reserve(object.object_id.uuid.size() * 2);
+  for (const auto byte : object.object_id.uuid) {
+    id.push_back(hex[byte >> 4]);
+    id.push_back(hex[byte & 0x0F]);
+  }
+  return String(id.c_str());
+}
+}  // namespace
+
 Array DynamicObjects::get_triangle_list(bool ignore_unknown_object)
 {
   Array triangle_list;
@@ -45,7 +75,7 @@ Array DynamicObjects::get_triangle_list(bool ignore_unknown_object)
   if (!last_msg) return triangle_list;
 
   for (const auto & object : last_msg.value()->objects) {
-    if (ignore_unknown_object && object.classification.front().label == Label::UNKNOWN) continue;
+    if (ignore_unknown_object && main_label(object) == Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
     const auto & quat = object.kinematics.initial_pose_with_covariance.pose.orientation;
     const auto & shape = object.shape;
@@ -84,7 +114,7 @@ Array DynamicObjects::get_unknown_object_triangle_list()
   if (!last_msg) return triangle_list;
 
   for (const auto & object : last_msg.value()->objects) {
-    if (object.classification.front().label != Label::UNKNOWN) continue;
+    if (main_label(object) != Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
     const auto & quat = object.kinematics.initial_pose_with_covariance.pose.orientation;
     const auto & shape = object.shape;
@@ -123,7 +153,7 @@ Array DynamicObjects::get_dynamic_object_list(bool ignore_unknown_object)
   if (!last_msg) return dynamic_object_list;
 
   for (const auto & object : last_msg.value()->objects) {
-    if (ignore_unknown_object && object.classification.front().label == Label::UNKNOWN) continue;
+    if (ignore_unknown_object && main_label(object) == Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
     const auto & velocity = object.kinematics.initial_twist_with_covariance.twist.linear;
     const auto & quat = object.kinematics.initial_pose_with_covariance.pose.orientation;
@@ -134,26 +164,27 @@ Array DynamicObjects::get_dynamic_object_list(bool ignore_unknown_object)
     tf2::Quaternion quaternion(quat.x, quat.y, quat.z, quat.w);
     tf2::Matrix3x3(quaternion).getRPY(roll, pitch, yaw);
 
+    const uint8_t label = main_label(object);
     Dictionary dynamic_object;
+    dynamic_object["id"] = to_uuid_string(object);
     dynamic_object["position"] = ros2_to_godot(pos.x, pos.y, pos.z);
-    dynamic_object["class"] = object.classification.front().label;
     dynamic_object["rotation"] = ros2_to_godot(roll, pitch, yaw);
     dynamic_object["size"] =
       ros2_to_godot(shape.dimensions.x, shape.dimensions.y, shape.dimensions.z);
     dynamic_object["velocity"] = ros2_to_godot(velocity.x, velocity.y, velocity.z);
-    if (object.classification.front().label == Label::PEDESTRIAN) {
+    if (label == Label::PEDESTRIAN) {
       dynamic_object["class"] = "pedestrian";
-    } else if (object.classification.front().label == Label::BICYCLE) {
+    } else if (label == Label::BICYCLE) {
       dynamic_object["class"] = "bicycle";
-    } else if (object.classification.front().label == Label::CAR) {
+    } else if (label == Label::CAR) {
       dynamic_object["class"] = "car";
-    } else if (object.classification.front().label == Label::TRUCK) {
+    } else if (label == Label::TRUCK) {
       dynamic_object["class"] = "truck";
-    } else if (object.classification.front().label == Label::MOTORCYCLE) {
+    } else if (label == Label::MOTORCYCLE) {
       dynamic_object["class"] = "motorcycle";
-    } else if (object.classification.front().label == Label::BUS) {
+    } else if (label == Label::BUS) {
       dynamic_object["class"] = "bus";
-    } else if (object.classification.front().label == Label::TRAILER) {
+    } else if (label == Label::TRAILER) {
       dynamic_object["class"] = "trailer";
     } else {
       dynamic_object["class"] = "unknown";
