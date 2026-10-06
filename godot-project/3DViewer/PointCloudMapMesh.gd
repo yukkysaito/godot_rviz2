@@ -11,11 +11,13 @@ extends MeshInstance3D
 @export var tile_size: float = 50.0  # tile edge length [m]
 # The material blends additively, so fewer points look darker; brighten to compensate
 @export var downsampled_brightness: float = 1.4
+@export var build_budget_msec: float = 4.0  # time spent on creating tile meshes per frame
 
 var pointcloud: PointCloud = RosBridge.pointcloud_map
 var visualize_again = false
 
 var _tiles: Array[MeshInstance3D] = []
+var _pending_tiles: Array = []  # tiles waiting for their mesh (built a few per frame)
 var _tile_material: Material
 
 func _ready():
@@ -28,26 +30,36 @@ func _ready():
 func _process(_delta):
 	if not visible:
 		return
-	if not (pointcloud.has_new() or visualize_again):
-		return
+	# Tiling (transform, downsampling) runs on a worker thread; only the meshes are made here
+	if pointcloud.is_tiles_done():
+		_apply_tiles(pointcloud.take_tiles())
+	if not _pending_tiles.is_empty():
+		_build_pending_tiles()
+	if (pointcloud.has_new() or visualize_again) and pointcloud.start_tiles("map", voxel_size, tile_size):
+		PerfMonitor.measure_begin("pointcloud_map_tiles")
+		visualize_again = false
+		pointcloud.set_old()
 
+func _apply_tiles(tiles: Array) -> void:
+	PerfMonitor.measure_end("pointcloud_map_tiles")
 	PerfMonitor.measure_begin("pointcloud_map_build")
 	_clear_tiles()
-	var point_count := 0
-	PerfMonitor.measure_begin("pointcloud_map_tiles")
-	var tiles: Array = pointcloud.get_pointcloud_tiles("map", voxel_size, tile_size)
-	PerfMonitor.measure_end("pointcloud_map_tiles")
-	for tile in tiles:
-		var points: PackedVector3Array = tile["points"]  # relative to the tile center
-		_add_tile(tile["center"], points)
-		point_count += points.size()
-	PerfMonitor.measure_end("pointcloud_map_build")
-	PerfMonitor.mark("pointcloud_map_built")
-	if PerfMonitor.enabled:
-		print("[perf] pointcloud map: %d points in %d tiles" % [point_count, _tiles.size()])
+	_pending_tiles = tiles
+	_pending_tiles.reverse()  # build from the end so that popping is cheap
 
-	visualize_again = false
-	pointcloud.set_old()
+func _build_pending_tiles() -> void:
+	var deadline := Time.get_ticks_usec() + int(build_budget_msec * 1000.0)
+	while not _pending_tiles.is_empty() and Time.get_ticks_usec() < deadline:
+		var tile: Dictionary = _pending_tiles.pop_back()
+		_add_tile(tile["center"], tile["points"])  # points are relative to the tile center
+	if _pending_tiles.is_empty():
+		PerfMonitor.measure_end("pointcloud_map_build")
+		PerfMonitor.mark("pointcloud_map_built")
+		if PerfMonitor.enabled:
+			var point_count := 0
+			for tile in _tiles:
+				point_count += tile.mesh.surface_get_array_len(0)
+			print("[perf] pointcloud map: %d points in %d tiles" % [point_count, _tiles.size()])
 
 func _add_tile(center: Vector3, points: PackedVector3Array) -> void:
 	var arrays := []
@@ -65,6 +77,7 @@ func _add_tile(center: Vector3, points: PackedVector3Array) -> void:
 	_tiles.append(tile)
 
 func _clear_tiles() -> void:
+	_pending_tiles = []
 	for tile in _tiles:
 		tile.queue_free()
 	_tiles.clear()

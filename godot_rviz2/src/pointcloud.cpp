@@ -38,6 +38,10 @@ void PointCloud::_bind_methods()
   ClassDB::bind_method(
     D_METHOD("get_pointcloud_tiles", "frame_id", "voxel_size", "tile_size"),
     &PointCloud::get_pointcloud_tiles);
+  ClassDB::bind_method(
+    D_METHOD("start_tiles", "frame_id", "voxel_size", "tile_size"), &PointCloud::start_tiles);
+  ClassDB::bind_method(D_METHOD("is_tiles_done"), &PointCloud::is_tiles_done);
+  ClassDB::bind_method(D_METHOD("take_tiles"), &PointCloud::take_tiles);
   TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
 
@@ -151,10 +155,11 @@ int float_field_offset(const sensor_msgs::msg::PointCloud2 & msg, const std::str
 }
 }  // namespace
 
-Array PointCloud::get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size)
+static Array make_tiles(
+  const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr, double voxel_size,
+  double tile_size)
 {
   Array tiles;
-  const auto msg_ptr = get_msg_in_frame(get_last_msg(), to_std(frame_id));
   if (!msg_ptr || tile_size <= 0.0) return tiles;
 
   const auto & msg = *msg_ptr;
@@ -246,3 +251,22 @@ Array PointCloud::get_pointcloud_tiles(const String & frame_id, double voxel_siz
   }
   return tiles;
 }
+
+Array PointCloud::get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size)
+{
+  return make_tiles(get_msg_in_frame(get_last_msg(), to_std(frame_id)), voxel_size, tile_size);
+}
+
+bool PointCloud::start_tiles(const String & frame_id, double voxel_size, double tile_size)
+{
+  if (tiles_task_.is_running()) return false;
+  const auto last_msg = get_last_msg();
+  if (!last_msg) return false;
+  return tiles_task_.start([last_msg, frame = to_std(frame_id), voxel_size, tile_size]() {
+    return make_tiles(get_msg_in_frame(last_msg, frame), voxel_size, tile_size);
+  });
+}
+
+bool PointCloud::is_tiles_done() { return tiles_task_.is_done(); }
+
+Array PointCloud::take_tiles() { return tiles_task_.take(); }

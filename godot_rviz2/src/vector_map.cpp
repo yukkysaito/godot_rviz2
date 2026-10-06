@@ -206,11 +206,6 @@ void triangulate(const std::vector<Vector3> & polygon, std::vector<Vector3> & tr
 
 VectorMap::VectorMap() : lanelet_map_(new lanelet::LaneletMap) {}
 
-VectorMap::~VectorMap()
-{
-  if (build_thread_.joinable()) build_thread_.join();
-}
-
 void VectorMap::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("generate_graph_structure"), &VectorMap::generate_graph_structure);
@@ -237,15 +232,12 @@ bool VectorMap::generate_graph_structure()
 
 bool VectorMap::start_build(const Array & layers)
 {
-  if (building_) return false;
+  if (build_task_.is_running()) return false;
   const auto last_msg = get_last_msg();
   if (!last_msg) return false;
 
-  if (build_thread_.joinable()) build_thread_.join();
-  building_ = true;
-  build_done_ = false;
   const auto msg = last_msg.value();
-  build_thread_ = std::thread([this, msg, layers]() {
+  return build_task_.start([this, msg, layers]() {
     Dictionary result;
     Dictionary layer_vertices;
     if (decode(*msg)) {
@@ -256,26 +248,13 @@ bool VectorMap::start_build(const Array & layers)
       result["traffic_lights"] = get_traffic_light_list();
     }
     result["layers"] = layer_vertices;
-    {
-      std::lock_guard<std::mutex> lock(build_mutex_);
-      build_result_ = result;
-    }
-    build_done_ = true;
-    building_ = false;
+    return result;
   });
-  return true;
 }
 
-bool VectorMap::is_build_done() { return build_done_; }
+bool VectorMap::is_build_done() { return build_task_.is_done(); }
 
-Dictionary VectorMap::take_build_result()
-{
-  std::lock_guard<std::mutex> lock(build_mutex_);
-  Dictionary result = build_result_;
-  build_result_ = Dictionary();
-  build_done_ = false;
-  return result;
-}
+Dictionary VectorMap::take_build_result() { return build_task_.take(); }
 
 PackedVector3Array VectorMap::build_layer(const Array & parts)
 {

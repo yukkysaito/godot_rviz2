@@ -19,6 +19,7 @@
 #include "core/object/ref_counted.h"
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
+#include "async_task.hpp"
 #include "topic_subscriber.hpp"
 
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -56,6 +57,18 @@ public:
    */
   Array get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size);
 
+  /**
+   * @brief Same as get_pointcloud_tiles(), but runs on a worker thread (for large maps).
+   * @return false if there is no message or tiling is already running.
+   */
+  bool start_tiles(const String & frame_id, double voxel_size, double tile_size);
+
+  /// True when tiling started with start_tiles() has finished.
+  bool is_tiles_done();
+
+  /// Takes the result of the finished tiling (see get_pointcloud_tiles()).
+  Array take_tiles();
+
   PointCloud() = default;
   ~PointCloud() = default;
 
@@ -64,4 +77,7 @@ protected:
    * @brief Binds methods to the Godot system.
    */
   static void _bind_methods();
+
+private:
+  AsyncTask<Array> tiles_task_;
 };

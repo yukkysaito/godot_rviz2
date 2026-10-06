@@ -21,13 +21,11 @@
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
 #include "lanelet2_core/LaneletMap.h"
+#include "async_task.hpp"
 #include "topic_subscriber.hpp"
 
 #include "autoware_map_msgs/msg/lanelet_map_bin.hpp"
 
-#include <atomic>
-#include <mutex>
-#include <thread>
 #include <vector>
 
 struct LightBulb
@@ -93,7 +91,7 @@ public:
   Dictionary take_build_result();
 
   VectorMap();
-  ~VectorMap();
+  ~VectorMap() = default;
 
 protected:
   /**
@@ -123,11 +121,8 @@ private:
 
   std::vector<lanelet::AutowareTrafficLightConstPtr> traffic_lights_;
 
-  std::thread build_thread_;
-  std::atomic<bool> building_{false};
-  std::atomic<bool> build_done_{false};
-  std::mutex build_mutex_;
-  Dictionary build_result_;
+  // Declared last: waits for a running build (which uses the members above) on destruction
+  AsyncTask<Dictionary> build_task_;
 
   bool decode(const autoware_map_msgs::msg::LaneletMapBin & msg);
   PackedVector3Array build_layer(const Array & parts);
