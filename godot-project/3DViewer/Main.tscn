@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=62 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -105,13 +105,6 @@ shading_mode = 0
 albedo_color = Color(0.529412, 0.529412, 0.529412, 1)
 proximity_fade_distance = 1000.0
 distance_fade_max_distance = 200.0
-
-[sub_resource type="StandardMaterial3D" id="barrier_material"]
-render_priority = -1
-transparency = 1
-cull_mode = 2
-shading_mode = 0
-albedo_color = Color(0.5, 0.58, 0.72, 0.2)
 
 [sub_resource type="ArrayMesh" id="18"]
 resource_name = "mesh"
@@ -267,10 +260,6 @@ lit_at_night = true
 material_override = SubResource("19")
 mesh = SubResource("18")
 skeleton = NodePath("../RoadSurfaceMesh")
-script = ExtResource("4")
-
-[node name="BarrierMesh" type="MeshInstance3D" parent="VectorMap"]
-material_override = SubResource("barrier_material")
 script = ExtResource("4")
 
 [node name="TrafficLightGroupsManager" type="Node3D" parent="VectorMap"]

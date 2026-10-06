@@ -43,12 +43,6 @@ const MAP_LAYERS := [
 		["lines", "line_thin", "dashed", 0.12, 5.0, 5.0],
 		["lines", "line_thick", "dashed", 0.25, 5.0, 5.0],
 		["linestring", "stop_line", 0.5]]},
-	# Curbs, guard rails, fences and walls: ["walls", types, height] [m]
-	{"name": "barrier", "parts": [
-		["walls", "road_border", 0.15],
-		["walls", "guard_rail", 0.7],
-		["walls", "fence", 1.2],
-		["walls", "wall", 2.0]]},
 ]
 
 const MAP_TILE_SIZE := 100.0  # the map layers are split into tiles of this size [m]

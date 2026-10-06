@@ -106,7 +106,7 @@ const PREDICTED_PATH_WIDTH := 0.35  # [m]
 const PREDICTED_PATH_MIN_CONFIDENCE := 0.1
 const PREDICTED_PATH_LIFT := 0.05  # above the road [m]
 
-var show_predicted_paths := true
+var show_predicted_paths := false
 var _predicted_path_instance: MeshInstance3D
 
 func _render_predicted_paths() -> void:
