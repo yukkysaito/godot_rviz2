@@ -57,8 +57,9 @@ bool transform_pointcloud(
   rclcpp::Clock clock{RCL_ROS_TIME};
   geometry_msgs::msg::TransformStamped tf_stamped{};
   try {
-    tf_stamped = tf2.lookupTransform(
-      target_frame, input.header.frame_id, input.header.stamp, rclcpp::Duration::from_seconds(0.5));
+    // Do not wait: this runs on the render loop. If the transform for this stamp is not
+    // available yet, the cloud is skipped and the next message is used.
+    tf_stamped = tf2.lookupTransform(target_frame, input.header.frame_id, input.header.stamp);
   } catch (const tf2::TransformException & ex) {
     RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
     return false;

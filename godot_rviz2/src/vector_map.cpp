@@ -321,7 +321,7 @@ Array VectorMap::get_linestring_triangle_list(const String & name, const float w
       }
 
       lanelet::Lanelets left_lane_candidates =
-        lanelet_map_->laneletLayer.findUsages(lanelet.rightBound());
+        lanelet_map_->laneletLayer.findUsages(lanelet.leftBound());
       for (auto & candidate : left_lane_candidates) {
         // exclude self lanelet
         if (candidate == lanelet) continue;
@@ -331,8 +331,8 @@ Array VectorMap::get_linestring_triangle_list(const String & name, const float w
           candidate.leftBound() != lanelet.leftBound())
           continue;
 
-        if (has_label(lanelet.rightBound(), ground_labels))
-          added_shared_white_lines.insert(lanelet.rightBound());
+        if (has_label(lanelet.leftBound(), ground_labels))
+          added_shared_white_lines.insert(lanelet.leftBound());
       }
     }
 
