@@ -16,7 +16,6 @@
 
 #include "change_operation_mode_client.hpp"
 
-#include <chrono>
 
 void OperationModeChanger::_bind_methods()
 {
@@ -24,6 +23,8 @@ void OperationModeChanger::_bind_methods()
   ClassDB::bind_method(D_METHOD("is_server_ready"), &OperationModeChanger::is_server_ready);
   ClassDB::bind_method(
     D_METHOD("change_to_autonomous_mode"), &OperationModeChanger::change_to_autonomous_mode);
+  ClassDB::bind_method(
+    D_METHOD("get_request_state"), &OperationModeChanger::get_request_state);
 }
 
 bool OperationModeChanger::create_client(const String & service_name)
@@ -32,14 +33,8 @@ bool OperationModeChanger::create_client(const String & service_name)
     return false;
   }
 
-  auto node = GodotRviz2::get_instance().get_node();
-  if (!node) {
-    return false;
-  }
-
-  client_ =
-    node->create_client<autoware_adapi_v1_msgs::srv::ChangeOperationMode>(to_std(service_name));
-
+  client_ = GodotRviz2::get_instance().create_client<autoware_adapi_v1_msgs::srv::ChangeOperationMode>(
+    to_std(service_name));
   return static_cast<bool>(client_);
 }
 
@@ -54,36 +49,35 @@ bool OperationModeChanger::is_server_ready()
 
 bool OperationModeChanger::change_to_autonomous_mode()
 {
-  if (!client_) {
+  if (!client_ || !client_->service_is_ready()) {
+    return false;
+  }
+  if (request_state_->load() == static_cast<int>(RequestState::Pending)) {
     return false;
   }
 
-  auto node = GodotRviz2::get_instance().get_node();
-  if (!node) {
-    return false;
+  using Service = autoware_adapi_v1_msgs::srv::ChangeOperationMode;
+  request_state_->store(static_cast<int>(RequestState::Pending));
+  auto state = request_state_;
+  client_->async_send_request(
+    std::make_shared<Service::Request>(), [state](rclcpp::Client<Service>::SharedFuture future) {
+      const auto response = future.get();
+      const bool success = response && response->status.success;
+      state->store(static_cast<int>(success ? RequestState::Succeeded : RequestState::Failed));
+    });
+  return true;
+}
+
+String OperationModeChanger::get_request_state()
+{
+  switch (static_cast<RequestState>(request_state_->load())) {
+    case RequestState::Pending:
+      return "pending";
+    case RequestState::Succeeded:
+      return "succeeded";
+    case RequestState::Failed:
+      return "failed";
+    default:
+      return "idle";
   }
-
-  if (!client_->service_is_ready()) {
-    return false;
-  }
-
-  auto request = std::make_shared<autoware_adapi_v1_msgs::srv::ChangeOperationMode::Request>();
-
-  bool success = false;
-
-  auto future = client_->async_send_request(request);
-
-  constexpr std::chrono::seconds timeout(3);
-  const auto result = rclcpp::spin_until_future_complete(node, future, timeout);
-  if (result != rclcpp::FutureReturnCode::SUCCESS) {
-    return false;
-  }
-
-  auto response = future.get();
-  if (!response) {
-    return false;
-  }
-
-  success = response->status.success;
-  return success;
 }

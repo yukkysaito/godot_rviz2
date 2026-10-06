@@ -20,102 +20,87 @@
 #include "rclcpp/qos.hpp"
 #include "util.hpp"
 
-#include "sensor_msgs/msg/point_cloud2.hpp"
-
+#include <cstdint>
+#include <memory>
+#include <mutex>
 #include <optional>
 
-// Because template class cannot work to bind_methods and register_class.
-// https://godotengine.org/qa/136574/how-to-implement-object-using-template-class
-#if 1
-#define TOPIC_SUBSCRIBER(CLASS, TYPE)                                                   \
-private:                                                                                \
-  using ConstSharedPtr = typename TYPE::ConstSharedPtr;                                 \
-  ConstSharedPtr msg_ptr_;                                                              \
-  bool has_new_ = false;                                                                \
-  typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                         \
-                                                                                        \
-  void on_callback(const ConstSharedPtr msg)                                            \
-  {                                                                                     \
-    msg_ptr_ = msg;                                                                     \
-    has_new_ = true;                                                                    \
-  }                                                                                     \
-  std::optional<ConstSharedPtr> get_last_msg()                                          \
-  {                                                                                     \
-    if (!msg_ptr_) return std::nullopt;                                                 \
-    return msg_ptr_;                                                                    \
-  }                                                                                     \
-                                                                                        \
-public:                                                                                 \
-  bool has_new() { return has_new_; }                                                   \
-  void set_old() { has_new_ = false; }                                                  \
-                                                                                        \
-  void subscribe(const String & topic, const bool transient_local = false)              \
-  {                                                                                     \
-    rclcpp::QoS qos = rclcpp::SensorDataQoS().keep_last(1);                             \
-    if (transient_local) qos = rclcpp::QoS{1}.transient_local();                        \
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<TYPE>(   \
-      to_std(topic), qos, std::bind(&CLASS::on_callback, this, std::placeholders::_1)); \
+/**
+ * @brief Latest message of a subscription, shared between the ROS executor thread (writer) and
+ * the Godot main thread (reader).
+ *
+ * The subscription callback captures this state by shared_ptr, so a callback that is running
+ * while the Godot object is freed never touches freed memory.
+ */
+template <class MsgT>
+class LatestMessage
+{
+public:
+  using ConstSharedPtr = typename MsgT::ConstSharedPtr;
+
+  void set(const ConstSharedPtr & msg)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    msg_ = msg;
+    ++seq_;
+  }
+
+  // Returns the latest message and remembers it as "read"
+  std::optional<ConstSharedPtr> get()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!msg_) return std::nullopt;
+    read_seq_ = seq_;
+    return msg_;
+  }
+
+  bool has_new()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return seq_ != acked_seq_;
+  }
+
+  // Marks the last read message as handled. A message received after it was read stays "new";
+  // without a read since the last call, everything received so far is marked handled.
+  void set_old()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    acked_seq_ = read_seq_ > acked_seq_ ? read_seq_ : seq_;
+  }
+
+private:
+  std::mutex mutex_;
+  ConstSharedPtr msg_;
+  uint64_t seq_ = 0;
+  uint64_t read_seq_ = 0;
+  uint64_t acked_seq_ = 0;
+};
+
+// A macro instead of a template base class because template classes cannot be registered with
+// ClassDB (https://godotengine.org/qa/136574/how-to-implement-object-using-template-class).
+// Messages are received on the ROS executor thread (see GodotRviz2) and read on the main thread.
+#define TOPIC_SUBSCRIBER(CLASS, TYPE)                                                             \
+private:                                                                                          \
+  using ConstSharedPtr = typename TYPE::ConstSharedPtr;                                           \
+  std::shared_ptr<LatestMessage<TYPE>> latest_ = std::make_shared<LatestMessage<TYPE>>();         \
+  typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                                   \
+                                                                                                  \
+  std::optional<ConstSharedPtr> get_last_msg() { return latest_->get(); }                         \
+                                                                                                  \
+public:                                                                                           \
+  bool has_new() { return latest_->has_new(); }                                                   \
+  void set_old() { latest_->set_old(); }                                                          \
+                                                                                                  \
+  void subscribe(const String & topic, const bool transient_local = false)                        \
+  {                                                                                               \
+    rclcpp::QoS qos = rclcpp::SensorDataQoS().keep_last(1);                                       \
+    if (transient_local) qos = rclcpp::QoS{1}.transient_local();                                  \
+    auto latest = latest_;                                                                        \
+    subscription_ = GodotRviz2::get_instance().create_subscription<TYPE>(                         \
+      to_std(topic), qos, [latest](const ConstSharedPtr msg) { latest->set(msg); });              \
   }
 
 #define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)                      \
   ClassDB::bind_method(D_METHOD("subscribe"), &TYPE::subscribe); \
   ClassDB::bind_method(D_METHOD("has_new"), &TYPE::has_new);     \
   ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old)
-
-#else
-#include "core/object/ref_counted.h"
-#include "core/string/ustring.h"
-#include "core/variant/variant.h"
-
-template <class T>
-class TopicSubscriber : public RefCounted
-{
-  GDCLASS(TopicSubscriber<T>, RefCounted);
-
-private:
-  using ConstSharedPtr = typename T::ConstSharedPtr;
-
-  typename rclcpp::Subscription<T>::SharedPtr subscription_;
-  void on_callback(const ConstSharedPtr msg)
-  {
-    msg_ptr_ = msg;
-    is_new_ = true;
-  }
-
-  ConstSharedPtr msg_ptr_;
-  bool is_new_;
-
-public:
-  bool is_new() { return is_new_; }
-  void set_old() { is_new_ = false; }
-  std::optional<ConstSharedPtr> get_last_msg()
-  {
-    if (!msg_ptr_) {
-      return std::nullopt;
-    }
-    return msg_ptr_;
-  }
-
-  void subscribe(const String & topic, const bool transient_local = false)
-  {
-    rclcpp::QoS & qos = rclcpp::SensorDataQoS().keep_last(1);
-    if (transient_local) {
-      qos = rclcpp::QoS{1}.transient_local();
-    }
-
-    subscription_ = GodotRviz2::get_instance().get_node()->create_subscription<T>(
-      to_std(topic), qos, std::bind(&TopicSubscriber::on_callback, this, std::placeholders::_1));
-  }
-
-  TopicSubscriber() { is_new_ = false; }
-  virtual ~TopicSubscriber() = default;
-
-protected:
-  static void _bind_methods()
-  {
-    ClassDB::bind_method(D_METHOD("subscribe"), &TopicSubscriber<T>::subscribe);
-    ClassDB::bind_method(D_METHOD("is_new"), &TopicSubscriber<T>::is_new);
-    ClassDB::bind_method(D_METHOD("set_old"), &TopicSubscriber<T>::set_old);
-  }
-};
-#endif
