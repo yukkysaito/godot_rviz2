@@ -289,17 +289,6 @@ void append_ribbon(const Points & line, double width, std::vector<Vector3> & tri
   }
 }
 
-// Vertical wall of height [m] standing on line, as triangles (use a two-sided material)
-void append_wall(const Points & line, double height, std::vector<Vector3> & triangles)
-{
-  const Vector3 up(0.0, 0.0, height);
-  for (size_t i = 0; i + 1 < line.size(); ++i) {
-    const Vector3 & a = line[i];
-    const Vector3 & b = line[i + 1];
-    triangles.insert(triangles.end(), {a, b, b + up, a, b + up, a + up});
-  }
-}
-
 std::set<std::string> split_names(const String & names)
 {
   std::set<std::string> result;
@@ -375,9 +364,9 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     if (part.size() < 2) continue;
     const String kind = part[0];
     const String name = part[1];
-    if (kind == "lines" || kind == "walls") {
+    if (kind == "lines") {
       // Built directly as vertices (ROS coordinates -> Godot)
-      std::vector<Vector3> ros_triangles = build_lines(kind, part);
+      std::vector<Vector3> ros_triangles = build_lines(part);
       const int64_t offset = vertices.size();
       vertices.resize(offset + int64_t(ros_triangles.size()));
       Vector3 * dst = vertices.ptrw();
@@ -418,13 +407,13 @@ bool VectorMap::is_intersection_only(const lanelet::ConstLineString3d & linestri
   return true;
 }
 
-std::vector<Vector3> VectorMap::build_lines(const String & kind, const Array & part) const
+std::vector<Vector3> VectorMap::build_lines(const Array & part) const
 {
-  // ["lines", types, subtypes, width(, dash, gap)] or ["walls", types, height]; types and subtypes
-  // are comma separated ("" subtypes: any)
+  // ["lines", types, subtypes, width(, dash, gap)]; types and subtypes are comma separated
+  // ("" subtypes: any)
   std::vector<Vector3> triangles;
   const auto types = line_geometry::split_names(part[1]);
-  const auto subtypes = line_geometry::split_names(kind == "lines" && part.size() > 2 ? String(part[2]) : String());
+  const auto subtypes = line_geometry::split_names(part.size() > 2 ? String(part[2]) : String());
   auto param = [&part](int index, double fallback) {
     return part.size() > index ? double(part[index]) : fallback;
   };
@@ -433,12 +422,8 @@ std::vector<Vector3> VectorMap::build_lines(const String & kind, const Array & p
     if (!subtypes.empty() && subtypes.count(linestring.attributeOr(lanelet::AttributeName::Subtype, "")) == 0) {
       continue;
     }
-    if (kind == "lines" && is_intersection_only(linestring)) continue;
+    if (is_intersection_only(linestring)) continue;
     const auto line = line_geometry::to_points(linestring);
-    if (kind == "walls") {
-      line_geometry::append_wall(line, param(2, 1.0), triangles);
-      continue;
-    }
     for (const auto & dash : line_geometry::split_into_dashes(line, param(4, 0.0), param(5, 0.0))) {
       line_geometry::append_ribbon(dash, param(3, 0.15), triangles);
     }

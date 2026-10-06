@@ -269,8 +269,19 @@ func _grow_model_pool(t: String, count: int) -> void:
 	for i in range(count):
 		var node := scene.instantiate() as Node3D
 		node.visible = false
+		_apply_object_material(node)
 		add_child(node)
 		pool.append(node)
+
+static var _object_material: ShaderMaterial
+
+# All models share one material (see Shaders/object.gdshader)
+func _apply_object_material(model: Node) -> void:
+	if _object_material == null:
+		_object_material = ShaderMaterial.new()
+		_object_material.shader = preload("res://3DViewer/Shaders/object.gdshader")
+	for mesh_instance in model.find_children("*", "MeshInstance3D", true, false):
+		(mesh_instance as MeshInstance3D).material_override = _object_material
 
 func _borrow_model_node(t: String) -> Node3D:
 	var pool: Array[Node3D] = pools[t]["pool"]
