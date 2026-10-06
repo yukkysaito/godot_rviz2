@@ -28,6 +28,24 @@ const SERVICES := {
 	"change_to_autonomous": "/api/operation_mode/change_to_autonomous",
 }
 
+# Vector map geometry built on a worker thread as soon as the map arrives (even during the
+# splash): name -> [kind, layer(, width)] parts, see VectorMap.start_build()
+const MAP_LAYERS := [
+	{"name": "road_surface", "parts": [
+		["lanelet", "road"], ["lanelet", "shoulder"],
+		["polygon", "intersection_area"], ["polygon", "hatched_road_markings_area"],
+		["polygon", "parking_lots"]]},
+	{"name": "road_marker", "parts": [
+		["polygon", "pedestrian_marking"],
+		["linestring", "shared_white_line", 0.05], ["linestring", "stop_line", 0.5]]},
+]
+
+signal map_ready  # map_geometry was (re)built
+
+# {"layers": {name: PackedVector3Array}, "traffic_lights": Array}; empty until the map is built
+var map_geometry: Dictionary = {}
+var is_map_ready := false
+
 # --- Subscribers (one per topic)
 var vector_map := VectorMap.new()
 var pointcloud_map := PointCloud.new()
@@ -68,8 +86,7 @@ func _enter_tree() -> void:
 	_steering.subscribe(TOPICS["steering"], false)
 
 func _process(_delta: float) -> void:
-	if vector_map.has_new():
-		PerfMonitor.mark("vector_map_arrived")
+	_update_map()
 	if pointcloud_map.has_new():
 		PerfMonitor.mark("pointcloud_map_arrived")
 	if _velocity.has_new():
@@ -82,6 +99,18 @@ func _process(_delta: float) -> void:
 		turn_left = _turn_indicators.is_turn_on_left()
 		turn_right = _turn_indicators.is_turn_on_right()
 		_turn_indicators.set_old()
+
+func _update_map() -> void:
+	if vector_map.is_build_done():
+		map_geometry = vector_map.take_build_result()
+		is_map_ready = true
+		PerfMonitor.measure_end("vector_map_geometry")
+		PerfMonitor.mark("vector_map_geometry_ready")
+		map_ready.emit()
+	if vector_map.has_new() and vector_map.start_build(MAP_LAYERS):
+		vector_map.set_old()
+		PerfMonitor.mark("vector_map_arrived")
+		PerfMonitor.measure_begin("vector_map_geometry")
 
 func create_operation_mode_changer() -> OperationModeChanger:
 	var changer := OperationModeChanger.new()

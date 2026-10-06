@@ -1,18 +1,15 @@
 extends MeshInstance3D
 
-func visualize_mesh(triangle_list):
+# Triangle vertices (every 3 vertices form a triangle), facing up
+func visualize_vertices(vertices: PackedVector3Array) -> void:
 	mesh.clear_surfaces()
-
-	var arr = []
+	if vertices.is_empty():
+		return
+	var normals := PackedVector3Array()
+	normals.resize(vertices.size())
+	normals.fill(Vector3.UP)
+	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
-	var verts = PackedVector3Array()
-	var normals = PackedVector3Array()
-#	var colors = PoolColorArray()
-	
-	for point in triangle_list:
-		verts.append(point["position"])
-		normals.append(Vector3(0,1,0))
-			
-	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_VERTEX] = vertices
 	arr[Mesh.ARRAY_NORMAL] = normals
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)

@@ -1,39 +1,19 @@
 extends Node3D
 
-var vector_map: VectorMap = RosBridge.vector_map
+# Vector map: the geometry is built by RosBridge on a worker thread (started as soon as the map
+# arrives); this node only turns it into meshes and traffic lights.
 
+func _ready():
+	RosBridge.map_ready.connect(_apply_map)
+	if RosBridge.is_map_ready:
+		_apply_map()
 
-func _process(_delta):
-	if !vector_map.has_new():
-		return
-	PerfMonitor.mark("vector_map_received")
+func _apply_map() -> void:
 	PerfMonitor.measure_begin("vector_map_build")
-	if !vector_map.generate_graph_structure():
-		return
-	# Road Surface
-	var road_surface = get_node("RoadSurfaceMesh")
-	var road_surface_triangle_list = Array()
-	road_surface_triangle_list.append_array(vector_map.get_lanelet_triangle_list("road"))
-	road_surface_triangle_list.append_array(vector_map.get_lanelet_triangle_list("shoulder"))
-	#road_surface_triangle_list.append_array(vector_map.get_lanelet_triangle_list("crosswalk"))
-	#road_surface_triangle_list.append_array(vector_map.get_lanelet_triangle_list("walkway"))
-	road_surface_triangle_list.append_array(vector_map.get_polygon_triangle_list("intersection_area"))
-	road_surface_triangle_list.append_array(vector_map.get_polygon_triangle_list("hatched_road_markings_area"))
-	road_surface_triangle_list.append_array(vector_map.get_polygon_triangle_list("parking_lots"))
-	road_surface.visualize_mesh(road_surface_triangle_list)
-	# Road Marker
-	var road_marker = get_node("RoadMarkerMesh")
-	var road_marker_verts = Array()
-	road_marker_verts.append_array(vector_map.get_polygon_triangle_list("pedestrian_marking"))
-	road_marker_verts.append_array(vector_map.get_linestring_triangle_list("shared_white_line", 0.05))
-	#road_marker_verts.append_array(vector_map.get_linestring_triangle_list("white_line", 0.05))
-	road_marker_verts.append_array(vector_map.get_linestring_triangle_list("stop_line", 0.5))
-	road_marker.visualize_mesh(road_marker_verts)
-	# Traffic Light
-	var tl_mgr := get_node("TrafficLightGroupsManager") as TrafficLightGroupsManager
-	tl_mgr.set_map(vector_map.get_traffic_light_list())
+	var layers: Dictionary = RosBridge.map_geometry.get("layers", {})
+	$RoadSurfaceMesh.visualize_vertices(layers.get("road_surface", PackedVector3Array()))
+	$RoadMarkerMesh.visualize_vertices(layers.get("road_marker", PackedVector3Array()))
+	($TrafficLightGroupsManager as TrafficLightGroupsManager).set_map(
+		RosBridge.map_geometry.get("traffic_lights", []))
 	PerfMonitor.measure_end("vector_map_build")
 	PerfMonitor.mark("vector_map_built")
-
-
-	vector_map.set_old()

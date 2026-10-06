@@ -206,6 +206,11 @@ void triangulate(const std::vector<Vector3> & polygon, std::vector<Vector3> & tr
 
 VectorMap::VectorMap() : lanelet_map_(new lanelet::LaneletMap) {}
 
+VectorMap::~VectorMap()
+{
+  if (build_thread_.joinable()) build_thread_.join();
+}
+
 void VectorMap::_bind_methods()
 {
   ClassDB::bind_method(D_METHOD("generate_graph_structure"), &VectorMap::generate_graph_structure);
@@ -216,6 +221,9 @@ void VectorMap::_bind_methods()
   ClassDB::bind_method(
     D_METHOD("get_linestring_triangle_list"), &VectorMap::get_linestring_triangle_list);
   ClassDB::bind_method(D_METHOD("get_traffic_light_list"), &VectorMap::get_traffic_light_list);
+  ClassDB::bind_method(D_METHOD("start_build", "layers"), &VectorMap::start_build);
+  ClassDB::bind_method(D_METHOD("is_build_done"), &VectorMap::is_build_done);
+  ClassDB::bind_method(D_METHOD("take_build_result"), &VectorMap::take_build_result);
 
   TOPIC_SUBSCRIBER_BIND_METHODS(VectorMap);
 }
@@ -224,8 +232,81 @@ bool VectorMap::generate_graph_structure()
 {
   const auto last_msg = get_last_msg();
   if (!last_msg) return false;
+  return decode(*last_msg.value());
+}
 
-  lanelet::utils::conversion::fromBinMsg(*(last_msg.value()), lanelet_map_);
+bool VectorMap::start_build(const Array & layers)
+{
+  if (building_) return false;
+  const auto last_msg = get_last_msg();
+  if (!last_msg) return false;
+
+  if (build_thread_.joinable()) build_thread_.join();
+  building_ = true;
+  build_done_ = false;
+  const auto msg = last_msg.value();
+  build_thread_ = std::thread([this, msg, layers]() {
+    Dictionary result;
+    Dictionary layer_vertices;
+    if (decode(*msg)) {
+      for (int i = 0; i < layers.size(); ++i) {
+        const Dictionary layer = layers[i];
+        layer_vertices[layer["name"]] = build_layer(layer["parts"]);
+      }
+      result["traffic_lights"] = get_traffic_light_list();
+    }
+    result["layers"] = layer_vertices;
+    {
+      std::lock_guard<std::mutex> lock(build_mutex_);
+      build_result_ = result;
+    }
+    build_done_ = true;
+    building_ = false;
+  });
+  return true;
+}
+
+bool VectorMap::is_build_done() { return build_done_; }
+
+Dictionary VectorMap::take_build_result()
+{
+  std::lock_guard<std::mutex> lock(build_mutex_);
+  Dictionary result = build_result_;
+  build_result_ = Dictionary();
+  build_done_ = false;
+  return result;
+}
+
+PackedVector3Array VectorMap::build_layer(const Array & parts)
+{
+  PackedVector3Array vertices;
+  for (int i = 0; i < parts.size(); ++i) {
+    const Array part = parts[i];
+    if (part.size() < 2) continue;
+    const String kind = part[0];
+    const String name = part[1];
+    Array triangles;
+    if (kind == "lanelet") {
+      triangles = get_lanelet_triangle_list(name);
+    } else if (kind == "polygon") {
+      triangles = get_polygon_triangle_list(name);
+    } else if (kind == "linestring") {
+      triangles = get_linestring_triangle_list(name, part.size() > 2 ? float(part[2]) : 0.1f);
+    }
+    const int64_t offset = vertices.size();
+    vertices.resize(offset + triangles.size());
+    Vector3 * dst = vertices.ptrw();
+    for (int j = 0; j < triangles.size(); ++j) {
+      const Dictionary vertex = triangles[j];
+      dst[offset + j] = vertex["position"];
+    }
+  }
+  return vertices;
+}
+
+bool VectorMap::decode(const autoware_map_msgs::msg::LaneletMapBin & msg)
+{
+  lanelet::utils::conversion::fromBinMsg(msg, lanelet_map_);
   // lanelet
   all_lanelets_ = lanelet::utils::query::laneletLayer(lanelet_map_);
   road_lanelets_ = lanelet_utils::get_lanelets(lanelet_map_, lanelet::AttributeValueString::Road);

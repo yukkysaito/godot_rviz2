@@ -14,15 +14,24 @@ class_name TrafficLightGroupsManager
 # If no recognition update arrives for this duration, turn off the glow for that group.
 @export var auto_off_seconds: float = 0.7
 
+# Actors are built over several frames so that large maps (hundreds of groups) do not freeze
+# the screen: at most this much time is spent on building per frame.
+@export var build_budget_msec: float = 4.0
+
 var traffic_light_recognition: TrafficLights = RosBridge.traffic_signals
 
 # gid(int) -> TrafficLightGroupActor
 var _actors: Dictionary = {}
 
+# Groups waiting to be built (see set_map)
+var _pending_groups: Array = []
+
 
 @onready var _root: Node3D = _ensure_root()
 
 func _process(_delta: float) -> void:
+	if not _pending_groups.is_empty():
+		_build_pending_groups()
 	# Only groups whose status changed are returned (stale groups come back with no elements),
 	# so this stays cheap even for maps with hundreds of traffic lights.
 	var stale_seconds := auto_off_seconds if auto_off_seconds > 0.0 else INF
@@ -38,7 +47,11 @@ func set_map(groups: Array) -> void:
 	# 1) creates/updates actors for incoming groups
 	# 2) removes actors that no longer exist in the incoming list
 
+	# 3) (once all are built) re-lights them from the latest recognition result
+	# Actors are built a few at a time in _process.
+
 	var alive: Dictionary = {}  # Used as a "set": gid -> true
+	_pending_groups.clear()
 
 	for g_any in groups:
 		if typeof(g_any) != TYPE_DICTIONARY:
@@ -50,17 +63,28 @@ func set_map(groups: Array) -> void:
 			continue
 
 		alive[gid] = true
+		_pending_groups.append(group)
 
-		var actor: TrafficLightGroupActor = _get_or_create_actor(gid)
+	_remove_missing_actors(alive)
+	# Build from the end so that popping is cheap
+	_pending_groups.reverse()
+	PerfMonitor.measure_begin("traffic_lights_build")
+
+func _build_pending_groups() -> void:
+	var deadline := Time.get_ticks_usec() + int(build_budget_msec * 1000.0)
+	while not _pending_groups.is_empty() and Time.get_ticks_usec() < deadline:
+		var group: Dictionary = _pending_groups.pop_back()
+		var actor: TrafficLightGroupActor = _get_or_create_actor(int(group["group_id"]))
 		actor.build_from_hdmap(group)
 
 		# Ensure the group starts from "all off" at map-update time.
 		actor.set_all_off()
 
-	_remove_missing_actors(alive)
-
-	# Re-light the rebuilt actors from the latest recognition result
-	_apply_status_list(traffic_light_recognition.get_traffic_light_status())
+	if _pending_groups.is_empty():
+		PerfMonitor.measure_end("traffic_lights_build")
+		PerfMonitor.mark("traffic_lights_built")
+		# Re-light the rebuilt actors from the latest recognition result
+		_apply_status_list(traffic_light_recognition.get_traffic_light_status())
 
 # -----------------------------------------------------------------------------
 # Recognition update
