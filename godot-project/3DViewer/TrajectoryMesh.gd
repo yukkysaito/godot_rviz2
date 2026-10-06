@@ -1,6 +1,6 @@
 extends MeshInstance3D
 
-var trajectory = Trajectory.new()
+var trajectory: Trajectory = RosBridge.trajectory
 @export var wheelbase_to_front: float = 3.78
 var high_contrast_enabled: bool = false
 
@@ -24,7 +24,6 @@ func update_distance_fade_mode():
 		trajectory_material.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
 
 func _ready():
-	trajectory.subscribe("/planning/trajectory", false)
 	update_distance_fade_mode()
 
 func _on_high_contrast_toggle_toggled(toggled_on):

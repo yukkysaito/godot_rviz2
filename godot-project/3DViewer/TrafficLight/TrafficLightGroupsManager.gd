@@ -14,19 +14,13 @@ class_name TrafficLightGroupsManager
 # If no recognition update arrives for this duration, turn off the glow for that group.
 @export var auto_off_seconds: float = 0.7
 
-var traffic_light_recognition := TrafficLights.new()
+var traffic_light_recognition: TrafficLights = RosBridge.traffic_signals
 
 # gid(int) -> TrafficLightGroupActor
 var _actors: Dictionary = {}
 
 
 @onready var _root: Node3D = _ensure_root()
-
-func _ready() -> void:
-	traffic_light_recognition.subscribe(
-		"/perception/traffic_light_recognition/traffic_signals",
-		false
-	)
 
 func _process(_delta: float) -> void:
 	# Only groups whose status changed are returned (stale groups come back with no elements),

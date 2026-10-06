@@ -12,14 +12,13 @@ extends MeshInstance3D
 # The material blends additively, so fewer points look darker; brighten to compensate
 @export var downsampled_brightness: float = 1.4
 
-var pointcloud = PointCloud.new()
+var pointcloud: PointCloud = RosBridge.pointcloud_map
 var visualize_again = false
 
 var _tiles: Array[MeshInstance3D] = []
 var _tile_material: Material
 
 func _ready():
-	pointcloud.subscribe("/map/pointcloud_map", true)
 	_tile_material = material_override
 	if voxel_size > 0.0 and material_override is BaseMaterial3D:
 		_tile_material = material_override.duplicate()

@@ -29,7 +29,7 @@ const PX_TO_M := 0.001                      # 1 pixel = 0.001 m
 const ICON_EXTRA_OFFSET_M := 0.5            # Additional +1.0 m above object height
 
 # ================== Internal state ==================
-var dynamic_objects := DynamicObjects.new()
+var dynamic_objects: DynamicObjects = RosBridge.objects
 var array_mesh := ArrayMesh.new()  # Surface for triangle mode
 
 # Model pools: pools[type] = { "scene": PackedScene, "pool": Array[Node3D], "used": int }
@@ -69,9 +69,6 @@ var icon_pools := {
 }
 
 func _ready() -> void:
-	# Subscribe to dynamic object topic
-	dynamic_objects.subscribe("/perception/object_recognition/objects", false)
-
 	# Synchronize UI status
 	ignore_unknown_object = ignore_unknown_object_toggle.button_pressed
 	if icon_visibility_toggle != null:

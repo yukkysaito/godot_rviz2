@@ -5,8 +5,8 @@ class_name OperationControl
 # -----------------------------------------------------------------------------
 # Topic states
 # -----------------------------------------------------------------------------
-var operation_mode_state := OperationModeState.new()
-var navidation_state := NavigationState.new()
+var operation_mode_state: OperationModeState = RosBridge.operation_mode
+var navidation_state: NavigationState = RosBridge.routing_state
 
 # -----------------------------------------------------------------------------
 # External UI references
@@ -36,8 +36,6 @@ var _last_ui_state: int = -1
 # -----------------------------------------------------------------------------
 func _ready() -> void:
 	visible = operation_control_toggle.button_pressed
-	operation_mode_state.subscribe("/api/operation_mode/state", true)
-	navidation_state.subscribe("/api/routing/state", true)
 
 	# First paint even if has_new() is false on first frame
 	_update_and_apply_ui()

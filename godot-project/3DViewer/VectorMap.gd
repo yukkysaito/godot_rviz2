@@ -1,9 +1,6 @@
 extends Node3D
 
-var vector_map = VectorMap.new()
-
-func _ready():
-	vector_map.subscribe("/map/vector_map", true)
+var vector_map: VectorMap = RosBridge.vector_map
 
 
 func _process(_delta):
