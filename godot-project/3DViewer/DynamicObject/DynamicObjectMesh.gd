@@ -83,6 +83,8 @@ func _ready() -> void:
 
 # ================== Main loop ==================
 func _process(_delta: float) -> void:
+	if dynamic_objects.has_new():
+		PerfMonitor.mark("dynamic_objects_received")
 	if not dynamic_objects.has_new():
 		return
 

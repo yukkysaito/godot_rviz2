@@ -45,6 +45,7 @@ var _start_msec: int = 0
 var _is_finishing: bool = false
 
 func _ready() -> void:
+	PerfMonitor.mark("splash_ready")
 	_start_msec = Time.get_ticks_msec()
 	_fade.modulate.a = 0.0
 
@@ -71,6 +72,8 @@ func _process(delta: float) -> void:
 	var speed := PROGRESS_SPEED_LOADED if loaded else PROGRESS_SPEED
 	_set_progress(move_toward(_shown_progress, _target_progress(loaded, elapsed), delta * speed))
 
+	if loaded:
+		PerfMonitor.mark("main_scene_loaded")
 	if loaded and _shown_progress >= 1.0 and elapsed >= min_splash_seconds:
 		_is_finishing = true
 		_finish()
@@ -119,4 +122,5 @@ func _finish() -> void:
 		_show_error("invalid main scene")
 		return
 
+	PerfMonitor.mark("splash_finished")
 	get_tree().change_scene_to_packed(packed)

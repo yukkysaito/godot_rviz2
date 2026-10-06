@@ -21,12 +21,15 @@ func _process(_delta):
 #	var normals = PoolVector3Array()
 #	var indices = PoolIntArray()
 
+	PerfMonitor.measure_begin("pointcloud_map_build")
 	verts = pointcloud.get_pointcloud("map")
 
 	arr[Mesh.ARRAY_VERTEX] = verts
 #	arr[Mesh.ARRAY_TEX_UV] = uvs
 	mesh.clear_surfaces()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arr)
+	PerfMonitor.measure_end("pointcloud_map_build")
+	PerfMonitor.mark("pointcloud_map_built")
 	visualize_again = false
 	pointcloud.set_old()
 

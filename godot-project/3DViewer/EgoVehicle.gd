@@ -21,6 +21,8 @@ func _process(delta):
 	# Ego pose
 	set_position(ego_pose.get_ego_position())
 	set_rotation(ego_pose.get_ego_rotation())
+	if position != Vector3.ZERO:
+		PerfMonitor.mark("ego_pose_valid")
 	
 	# Tire rotation
 	if(velocity_report.has_new()):

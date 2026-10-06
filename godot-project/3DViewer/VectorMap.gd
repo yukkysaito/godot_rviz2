@@ -9,6 +9,8 @@ func _ready():
 func _process(_delta):
 	if !vector_map.has_new():
 		return
+	PerfMonitor.mark("vector_map_received")
+	PerfMonitor.measure_begin("vector_map_build")
 	if !vector_map.generate_graph_structure():
 		return
 	# Road Surface
@@ -33,6 +35,8 @@ func _process(_delta):
 	# Traffic Light
 	var tl_mgr := get_node("TrafficLightGroupsManager") as TrafficLightGroupsManager
 	tl_mgr.set_map(vector_map.get_traffic_light_list())
+	PerfMonitor.measure_end("vector_map_build")
+	PerfMonitor.mark("vector_map_built")
 
 
 	vector_map.set_old()
