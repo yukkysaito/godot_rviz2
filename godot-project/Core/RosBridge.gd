@@ -45,6 +45,7 @@ signal map_ready  # map_geometry was (re)built
 # {"layers": {name: PackedVector3Array}, "traffic_lights": Array}; empty until the map is built
 var map_geometry: Dictionary = {}
 var is_map_ready := false
+var is_map_building := false  # the vector map arrived and its geometry is being built
 
 # --- Subscribers (one per topic)
 var vector_map := VectorMap.new()
@@ -60,6 +61,8 @@ var routing_state := NavigationState.new()
 var _turn_indicators := VehicleStatus.new()
 var _velocity := VelocityReport.new()
 var _steering := SteeringReport.new()
+
+var _ego_pose := EgoPose.new()
 
 # --- Vehicle state (latest values)
 var velocity: float = 0.0          # [m/s]
@@ -104,13 +107,23 @@ func _update_map() -> void:
 	if vector_map.is_build_done():
 		map_geometry = vector_map.take_build_result()
 		is_map_ready = true
+		is_map_building = false
 		PerfMonitor.measure_end("vector_map_geometry")
 		PerfMonitor.mark("vector_map_geometry_ready")
 		map_ready.emit()
 	if vector_map.has_new() and vector_map.start_build(MAP_LAYERS):
 		vector_map.set_old()
+		is_map_building = true
 		PerfMonitor.mark("vector_map_arrived")
 		PerfMonitor.measure_begin("vector_map_geometry")
+
+# True if some node publishes the vector map (false e.g. while Autoware is not running)
+func has_map_publisher() -> bool:
+	return vector_map.get_publisher_count() > 0
+
+# True once the ego pose (map -> base_link) is available
+func is_ego_pose_ready() -> bool:
+	return _ego_pose.get_ego_position() != Vector3.ZERO
 
 func create_operation_mode_changer() -> OperationModeChanger:
 	var changer := OperationModeChanger.new()

@@ -90,6 +90,11 @@ private:                                                                        
 public:                                                                                           \
   bool has_new() { return latest_->has_new(); }                                                   \
   void set_old() { latest_->set_old(); }                                                          \
+  /* Number of publishers matched to the subscription (0 before subscribe()) */                   \
+  int64_t get_publisher_count()                                                                   \
+  {                                                                                               \
+    return subscription_ ? static_cast<int64_t>(subscription_->get_publisher_count()) : 0;        \
+  }                                                                                               \
                                                                                                   \
   void subscribe(const String & topic, const bool transient_local = false)                        \
   {                                                                                               \
@@ -103,4 +108,5 @@ public:                                                                         
 #define TOPIC_SUBSCRIBER_BIND_METHODS(TYPE)                      \
   ClassDB::bind_method(D_METHOD("subscribe"), &TYPE::subscribe); \
   ClassDB::bind_method(D_METHOD("has_new"), &TYPE::has_new);     \
-  ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old)
+  ClassDB::bind_method(D_METHOD("set_old"), &TYPE::set_old);     \
+  ClassDB::bind_method(D_METHOD("get_publisher_count"), &TYPE::get_publisher_count)
