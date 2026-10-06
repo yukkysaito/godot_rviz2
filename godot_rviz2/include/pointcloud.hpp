@@ -26,6 +26,24 @@
 
 #include <memory>
 #include <mutex>
+#include <vector>
+
+/**
+ * @brief A tile of a point cloud map with its points at several levels of detail, quantized to 16
+ * bits per axis within the bounds of the tile (min + q * scale, Godot coordinates relative to
+ * center).
+ */
+struct PointCloudTile
+{
+  int64_t grid_x = 0;
+  int64_t grid_y = 0;
+  Vector3 center;
+  Vector3 min;
+  Vector3 scale;
+  std::vector<std::vector<uint16_t>> levels;  // x, y, z per point
+
+  PackedVector3Array get_points(size_t level) const;
+};
 
 /**
  * @class PointCloud
@@ -50,32 +68,35 @@ public:
   PackedVector3Array get_pointcloud(const String & frame_id = "map");
 
   /**
-   * @brief Retrieves the point cloud downsampled and split into square tiles (for large maps).
+   * @brief Splits the point cloud into square tiles on the ground plane and downsamples each tile
+   * at several levels of detail, on a worker thread (for large maps).
    *
-   * Keeps one point per voxel of voxel_size [m] (0 disables downsampling) and groups the points
-   * into tile_size [m] tiles on the ground plane, so each tile can be culled separately.
+   * Level k keeps one point per voxel of voxel_sizes[k] [m] (0: no downsampling); sizes should
+   * increase. Tiles nearest to origin (Godot coordinates, e.g. the ego position) are produced
+   * first and can be taken while tiling runs. The points are kept here compactly (16 bits per
+   * axis) and decoded on request with get_tile_points().
    *
-   * @return Array of Dictionary {"center": Vector3, "points": PackedVector3Array} in Godot
-   * coordinates; points are relative to center.
-   */
-  Array get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size);
-
-  /**
-   * @brief Same as get_pointcloud_tiles(), but runs on a worker thread (for large maps).
-   *
-   * Tiles are produced nearest to origin (Godot coordinates, e.g. the ego position) first and
-   * can be taken while tiling runs. The message is released once tiling started, to free its
-   * memory: start_tiles() works again only after a new message arrives.
+   * The message is released once tiling started, to free its memory: start_tiles() works again
+   * only after a new message arrives. The tiles of the previous call are discarded.
    *
    * @return false if there is no message or tiling is already running.
    */
-  bool start_tiles(const String & frame_id, double voxel_size, double tile_size, const Vector3 & origin);
+  bool start_tiles(
+    const String & frame_id, const PackedFloat64Array & voxel_sizes, double tile_size,
+    const Vector3 & origin);
 
   /// True while tiling runs or produced tiles have not been taken yet.
   bool is_tiling();
 
-  /// Takes the tiles produced since the last call (see get_pointcloud_tiles()).
+  /**
+   * @brief Takes the tiles produced since the last call.
+   * @return Array of Dictionary {"id": int, "center": Vector3, "grid": Vector2i (tile index in
+   *   ROS x/y), "counts": PackedInt32Array (points per level)}
+   */
   Array take_tiles();
+
+  /// Points of a tile at a level, relative to the tile center (Godot coordinates).
+  PackedVector3Array get_tile_points(int64_t id, int64_t level);
 
   PointCloud() = default;
   ~PointCloud() = default;
@@ -87,12 +108,13 @@ protected:
   static void _bind_methods();
 
 private:
-  struct TileQueue
+  struct TileStore
   {
     std::mutex mutex;
-    Array tiles;
+    std::vector<std::shared_ptr<const PointCloudTile>> tiles;
   };
-  // Shared with the worker thread
-  std::shared_ptr<TileQueue> tile_queue_ = std::make_shared<TileQueue>();
+  // Shared with the worker thread, which appends tiles
+  std::shared_ptr<TileStore> tiles_ = std::make_shared<TileStore>();
+  size_t tiles_taken_ = 0;
   AsyncTask<bool> tiles_task_;
 };

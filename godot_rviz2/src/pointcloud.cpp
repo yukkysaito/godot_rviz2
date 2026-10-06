@@ -37,13 +37,11 @@ void PointCloud::_bind_methods()
   // Bind the get_pointcloud method to Godot
   ClassDB::bind_method(D_METHOD("get_pointcloud"), &PointCloud::get_pointcloud);
   ClassDB::bind_method(
-    D_METHOD("get_pointcloud_tiles", "frame_id", "voxel_size", "tile_size"),
-    &PointCloud::get_pointcloud_tiles);
-  ClassDB::bind_method(
-    D_METHOD("start_tiles", "frame_id", "voxel_size", "tile_size", "origin"),
+    D_METHOD("start_tiles", "frame_id", "voxel_sizes", "tile_size", "origin"),
     &PointCloud::start_tiles);
   ClassDB::bind_method(D_METHOD("is_tiling"), &PointCloud::is_tiling);
   ClassDB::bind_method(D_METHOD("take_tiles"), &PointCloud::take_tiles);
+  ClassDB::bind_method(D_METHOD("get_tile_points", "id", "level"), &PointCloud::get_tile_points);
   TOPIC_SUBSCRIBER_BIND_METHODS(PointCloud);
 }
 
@@ -157,16 +155,65 @@ int float_field_offset(const sensor_msgs::msg::PointCloud2 & msg, const std::str
 }
 }  // namespace
 
+namespace
+{
+// Keeps one point per voxel of voxel_size [m] (ROS coordinates), in input order
+class VoxelFilter
+{
+public:
+  void reset(size_t expected, double voxel_size)
+  {
+    voxels_.reset(expected);
+    inv_voxel_size_ = 1.0 / voxel_size;
+  }
+
+  bool keep(float x, float y, float z)
+  {
+    const auto ix = static_cast<uint64_t>(static_cast<int64_t>(std::floor(x * inv_voxel_size_)));
+    const auto iy = static_cast<uint64_t>(static_cast<int64_t>(std::floor(y * inv_voxel_size_)));
+    const auto iz = static_cast<uint64_t>(static_cast<int64_t>(std::floor(z * inv_voxel_size_)));
+    return voxels_.insert(((ix & 0x1FFFFF) << 42) | ((iy & 0x1FFFFF) << 21) | (iz & 0x1FFFFF));
+  }
+
+private:
+  VoxelSet voxels_;
+  double inv_voxel_size_ = 1.0;
+};
+
+struct RosPoint
+{
+  float x, y, z;
+};
+
+// Quantizes points (Godot coordinates, relative to the tile center) to 16 bits per axis within
+// the bounds of the tile
+void quantize(
+  const std::vector<Vector3> & points, const Vector3 & min, const Vector3 & scale,
+  std::vector<uint16_t> & out)
+{
+  out.resize(points.size() * 3);
+  const Vector3 inv(
+    scale.x > 0 ? 1.0f / scale.x : 0, scale.y > 0 ? 1.0f / scale.y : 0,
+    scale.z > 0 ? 1.0f / scale.z : 0);
+  for (size_t i = 0; i < points.size(); ++i) {
+    const Vector3 q = (points[i] - min) * inv;
+    out[i * 3 + 0] = static_cast<uint16_t>(std::lround(std::clamp(q.x, 0.0f, 65535.0f)));
+    out[i * 3 + 1] = static_cast<uint16_t>(std::lround(std::clamp(q.y, 0.0f, 65535.0f)));
+    out[i * 3 + 2] = static_cast<uint16_t>(std::lround(std::clamp(q.z, 0.0f, 65535.0f)));
+  }
+}
+}  // namespace
+
 /**
- * @brief Downsamples msg and splits it into tiles (see PointCloud::get_pointcloud_tiles()),
- * passing each tile to emit, nearest to (origin_x, origin_y) [ROS coordinates] first.
+ * @brief Splits msg into tiles and downsamples each tile at every level, nearest to
+ * (origin_x, origin_y) [ROS coordinates] first, passing each tile to emit.
  */
 static void make_tiles(
-  const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr, double voxel_size,
-  double tile_size, double origin_x, double origin_y,
-  const std::function<void(const Dictionary &)> & emit)
+  const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr,
+  const std::vector<double> & voxel_sizes, double tile_size, double origin_x, double origin_y,
+  const std::function<void(std::shared_ptr<const PointCloudTile>)> & emit)
 {
-  if (!msg_ptr || tile_size <= 0.0) return;
+  if (!msg_ptr || tile_size <= 0.0 || voxel_sizes.empty()) return;
 
   const auto & msg = *msg_ptr;
   const int off_x = float_field_offset(msg, "x");
@@ -176,12 +223,14 @@ static void make_tiles(
 
   const size_t num_points = static_cast<size_t>(msg.width) * msg.height;
   const uint8_t * data = msg.data.data();
-  auto point_at = [&](size_t i, float & x, float & y, float & z) {
+  auto point_at = [&](size_t i) {
     const size_t row = i / msg.width;
     const uint8_t * p = data + row * msg.row_step + (i - row * msg.width) * msg.point_step;
-    std::memcpy(&x, p + off_x, sizeof(float));
-    std::memcpy(&y, p + off_y, sizeof(float));
-    std::memcpy(&z, p + off_z, sizeof(float));
+    RosPoint point;
+    std::memcpy(&point.x, p + off_x, sizeof(float));
+    std::memcpy(&point.y, p + off_y, sizeof(float));
+    std::memcpy(&point.z, p + off_z, sizeof(float));
+    return point;
   };
 
   // 1. Bucket the points by tile (counting sort of point indices)
@@ -190,11 +239,10 @@ static void make_tiles(
   std::vector<uint32_t> point_tile(num_points, UINT32_MAX);
   std::vector<uint32_t> tile_counts;
   for (size_t i = 0; i < num_points; ++i) {
-    float x, y, z;
-    point_at(i, x, y, z);
-    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) continue;
-    const auto tx = static_cast<int64_t>(std::floor(x / tile_size));
-    const auto ty = static_cast<int64_t>(std::floor(y / tile_size));
+    const RosPoint p = point_at(i);
+    if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z)) continue;
+    const auto tx = static_cast<int64_t>(std::floor(p.x / tile_size));
+    const auto ty = static_cast<int64_t>(std::floor(p.y / tile_size));
     const uint64_t key = (static_cast<uint64_t>(tx) << 32) ^ static_cast<uint32_t>(ty);
     auto [it, inserted] = tile_ids.try_emplace(key, static_cast<uint32_t>(tile_counts.size()));
     if (inserted) {
@@ -228,80 +276,92 @@ static void make_tiles(
     return tile_distance[a] < tile_distance[b];
   });
 
-  // 2. Per tile: keep one point per voxel, convert relative to the tile center
-  const bool downsample = voxel_size > 0.0;
-  VoxelSet voxels;
-  std::vector<Vector3> kept;
+  // 2. Per tile: downsample level by level (each level from the previous one), quantize
+  VoxelFilter filter;
+  std::vector<RosPoint> kept, next;
+  std::vector<Vector3> relative;
   for (const uint32_t t : tile_order) {
     kept.clear();
-    if (downsample) voxels.reset(tile_counts[t]);
-    double sum_x = 0.0, sum_y = 0.0, sum_z = 0.0;
-    for (size_t k = tile_begin[t]; k < tile_begin[t + 1]; ++k) {
-      float x, y, z;
-      point_at(order[k], x, y, z);
-      if (downsample) {
-        const auto ix = static_cast<uint64_t>(static_cast<int64_t>(std::floor(x / voxel_size)));
-        const auto iy = static_cast<uint64_t>(static_cast<int64_t>(std::floor(y / voxel_size)));
-        const auto iz = static_cast<uint64_t>(static_cast<int64_t>(std::floor(z / voxel_size)));
-        if (!voxels.insert(((ix & 0x1FFFFF) << 42) | ((iy & 0x1FFFFF) << 21) | (iz & 0x1FFFFF))) {
-          continue;
+    for (size_t k = tile_begin[t]; k < tile_begin[t + 1]; ++k) kept.push_back(point_at(order[k]));
+
+    auto tile = std::make_shared<PointCloudTile>();
+    tile->grid_x = tile_indices[t].first;
+    tile->grid_y = tile_indices[t].second;
+    tile->levels.resize(voxel_sizes.size());
+    for (size_t level = 0; level < voxel_sizes.size(); ++level) {
+      if (voxel_sizes[level] > 0.0) {
+        filter.reset(kept.size(), voxel_sizes[level]);
+        next.clear();
+        for (const auto & p : kept) {
+          if (filter.keep(p.x, p.y, p.z)) next.push_back(p);
         }
+        kept.swap(next);
       }
-      kept.push_back(ros2_to_godot(x, y, z));
-      sum_x += x;
-      sum_y += y;
-      sum_z += z;
-    }
-    if (kept.empty()) continue;
 
-    const double n = static_cast<double>(kept.size());
-    const Vector3 center = ros2_to_godot(sum_x / n, sum_y / n, sum_z / n);
-    PackedVector3Array points;
-    points.resize(static_cast<int64_t>(kept.size()));
-    Vector3 * dst = points.ptrw();
-    for (size_t i = 0; i < kept.size(); ++i) {
-      dst[i] = kept[i] - center;  // relative to the tile center (better precision)
+      if (level == 0) {
+        // Center and bounds from the finest level (coarser levels are subsets of it)
+        double sum_x = 0.0, sum_y = 0.0, sum_z = 0.0;
+        for (const auto & p : kept) {
+          sum_x += p.x;
+          sum_y += p.y;
+          sum_z += p.z;
+        }
+        const double n = std::max<double>(1.0, kept.size());
+        tile->center = ros2_to_godot(sum_x / n, sum_y / n, sum_z / n);
+      }
+      relative.clear();
+      for (const auto & p : kept) relative.push_back(ros2_to_godot(p.x, p.y, p.z) - tile->center);
+      if (level == 0) {
+        AABB bounds;
+        if (!relative.empty()) bounds.position = relative[0];
+        for (const auto & v : relative) bounds.expand_to(v);
+        tile->min = bounds.position;
+        tile->scale = bounds.size / 65535.0f;
+      }
+      quantize(relative, tile->min, tile->scale, tile->levels[level]);
     }
-
-    Dictionary tile_dict;
-    tile_dict["center"] = center;
-    tile_dict["points"] = points;
-    emit(tile_dict);
+    if (tile->levels[0].empty()) continue;
+    emit(tile);
   }
 }
 
-Array PointCloud::get_pointcloud_tiles(const String & frame_id, double voxel_size, double tile_size)
+PackedVector3Array PointCloudTile::get_points(size_t level) const
 {
-  Array tiles;
-  make_tiles(
-    get_msg_in_frame(get_last_msg(), to_std(frame_id)), voxel_size, tile_size, 0.0, 0.0,
-    [&tiles](const Dictionary & tile) { tiles.append(tile); });
-  return tiles;
+  PackedVector3Array points;
+  if (level >= levels.size()) return points;
+  const auto & q = levels[level];
+  points.resize(static_cast<int64_t>(q.size() / 3));
+  Vector3 * dst = points.ptrw();
+  for (size_t i = 0; i < q.size() / 3; ++i) {
+    dst[i] = min + Vector3(q[i * 3], q[i * 3 + 1], q[i * 3 + 2]) * scale;
+  }
+  return points;
 }
 
 bool PointCloud::start_tiles(
-  const String & frame_id, double voxel_size, double tile_size, const Vector3 & origin)
+  const String & frame_id, const PackedFloat64Array & voxel_sizes, double tile_size,
+  const Vector3 & origin)
 {
   if (tiles_task_.is_running()) return false;
   const auto last_msg = get_last_msg();
   if (!last_msg) return false;
   release_last_msg();  // the worker holds the only reference: freed once tiling finished
 
-  {
-    std::lock_guard<std::mutex> lock(tile_queue_->mutex);
-    tile_queue_->tiles.clear();
-  }
-  const auto queue = tile_queue_;
+  // New storage: tiles of the previous map are freed once their users are gone
+  tiles_ = std::make_shared<TileStore>();
+  tiles_taken_ = 0;
+  const auto store = tiles_;
+  std::vector<double> voxels(voxel_sizes.ptr(), voxel_sizes.ptr() + voxel_sizes.size());
   // Godot -> ROS coordinates (see ros2_to_godot())
   const double origin_x = origin.x;
   const double origin_y = -origin.z;
-  return tiles_task_.start([last_msg, frame = to_std(frame_id), voxel_size, tile_size, origin_x,
-                            origin_y, queue]() {
+  return tiles_task_.start([last_msg, frame = to_std(frame_id), voxels, tile_size, origin_x,
+                            origin_y, store]() {
     make_tiles(
-      get_msg_in_frame(last_msg, frame), voxel_size, tile_size, origin_x, origin_y,
-      [&queue](const Dictionary & tile) {
-        std::lock_guard<std::mutex> lock(queue->mutex);
-        queue->tiles.append(tile);
+      get_msg_in_frame(last_msg, frame), voxels, tile_size, origin_x, origin_y,
+      [&store](std::shared_ptr<const PointCloudTile> tile) {
+        std::lock_guard<std::mutex> lock(store->mutex);
+        store->tiles.push_back(std::move(tile));
       });
     return true;
   });
@@ -310,14 +370,35 @@ bool PointCloud::start_tiles(
 bool PointCloud::is_tiling()
 {
   if (tiles_task_.is_running()) return true;
-  std::lock_guard<std::mutex> lock(tile_queue_->mutex);
-  return !tile_queue_->tiles.is_empty();
+  std::lock_guard<std::mutex> lock(tiles_->mutex);
+  return tiles_taken_ < tiles_->tiles.size();
 }
 
 Array PointCloud::take_tiles()
 {
-  std::lock_guard<std::mutex> lock(tile_queue_->mutex);
-  Array tiles = tile_queue_->tiles;
-  tile_queue_->tiles = Array();
-  return tiles;
+  Array result;
+  std::lock_guard<std::mutex> lock(tiles_->mutex);
+  for (; tiles_taken_ < tiles_->tiles.size(); ++tiles_taken_) {
+    const auto & tile = tiles_->tiles[tiles_taken_];
+    Dictionary info;
+    info["id"] = static_cast<int64_t>(tiles_taken_);
+    info["center"] = tile->center;
+    info["grid"] = Vector2i(static_cast<int32_t>(tile->grid_x), static_cast<int32_t>(tile->grid_y));
+    PackedInt32Array counts;
+    for (const auto & level : tile->levels) counts.append(static_cast<int32_t>(level.size() / 3));
+    info["counts"] = counts;
+    result.append(info);
+  }
+  return result;
+}
+
+PackedVector3Array PointCloud::get_tile_points(int64_t id, int64_t level)
+{
+  std::shared_ptr<const PointCloudTile> tile;
+  {
+    std::lock_guard<std::mutex> lock(tiles_->mutex);
+    if (id < 0 || static_cast<size_t>(id) >= tiles_->tiles.size()) return PackedVector3Array();
+    tile = tiles_->tiles[id];
+  }
+  return tile->get_points(static_cast<size_t>(level));
 }
