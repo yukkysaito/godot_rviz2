@@ -40,9 +40,12 @@ const MAP_LAYERS := [
 		["linestring", "shared_white_line", 0.05], ["linestring", "stop_line", 0.5]]},
 ]
 
+const MAP_TILE_SIZE := 100.0  # the map layers are split into tiles of this size [m]
+
 signal map_ready  # map_geometry was (re)built
 
-# {"layers": {name: PackedVector3Array}, "traffic_lights": Array}; empty until the map is built
+# {"layers": {name: Array of tiles}, "traffic_lights": Array} (see VectorMap.take_build_result());
+# empty until the map is built
 var map_geometry: Dictionary = {}
 var is_map_ready := false
 var is_map_building := false  # the vector map arrived and its geometry is being built
@@ -111,7 +114,7 @@ func _update_map() -> void:
 		PerfMonitor.measure_end("vector_map_geometry")
 		PerfMonitor.mark("vector_map_geometry_ready")
 		map_ready.emit()
-	if vector_map.has_new() and vector_map.start_build(MAP_LAYERS):
+	if vector_map.has_new() and vector_map.start_build(MAP_LAYERS, MAP_TILE_SIZE):
 		vector_map.set_old()
 		is_map_building = true
 		PerfMonitor.mark("vector_map_arrived")
@@ -121,9 +124,13 @@ func _update_map() -> void:
 func has_map_publisher() -> bool:
 	return vector_map.get_publisher_count() > 0
 
+# Ego position in Godot coordinates (Vector3.ZERO while unknown)
+func get_ego_position() -> Vector3:
+	return _ego_pose.get_ego_position()
+
 # True once the ego pose (map -> base_link) is available
 func is_ego_pose_ready() -> bool:
-	return _ego_pose.get_ego_position() != Vector3.ZERO
+	return get_ego_position() != Vector3.ZERO
 
 func create_operation_mode_changer() -> OperationModeChanger:
 	var changer := OperationModeChanger.new()
