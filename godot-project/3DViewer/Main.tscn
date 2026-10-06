@@ -4,8 +4,6 @@
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
 [ext_resource type="Script" path="res://3DViewer/MapLayerMesh.gd" id="4"]
-[ext_resource type="Script" path="res://UI/SettingToggle.gd" id="ui_setting_toggle"]
-[ext_resource type="Script" path="res://UI/SettingOption.gd" id="ui_setting_option"]
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
@@ -36,6 +34,8 @@
 [ext_resource type="Script" path="res://Menu/MenuSlide.gd" id="36_jtj5y"]
 [ext_resource type="Script" path="res://Menu/Selection.gd" id="37_ow1tw"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
+[ext_resource type="Script" path="res://UI/SettingOption.gd" id="ui_setting_option"]
+[ext_resource type="Script" path="res://UI/SettingToggle.gd" id="ui_setting_toggle"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
 sky_top_color = Color(0, 0, 0, 1)
@@ -254,6 +254,7 @@ material_override = SubResource("17")
 mesh = SubResource("16")
 skeleton = NodePath("../..")
 script = ExtResource("4")
+lit_at_night = true
 
 [node name="RoadMarkerMesh" type="MeshInstance3D" parent="VectorMap"]
 material_override = SubResource("19")
@@ -752,4 +753,3 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_uddxr")
 theme_override_styles/hover = SubResource("StyleBoxFlat_gwddm")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_6yj7s")
 text = ">"
-
