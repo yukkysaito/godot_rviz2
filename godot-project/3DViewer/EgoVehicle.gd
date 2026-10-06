@@ -17,7 +17,7 @@ var _turn_right := false
 func _ready():
 	vehicle_body = profile.body_scene.instantiate() as VehicleBodyController
 	vehicle_body.name = "VehicleBody3D"
-	vehicle_body.transform = profile.body_transform
+	vehicle_body.transform = profile.body_transform * vehicle_body.transform
 	$EgoVehicleKinematicBody.add_child(vehicle_body)
 	head_beam_light.position = profile.head_beam_position
 	$Camera3D/Horizon/Vertical/ViewCamera.near = profile.camera_near

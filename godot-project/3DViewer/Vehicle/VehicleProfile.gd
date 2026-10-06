@@ -8,7 +8,8 @@ class_name VehicleProfile
 # The body scene's root must be a VehicleBodyController (wheels, lights, turn signals).
 
 @export var body_scene: PackedScene
-# Placement of the body scene relative to base_link (Godot coordinates: +x forward, +y up)
+# Placement of the body scene relative to base_link (Godot coordinates: +x forward, +y up),
+# applied on top of the transform of the body scene's root
 @export var body_transform: Transform3D = Transform3D.IDENTITY
 # Distance from base_link (rear axle) to the front end [m]; used for the trajectory's stop wall
 @export var wheelbase_to_front: float = 3.78

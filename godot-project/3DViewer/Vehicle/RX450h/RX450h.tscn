@@ -1,7 +1,7 @@
 [gd_scene load_steps=21 format=3 uid="uid://c12wli2xky3ja"]
 
 [ext_resource type="PackedScene" uid="uid://5ayw2a03ou6w" path="res://3DViewer/Vehicle/RX450h/RX450h.glb" id="1_qgkfj"]
-[ext_resource type="Script" path="res://3DViewer/Vehicle/RX450h/VehicleBodyController.gd" id="2_iercg"]
+[ext_resource type="Script" path="res://3DViewer/Vehicle/RX450h/RX450hBody.gd" id="2_iercg"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/BrakeLight.gd" id="22"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/TurnSignal.gd" id="23"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/Light.gd" id="28"]
