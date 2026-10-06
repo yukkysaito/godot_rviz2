@@ -71,7 +71,7 @@ Array calculate_line_as_triangle_strip(
   const std::vector<geometry_msgs::msg::Point> & line, float width);
 
 /**
- * @brief Retrieves a transformation from the TF2 buffer.
+ * @brief Retrieves a transformation from the TF2 buffer without waiting.
  *
  * @param tf_buffer The TF2 buffer to retrieve the transformation from.
  * @param source_frame_id The source frame ID for the transformation.
