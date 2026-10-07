@@ -24,6 +24,7 @@
 #include <mapbox/earcut.hpp>
 
 #include <array>
+#include <set>
 #include <cmath>
 #include <unordered_map>
 #include <vector>
@@ -214,6 +215,88 @@ void triangulate_strip(
 }
 }  // namespace triangulation
 
+namespace line_geometry
+{
+using Points = std::vector<Vector3>;  // ROS coordinates
+
+Points to_points(const lanelet::ConstLineString3d & linestring)
+{
+  Points points;
+  for (const auto & point : linestring) {
+    points.emplace_back(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z());
+  }
+  return triangulation::remove_duplicates(points);
+}
+
+// Splits a polyline into dashes of dash_length [m] separated by gaps of gap_length [m]
+std::vector<Points> split_into_dashes(const Points & line, double dash_length, double gap_length)
+{
+  std::vector<Points> dashes;
+  if (line.size() < 2 || dash_length <= 0.0) return {line};
+  Points dash{line[0]};
+  bool in_dash = true;
+  double remaining = dash_length;  // of the current dash or gap
+  for (size_t i = 0; i + 1 < line.size(); ++i) {
+    Vector3 from = line[i];
+    const Vector3 to = line[i + 1];
+    double length = from.distance_to(to);
+    while (length > remaining) {
+      const Vector3 split = from + (to - from) * float(remaining / length);
+      if (in_dash) {
+        dash.push_back(split);
+        dashes.push_back(dash);
+        dash.clear();
+      } else {
+        dash = {split};
+      }
+      in_dash = !in_dash;
+      length -= remaining;
+      from = split;
+      remaining = in_dash ? dash_length : gap_length;
+    }
+    remaining -= length;
+    if (in_dash) dash.push_back(to);
+  }
+  if (in_dash && dash.size() >= 2) dashes.push_back(dash);
+  return dashes;
+}
+
+// Flat strip of width [m] centered on line, as up-facing triangles
+void append_ribbon(const Points & line, double width, std::vector<Vector3> & triangles)
+{
+  if (line.size() < 2) return;
+  const double half = width / 2.0;
+  Points left, right;
+  for (size_t i = 0; i < line.size(); ++i) {
+    // Direction at the point: average of the adjacent segments (miter), limited at sharp corners
+    const Vector3 & prev = line[i == 0 ? 0 : i - 1];
+    const Vector3 & next = line[i + 1 < line.size() ? i + 1 : i];
+    const Vector2 back = Vector2(line[i].x - prev.x, line[i].y - prev.y).normalized();
+    const Vector2 front = Vector2(next.x - line[i].x, next.y - line[i].y).normalized();
+    Vector2 direction = (back + front).normalized();
+    if (direction == Vector2()) direction = front == Vector2() ? back : front;
+    const Vector2 normal(-direction.y, direction.x);
+    // Keep the strip width at corners (limited, so sharp corners do not spike)
+    const Vector2 segment = front == Vector2() ? back : front;
+    const double miter = 1.0 / std::max(0.5, double(normal.dot(Vector2(-segment.y, segment.x))));
+    const Vector3 offset(normal.x * half * miter, normal.y * half * miter, 0.0);
+    left.push_back(line[i] + offset);
+    right.push_back(line[i] - offset);
+  }
+  for (size_t i = 0; i + 1 < line.size(); ++i) {
+    triangulation::push_triangle(triangles, left[i], right[i], left[i + 1]);
+    triangulation::push_triangle(triangles, left[i + 1], right[i], right[i + 1]);
+  }
+}
+
+std::set<std::string> split_names(const String & names)
+{
+  std::set<std::string> result;
+  for (const String & name : names.split(",", false)) result.insert(name.strip_edges().utf8().get_data());
+  return result;
+}
+}  // namespace line_geometry
+
 VectorMap::VectorMap() : lanelet_map_(new lanelet::LaneletMap) {}
 
 void VectorMap::_bind_methods()
@@ -281,6 +364,18 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     if (part.size() < 2) continue;
     const String kind = part[0];
     const String name = part[1];
+    if (kind == "lines") {
+      // Built directly as vertices (ROS coordinates -> Godot)
+      std::vector<Vector3> ros_triangles = build_lines(part);
+      const int64_t offset = vertices.size();
+      vertices.resize(offset + int64_t(ros_triangles.size()));
+      Vector3 * dst = vertices.ptrw();
+      for (size_t j = 0; j < ros_triangles.size(); ++j) {
+        const Vector3 & p = ros_triangles[j];
+        dst[offset + int64_t(j)] = ros2_to_godot(p.x, p.y, p.z);
+      }
+      continue;
+    }
     Array triangles;
     if (kind == "lanelet") {
       triangles = get_lanelet_triangle_list(name);
@@ -298,6 +393,42 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     }
   }
   return vertices;
+}
+
+// True if the line string only bounds lanelets inside intersections (they have a turn direction):
+// such lines guide the lanelets but are usually not painted on the road
+bool VectorMap::is_intersection_only(const lanelet::ConstLineString3d & linestring) const
+{
+  const auto usages = lanelet_map_->laneletLayer.findUsages(linestring);
+  if (usages.empty()) return false;
+  for (const auto & lanelet : usages) {
+    if (!lanelet.hasAttribute("turn_direction")) return false;
+  }
+  return true;
+}
+
+std::vector<Vector3> VectorMap::build_lines(const Array & part) const
+{
+  // ["lines", types, subtypes, width(, dash, gap)]; types and subtypes are comma separated
+  // ("" subtypes: any)
+  std::vector<Vector3> triangles;
+  const auto types = line_geometry::split_names(part[1]);
+  const auto subtypes = line_geometry::split_names(part.size() > 2 ? String(part[2]) : String());
+  auto param = [&part](int index, double fallback) {
+    return part.size() > index ? double(part[index]) : fallback;
+  };
+  for (const auto & linestring : lanelet_map_->lineStringLayer) {
+    if (types.count(linestring.attributeOr(lanelet::AttributeName::Type, "")) == 0) continue;
+    if (!subtypes.empty() && subtypes.count(linestring.attributeOr(lanelet::AttributeName::Subtype, "")) == 0) {
+      continue;
+    }
+    if (is_intersection_only(linestring)) continue;
+    const auto line = line_geometry::to_points(linestring);
+    for (const auto & dash : line_geometry::split_into_dashes(line, param(4, 0.0), param(5, 0.0))) {
+      line_geometry::append_ribbon(dash, param(3, 0.15), triangles);
+    }
+  }
+  return triangles;
 }
 
 Array VectorMap::split_into_tiles(const PackedVector3Array & vertices, double tile_size)
