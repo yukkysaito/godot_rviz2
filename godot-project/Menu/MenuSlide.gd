@@ -3,7 +3,6 @@ class_name MenuSlide
 
 @export var menu_panel_path: NodePath
 @export var edge_handle_path: NodePath
-@export var window_settings_path: NodePath  # Receive notifications from WindowSettings
 
 @export var open_hidden_px: float = 0.0     # If 0, the panel is fully visible when open
 @export var anim_time: float = 0.22
@@ -15,7 +14,6 @@ class_name MenuSlide
 
 @onready var menu_panel: Control = get_node(menu_panel_path)
 @onready var edge_handle: Button = get_node(edge_handle_path)
-@onready var window_settings: Node = get_node(window_settings_path)
 
 var _is_open := false
 var _tween: Tween
@@ -28,9 +26,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_apply_layout(true)
 
-	# Re-layout when WindowSettings changes mode
-	if window_settings.has_signal("window_changed"):
-		window_settings.connect("window_changed", Callable(self, "_on_window_changed"))
+	# Re-layout when the window changes (e.g. its mode in the display settings)
+	get_viewport().size_changed.connect(_on_window_changed)
 
 func _on_window_changed() -> void:
 	# Sometimes Control sizes finalize on the next frame

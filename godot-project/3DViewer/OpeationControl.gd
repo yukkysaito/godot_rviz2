@@ -17,9 +17,6 @@ var navidation_state: NavigationState = RosBridge.routing_state
 @export var start_button_scene: PackedScene = preload("res://UI/StartButton.tscn")
 @export var message_panel_scene: PackedScene = preload("res://UI/MessagePanel.tscn")
 
-# Visible Toggle
-@export var operation_control_toggle: BaseButton
-
 # --- Internal UI caches ---
 var _start_root: Control = null         # Start button root (e.g., CenterContainer)
 var _msg_root: Control = null   # Message panel root
@@ -35,7 +32,7 @@ var _last_ui_state: int = -1
 # Lifecycle
 # -----------------------------------------------------------------------------
 func _ready() -> void:
-	visible = operation_control_toggle.button_pressed
+	Settings.bind("hud/operation_control", set_visible)
 
 	# First paint even if has_new() is false on first frame
 	_update_and_apply_ui()
@@ -220,6 +217,3 @@ func _reconcile_start_button() -> void:
 				_start_root = null
 		)
 
-
-func _on_operation_control_toggle_toggled(toggled_on):
-	visible = toggled_on

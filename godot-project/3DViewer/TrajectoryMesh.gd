@@ -1,7 +1,7 @@
 extends MeshInstance3D
 
 var trajectory: Trajectory = RosBridge.trajectory
-@export var wheelbase_to_front: float = 3.78
+var wheelbase_to_front: float = VehicleProfile.current().wheelbase_to_front
 var high_contrast_enabled: bool = false
 
 func velocity_to_normalized_value(velocity):
@@ -24,7 +24,7 @@ func update_distance_fade_mode():
 		trajectory_material.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
 
 func _ready():
-	update_distance_fade_mode()
+	Settings.bind("view/high_contrast", _on_high_contrast_toggle_toggled)
 
 func _on_high_contrast_toggle_toggled(toggled_on):
 	high_contrast_enabled = toggled_on

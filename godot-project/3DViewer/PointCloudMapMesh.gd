@@ -9,8 +9,6 @@ extends MeshInstance3D
 # bounded however large the map is. Meshes are created / freed a few per frame, nearest first.
 # (The material fades points in with distance, so the map mainly shows as a far skyline.)
 
-@export var visualize_pointcloud_map_toggle: BaseButton
-
 @export var tile_size: float = 50.0  # tile edge length [m]
 @export var fine_voxel_size: float = 0.5  # keep one point per voxel [m] near the ego
 @export var coarse_voxel_size: float = 1.0  # ... elsewhere
@@ -45,7 +43,7 @@ func _ready():
 			material.albedo_color *= brightness
 		materials.append(material)
 	_meshes = TileMeshes.new(self, materials, _make_mesh, _desired_level)
-	visible = visualize_pointcloud_map_toggle.button_pressed
+	Settings.bind("data/pointcloud_map", set_visible)
 
 func _process(delta):
 	if pointcloud.has_new() and pointcloud.start_tiles(
@@ -123,6 +121,3 @@ func _print_stats() -> void:
 	print("[perf] pointcloud map: %d tiles, fine %d points in %d tiles, coarse %d points in %d tiles" % [
 		_in_view.size(), stats["vertices"][FINE], stats["tiles"][FINE],
 		stats["vertices"][COARSE], stats["tiles"][COARSE]])
-
-func _on_point_cloud_map_toggle_toggled(toggled_on):
-	visible = toggled_on

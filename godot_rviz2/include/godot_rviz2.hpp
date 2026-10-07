@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "core/os/os.h"
 #include "rclcpp/rclcpp.hpp"
 
 #include <tf2_ros/buffer.h>
@@ -24,6 +25,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 /**
  * @class GodotRviz2
@@ -88,7 +90,7 @@ private:
 
   GodotRviz2()
   {
-    rclcpp::init(0, nullptr);
+    init_ros();
     node_ = std::make_shared<rclcpp::Node>("godot_rviz2_node");
     callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
@@ -99,6 +101,24 @@ private:
       rclcpp::ExecutorOptions(), kExecutorThreads);
     executor_->add_node(node_);
     executor_thread_ = std::thread([this]() { executor_->spin(); });
+  }
+
+  /**
+   * @brief Initializes ROS with the ROS arguments given to the application after "--ros-args"
+   * (e.g. "godot ... -- --ros-args -p use_sim_time:=true -r __ns:=/viewer"), so that remapping,
+   * parameters and use_sim_time work as for other ROS nodes.
+   */
+  static void init_ros()
+  {
+    std::vector<std::string> args{"godot_rviz2"};
+    bool ros_args = false;
+    for (const String & arg : OS::get_singleton()->get_cmdline_user_args()) {
+      ros_args = ros_args || arg == "--ros-args";
+      if (ros_args) args.push_back(arg.utf8().get_data());
+    }
+    std::vector<const char *> argv;
+    for (const auto & arg : args) argv.push_back(arg.c_str());
+    rclcpp::init(static_cast<int>(argv.size()), argv.data());
   }
 
   ~GodotRviz2()

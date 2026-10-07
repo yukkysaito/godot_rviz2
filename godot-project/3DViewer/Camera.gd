@@ -90,8 +90,8 @@ func set_camera_translation():
 	view_camera.set_position(_effective_camera_position())
 
 func _ready():
-	# Keep original no-op (explicitly preserve behavior)
-	pass
+	Settings.bind("view/camera_auto_return", _on_camera_auto_return_toggle_toggled)
+	Settings.bind("view/adaptive_camera_work", _on_adaptive_camera_work_toggle_toggled)
 
 func _process(delta):
 	var turn_signal_target_blend: float = 0.0

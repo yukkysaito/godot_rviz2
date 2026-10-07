@@ -1,16 +1,28 @@
 extends Node3D
 
-@export var vehicle_body_path: NodePath
-@onready var vehicle_body: VehicleBodyController = get_node(vehicle_body_path) as VehicleBodyController
+# Ego vehicle: follows the ego pose and drives the vehicle body (wheels, lights) from the vehicle
+# state. The body and its placement come from the selected VehicleProfile.
 
 @export var head_beam_light_path: NodePath
 @onready var head_beam_light: Node3D = get_node(head_beam_light_path) as Node3D
 
+var profile: VehicleProfile = VehicleProfile.current()
+var vehicle_body: VehicleBodyController
 
 var ego_pose = EgoPose.new()
 
 var _turn_left := false
 var _turn_right := false
+
+func _ready():
+	vehicle_body = profile.body_scene.instantiate() as VehicleBodyController
+	vehicle_body.name = "VehicleBody3D"
+	vehicle_body.transform = profile.body_transform * vehicle_body.transform
+	$EgoVehicleKinematicBody.add_child(vehicle_body)
+	head_beam_light.position = profile.head_beam_position
+	$Camera3D/Horizon/Vertical/ViewCamera.near = profile.camera_near
+
+	Settings.bind("view/day_mode", func(mode): set_night_mode(mode == "night"))
 
 func _process(delta):
 	# Ego pose

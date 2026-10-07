@@ -1,7 +1,6 @@
-extends Node3D
-class_name VehicleBodyController
+extends VehicleBodyController
 
-@export var tire_radius: float = 0.378
+# RX450h body: wheels, lights and turn signals of the model
 
 # Wheels
 @export var wheel_back_r_path: NodePath
