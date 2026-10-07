@@ -125,6 +125,9 @@ private:
 
   std::vector<lanelet::AutowareTrafficLightConstPtr> traffic_lights_;
 
+  // Polygons that could not be triangulated in the current build (reported once at its end)
+  mutable size_t triangulation_failures_ = 0;
+
   // Declared last: waits for a running build (which uses the members above) on destruction
   AsyncTask<Dictionary> build_task_;
 

@@ -69,7 +69,8 @@ autoware_include_paths = list(chain.from_iterable(
 ))
 autoware_lib_paths = list(map(lambda pkg: autoware_path + "/" + pkg + "/lib", autoware_pkgs))
 
-env.Append(CPPPATH=["include", 
+env.Append(CPPPATH=["include",
+                    "thirdparty",
                     ros_path+"/include",
                     pcl_include_path,
                     eigen3_include_path]

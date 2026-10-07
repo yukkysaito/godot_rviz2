@@ -21,6 +21,9 @@
 #include "lanelet2_core/LaneletMap.h"
 #include "util.hpp"
 
+#include <mapbox/earcut.hpp>
+
+#include <array>
 #include <cmath>
 #include <unordered_map>
 #include <vector>
@@ -109,101 +112,104 @@ lanelet::ConstLanelets get_lanelets(
 
 namespace triangulation
 {
-struct Vertex
+// z of the cross product (b - a) x (c - a) on the ground plane (ROS x/y)
+double cross(const Vector3 & a, const Vector3 & b, const Vector3 & c)
 {
-  size_t index;
-  Vector2 point;
-};
-
-bool is_convex_angle(const Vector2 & prev, const Vector2 & self, const Vector2 & next)
-{
-  return (prev.x - self.x) * (next.y - self.y) - (prev.y - self.y) * (next.x - self.x) >= 0.0;
+  return (double(b.x) - a.x) * (double(c.y) - a.y) - (double(b.y) - a.y) * (double(c.x) - a.x);
 }
 
-bool is_point_inside_triangle(
-  const Vector2 & p0, const Vector2 & p1, const Vector2 & p2, const Vector2 & p)
+// Appends the triangle clockwise seen from above (so that it faces up after ros2_to_godot()),
+// skipping degenerate ones
+void push_triangle(
+  std::vector<Vector3> & triangles, const Vector3 & a, const Vector3 & b, const Vector3 & c)
 {
-  const auto c1 = (p1.x - p0.x) * (p.y - p1.y) - (p1.y - p0.y) * (p.x - p1.x);
-  const auto c2 = (p2.x - p1.x) * (p.y - p2.y) - (p2.y - p1.y) * (p.x - p2.x);
-  const auto c3 = (p0.x - p2.x) * (p.y - p0.y) - (p0.y - p2.y) * (p.x - p0.x);
-
-  return c1 > 0.0 && c2 > 0.0 && c3 > 0.0 || c1 < 0.0 && c2 < 0.0 && c3 < 0.0;
-}
-
-bool is_ear(
-  const std::vector<Vertex> & vertices, const size_t self_index, const size_t prev_index,
-  const size_t next_index)
-{
-  const auto is_convex = is_convex_angle(
-    vertices.at(prev_index).point, vertices.at(self_index).point, vertices.at(next_index).point);
-
-  if (!is_convex) {
-    return false;
-  }
-
-  for (size_t i = 0; i < vertices.size(); ++i) {
-    if (i == prev_index || i == self_index || i == next_index) {
-      continue;
-    }
-    if (is_point_inside_triangle(
-          vertices.at(prev_index).point, vertices.at(self_index).point,
-          vertices.at(next_index).point, vertices.at(i).point)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-void triangulate(const std::vector<Vector3> & polygon, std::vector<Vector3> & triangles)
-{
-  if (polygon.size() < 3) {
-    return;
-  }
-  if (polygon.size() == 3) {
-    triangles = polygon;
-    return;
-  }
-
-  std::vector<Vector2> polygon_2d;
-  for (const auto & point : polygon) {
-    polygon_2d.push_back(Vector2(point.x, point.y));
-  }
-
-  std::vector<Vertex> vertices;
-  if (is_clockwise(polygon_2d)) {
-    for (size_t i = 0; i < polygon_2d.size(); ++i) {
-      vertices.push_back(Vertex{i, Vector2(polygon_2d.at(i).x, polygon_2d.at(i).y)});
-    }
+  const double area2 = cross(a, b, c);
+  if (std::abs(area2) < 1e-9) return;
+  triangles.push_back(a);
+  if (area2 > 0.0) {
+    triangles.push_back(c);
+    triangles.push_back(b);
   } else {
-    for (int i = polygon_2d.size() - 1; 0 <= i; --i) {
-      vertices.push_back(Vertex{i, Vector2(polygon_2d.at(i).x, polygon_2d.at(i).y)});
-    }
+    triangles.push_back(b);
+    triangles.push_back(c);
   }
+}
 
-  int i = 0;
-  while (2 < vertices.size()) {
-    if (vertices.size() <= i) {
-      std::cerr << "triangulation failed" << std::endl;
-      for (const auto & vertex : vertices) {
-        std::cerr << "index = " << vertex.index << ", point = (" << vertex.point.x << ", "
-                  << vertex.point.y << ")" << std::endl;
-      }
-      break;
+// True if a and b are the same point on the ground plane (absolute tolerance: map coordinates
+// are large, so a relative one would merge distinct points)
+bool same_point(const Vector3 & a, const Vector3 & b)
+{
+  const double dx = double(a.x) - b.x;
+  const double dy = double(a.y) - b.y;
+  return dx * dx + dy * dy < 1e-6;
+}
+
+// Removes consecutive duplicate points (and a closing point equal to the first one)
+std::vector<Vector3> remove_duplicates(const std::vector<Vector3> & points)
+{
+  std::vector<Vector3> result;
+  for (const auto & p : points) {
+    if (result.empty() || !same_point(p, result.back())) result.push_back(p);
+  }
+  while (result.size() > 1 && same_point(result.front(), result.back())) result.pop_back();
+  return result;
+}
+
+/**
+ * @brief Triangulates a simple polygon (ROS coordinates) on the ground plane with earcut, which
+ * also copes with slightly malformed polygons (touching or self-intersecting edges).
+ * @return false if no triangle could be made
+ */
+bool triangulate(const std::vector<Vector3> & polygon, std::vector<Vector3> & triangles)
+{
+  const auto points = remove_duplicates(polygon);
+  if (points.size() < 3) return false;
+
+  // Relative to the first point: map coordinates are large, earcut works in double anyway
+  using EarcutPoint = std::array<double, 2>;
+  std::vector<std::vector<EarcutPoint>> rings(1);
+  for (const auto & p : points) {
+    rings[0].push_back({double(p.x) - points[0].x, double(p.y) - points[0].y});
+  }
+  const std::vector<uint32_t> indices = mapbox::earcut<uint32_t>(rings);
+  const size_t before = triangles.size();
+  for (size_t k = 0; k + 2 < indices.size(); k += 3) {
+    push_triangle(triangles, points[indices[k]], points[indices[k + 1]], points[indices[k + 2]]);
+  }
+  return triangles.size() > before;
+}
+
+/**
+ * @brief Triangulates the strip between the left and right bound of a lanelet. Unlike polygon
+ * triangulation this never fails, follows the height of both bounds, and neighbouring lanelets
+ * share their bound points, so the road surface has no gaps.
+ */
+void triangulate_strip(
+  const std::vector<Vector3> & left_in, const std::vector<Vector3> & right_in,
+  std::vector<Vector3> & triangles)
+{
+  const auto left = remove_duplicates(left_in);
+  const auto right = remove_duplicates(right_in);
+  if (left.empty() || right.empty() || left.size() + right.size() < 3) return;
+
+  auto distance2 = [](const Vector3 & a, const Vector3 & b) {
+    const double dx = double(a.x) - b.x;
+    const double dy = double(a.y) - b.y;
+    return dx * dx + dy * dy;
+  };
+  // Advance along the bound whose next point makes the shorter diagonal
+  size_t i = 0, j = 0;
+  while (i + 1 < left.size() || j + 1 < right.size()) {
+    const bool advance_left =
+      j + 1 >= right.size() ||
+      (i + 1 < left.size() && distance2(left[i + 1], right[j]) <= distance2(left[i], right[j + 1]));
+    if (advance_left) {
+      push_triangle(triangles, left[i], right[j], left[i + 1]);
+      ++i;
+    } else {
+      push_triangle(triangles, left[i], right[j], right[j + 1]);
+      ++j;
     }
-    const auto previous = (i == 0) ? vertices.size() - 1 : i - 1;
-    const auto next = (i == vertices.size() - 1) ? 0 : i + 1;
-    if (is_ear(vertices, i, previous, next)) {
-      // create triangle
-      triangles.push_back(polygon.at(vertices.at(previous).index));
-      triangles.push_back(polygon.at(vertices.at(i).index));
-      triangles.push_back(polygon.at(vertices.at(next).index));
-      // remove vertex of center of angle
-      vertices.erase(vertices.begin() + i);
-      // reset index
-      i = 0;
-      continue;
-    }
-    i++;
   }
 }
 }  // namespace triangulation
@@ -245,12 +251,18 @@ bool VectorMap::start_build(const Array & layers, double tile_size)
   return build_task_.start([this, msg, layers, tile_size]() {
     Dictionary result;
     Dictionary layer_vertices;
+    triangulation_failures_ = 0;
     if (decode(*msg)) {
       for (int i = 0; i < layers.size(); ++i) {
         const Dictionary layer = layers[i];
         layer_vertices[layer["name"]] = split_into_tiles(build_layer(layer["parts"]), tile_size);
       }
       result["traffic_lights"] = get_traffic_light_list();
+    }
+    if (triangulation_failures_ > 0) {
+      RCLCPP_WARN(
+        rclcpp::get_logger("godot_rviz2"), "%zu map polygons could not be triangulated",
+        triangulation_failures_);
     }
     result["layers"] = layer_vertices;
     return result;
@@ -487,7 +499,7 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstPolygons3d & polygons)
         Vector3(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z()));
     }
 
-    triangulation::triangulate(polygon, triangles);
+    if (!triangulation::triangulate(polygon, triangles)) ++triangulation_failures_;
 
     for (const auto & triangle : triangles) {
       Dictionary dict;
@@ -519,7 +531,7 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstLineStrings3d & linest
       polygon.pop_back();
     }
 
-    triangulation::triangulate(polygon, triangles);
+    if (!triangulation::triangulate(polygon, triangles)) ++triangulation_failures_;
 
     for (const auto & triangle : triangles) {
       Dictionary dict;
@@ -557,16 +569,15 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstLanelets & lanelets) c
   for (const auto & lanelet : lanelets) {
     std::vector<Vector3> triangles;
 
-    std::vector<Vector3> polygon;
-    lanelet::CompoundPolygon3d lanelet_polygon = lanelet.polygon3d();
-    for (const auto & lanelet_point : lanelet_polygon) {
-      Vector3 point(
-        lanelet_point.basicPoint().x(), lanelet_point.basicPoint().y(),
-        lanelet_point.basicPoint().z());
-      polygon.push_back(point);
-    }
-
-    triangulation::triangulate(polygon, triangles);
+    auto to_points = [](const auto & bound) {
+      std::vector<Vector3> points;
+      for (const auto & point : bound) {
+        points.emplace_back(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z());
+      }
+      return points;
+    };
+    triangulation::triangulate_strip(
+      to_points(lanelet.leftBound3d()), to_points(lanelet.rightBound3d()), triangles);
 
     for (const auto & triangle : triangles) {
       Dictionary dict;

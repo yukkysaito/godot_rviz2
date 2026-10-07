@@ -4,6 +4,9 @@ extends MeshInstance3D
 # within the camera's far distance (nothing beyond it is drawn) get a mesh, so large maps stay
 # cheap to draw. The tiles use this node's material_override.
 
+# At night the layer is lit (e.g. by the head lights), keeping its day color as emission
+@export var lit_at_night: bool = false
+@export var night_albedo: Color = Color(0.05, 0.06, 0.08)
 @export var build_budget_msec: float = 2.0  # time spent on creating meshes per frame
 @export var residency_interval: float = 0.25  # how often the tiles in view are updated [s]
 
@@ -11,6 +14,19 @@ var _vertices: Array[PackedVector3Array] = []  # triangle vertices per tile, rel
 var _in_view: TileResidency
 var _meshes: TileMeshes
 var _residency_timer := 0.0
+var _day_albedo: Color
+
+func _ready() -> void:
+	var material := material_override as BaseMaterial3D
+	if lit_at_night and material != null:
+		_day_albedo = material.albedo_color
+		Settings.bind("view/day_mode", func(mode): _set_night(material, mode == "night"))
+
+func _set_night(material: BaseMaterial3D, night: bool) -> void:
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL if night else BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = night_albedo if night else _day_albedo
+	material.emission_enabled = night
+	material.emission = _day_albedo
 
 # tiles: Array of {"center": Vector3, "vertices": PackedVector3Array} (see VectorMap.start_build())
 func set_tiles(tiles: Array, tile_size: float) -> void:
