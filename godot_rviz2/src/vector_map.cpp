@@ -289,12 +289,6 @@ void append_ribbon(const Points & line, double width, std::vector<Vector3> & tri
   }
 }
 
-std::set<std::string> split_names(const String & names)
-{
-  std::set<std::string> result;
-  for (const String & name : names.split(",", false)) result.insert(name.strip_edges().utf8().get_data());
-  return result;
-}
 }  // namespace line_geometry
 
 VectorMap::VectorMap() : lanelet_map_(new lanelet::LaneletMap) {}
@@ -364,7 +358,7 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     if (part.size() < 2) continue;
     const String kind = part[0];
     const String name = part[1];
-    if (kind == "lines") {
+    if (kind == "shared_lines") {
       // Built directly as vertices (ROS coordinates -> Godot)
       std::vector<Vector3> ros_triangles = build_lines(part);
       const int64_t offset = vertices.size();
@@ -395,37 +389,47 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
   return vertices;
 }
 
-// True if the line string only bounds lanelets inside intersections (they have a turn direction):
-// such lines guide the lanelets but are usually not painted on the road
-bool VectorMap::is_intersection_only(const lanelet::ConstLineString3d & linestring) const
+lanelet::ConstLineStrings3d VectorMap::get_shared_white_lines() const
 {
-  const auto usages = lanelet_map_->laneletLayer.findUsages(linestring);
-  if (usages.empty()) return false;
-  for (const auto & lanelet : usages) {
-    if (!lanelet.hasAttribute("turn_direction")) return false;
+  // Lane lines (line_thin / line_thick) shared by a road lanelet and another lanelet
+  std::unordered_set<lanelet::ConstLineString3d> shared;
+  const std::set<std::string> ground_labels = {"line_thin", "line_thick"};
+  auto add_if_shared = [&](const lanelet::ConstLanelet & lanelet, const lanelet::ConstLineString3d & bound) {
+    if (!has_label(bound, ground_labels)) return;
+    for (const auto & candidate : lanelet_map_->laneletLayer.findUsages(bound)) {
+      if (candidate == lanelet) continue;
+      if (candidate.leftBound() == bound || candidate.rightBound() == bound) {
+        shared.insert(bound);
+        return;
+      }
+    }
+  };
+  for (const auto & lanelet : road_lanelets_) {
+    add_if_shared(lanelet, lanelet.leftBound());
+    add_if_shared(lanelet, lanelet.rightBound());
   }
-  return true;
+  return lanelet::ConstLineStrings3d(shared.begin(), shared.end());
 }
 
 std::vector<Vector3> VectorMap::build_lines(const Array & part) const
 {
-  // ["lines", types, subtypes, width(, dash, gap)]; types and subtypes are comma separated
-  // ("" subtypes: any)
-  std::vector<Vector3> triangles;
-  const auto types = line_geometry::split_names(part[1]);
-  const auto subtypes = line_geometry::split_names(part.size() > 2 ? String(part[2]) : String());
+  // ["shared_lines", width, dash, gap]: the shared lane lines, of width [m]; lines with the dashed
+  // subtype are drawn as dashes of dash [m] separated by gap [m]
   auto param = [&part](int index, double fallback) {
     return part.size() > index ? double(part[index]) : fallback;
   };
-  for (const auto & linestring : lanelet_map_->lineStringLayer) {
-    if (types.count(linestring.attributeOr(lanelet::AttributeName::Type, "")) == 0) continue;
-    if (!subtypes.empty() && subtypes.count(linestring.attributeOr(lanelet::AttributeName::Subtype, "")) == 0) {
+  const double width = param(1, 0.05);
+  std::vector<Vector3> triangles;
+  for (const auto & linestring : get_shared_white_lines()) {
+    const auto line = line_geometry::to_points(linestring);
+    const bool dashed =
+      linestring.attributeOr(lanelet::AttributeName::Subtype, "") == std::string("dashed");
+    if (!dashed) {
+      line_geometry::append_ribbon(line, width, triangles);
       continue;
     }
-    if (is_intersection_only(linestring)) continue;
-    const auto line = line_geometry::to_points(linestring);
-    for (const auto & dash : line_geometry::split_into_dashes(line, param(4, 0.0), param(5, 0.0))) {
-      line_geometry::append_ribbon(dash, param(3, 0.15), triangles);
+    for (const auto & dash : line_geometry::split_into_dashes(line, param(2, 1.0), param(3, 1.0))) {
+      line_geometry::append_ribbon(dash, width, triangles);
     }
   }
   return triangles;
@@ -546,49 +550,7 @@ Array VectorMap::get_linestring_triangle_list(const String & name, const float w
 {
   Array triangle_list;
   if (name == "shared_white_line") {
-    std::unordered_set<lanelet::ConstLineString3d> added_shared_white_lines;
-    const std::set<std::string> ground_labels = {"line_thin", "line_thick"};
-
-    for (const auto & lanelet : road_lanelets_) {
-      lanelet::ConstLineString3d left_ls = lanelet.leftBound();
-      lanelet::ConstLineString3d right_ls = lanelet.rightBound();
-
-      lanelet::Lanelets right_lane_candidates =
-        lanelet_map_->laneletLayer.findUsages(lanelet.rightBound());
-      for (auto & candidate : right_lane_candidates) {
-        // exclude self lanelet
-        if (candidate == lanelet) continue;
-        // exclude not shared lanelet
-        if (
-          candidate.leftBound() != lanelet.rightBound() &&
-          candidate.rightBound() != lanelet.rightBound())
-          continue;
-
-        if (has_label(lanelet.rightBound(), ground_labels))
-          added_shared_white_lines.insert(lanelet.rightBound());
-      }
-
-      lanelet::Lanelets left_lane_candidates =
-        lanelet_map_->laneletLayer.findUsages(lanelet.leftBound());
-      for (auto & candidate : left_lane_candidates) {
-        // exclude self lanelet
-        if (candidate == lanelet) continue;
-        // exclude not shared lanelet
-        if (
-          candidate.rightBound() != lanelet.leftBound() &&
-          candidate.leftBound() != lanelet.leftBound())
-          continue;
-
-        if (has_label(lanelet.leftBound(), ground_labels))
-          added_shared_white_lines.insert(lanelet.leftBound());
-      }
-    }
-
-    lanelet::ConstLineStrings3d shared_white_lines;
-    for (const auto & line : added_shared_white_lines) {
-      shared_white_lines.push_back(line);
-    }
-    triangle_list = get_as_triangle_list(shared_white_lines, width);
+    triangle_list = get_as_triangle_list(get_shared_white_lines(), width);
   } else if (name == "stop_line") {
     triangle_list = get_as_triangle_list(stop_lines_, width);
   } else if (name == "curbstone") {

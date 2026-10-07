@@ -35,13 +35,10 @@ const MAP_LAYERS := [
 		["lanelet", "road"], ["lanelet", "shoulder"],
 		["polygon", "intersection_area"], ["polygon", "hatched_road_markings_area"],
 		["polygon", "parking_lots"]]},
-	# Lane lines as in the map: ["lines", types, subtypes, width(, dash, gap)] [m]
+	# Lane lines shared by two lanes: ["shared_lines", width, dash, gap] [m] (dashed ones as dashes)
 	{"name": "road_marker", "parts": [
 		["polygon", "pedestrian_marking"],
-		["lines", "line_thin", "solid,solid_solid", 0.12],
-		["lines", "line_thick", "solid,solid_solid", 0.25],
-		["lines", "line_thin", "dashed", 0.12, 5.0, 5.0],
-		["lines", "line_thick", "dashed", 0.25, 5.0, 5.0],
+		["shared_lines", 0.05, 1.0, 1.0],
 		["linestring", "stop_line", 0.5]]},
 ]
 
