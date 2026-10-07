@@ -21,6 +21,10 @@
 #include "lanelet2_core/LaneletMap.h"
 #include "util.hpp"
 
+#include <cmath>
+#include <unordered_map>
+#include <vector>
+
 namespace
 {
 Array convert_strip_to_list(const Array & strip)
@@ -216,7 +220,7 @@ void VectorMap::_bind_methods()
   ClassDB::bind_method(
     D_METHOD("get_linestring_triangle_list"), &VectorMap::get_linestring_triangle_list);
   ClassDB::bind_method(D_METHOD("get_traffic_light_list"), &VectorMap::get_traffic_light_list);
-  ClassDB::bind_method(D_METHOD("start_build", "layers"), &VectorMap::start_build);
+  ClassDB::bind_method(D_METHOD("start_build", "layers", "tile_size"), &VectorMap::start_build);
   ClassDB::bind_method(D_METHOD("is_build_done"), &VectorMap::is_build_done);
   ClassDB::bind_method(D_METHOD("take_build_result"), &VectorMap::take_build_result);
 
@@ -230,20 +234,21 @@ bool VectorMap::generate_graph_structure()
   return decode(*last_msg.value());
 }
 
-bool VectorMap::start_build(const Array & layers)
+bool VectorMap::start_build(const Array & layers, double tile_size)
 {
   if (build_task_.is_running()) return false;
   const auto last_msg = get_last_msg();
   if (!last_msg) return false;
 
   const auto msg = last_msg.value();
-  return build_task_.start([this, msg, layers]() {
+  release_last_msg();  // the worker holds the only reference: freed once the build finished
+  return build_task_.start([this, msg, layers, tile_size]() {
     Dictionary result;
     Dictionary layer_vertices;
     if (decode(*msg)) {
       for (int i = 0; i < layers.size(); ++i) {
         const Dictionary layer = layers[i];
-        layer_vertices[layer["name"]] = build_layer(layer["parts"]);
+        layer_vertices[layer["name"]] = split_into_tiles(build_layer(layer["parts"]), tile_size);
       }
       result["traffic_lights"] = get_traffic_light_list();
     }
@@ -281,6 +286,46 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     }
   }
   return vertices;
+}
+
+Array VectorMap::split_into_tiles(const PackedVector3Array & vertices, double tile_size)
+{
+  Array tiles;
+  if (tile_size <= 0.0) {
+    Dictionary tile;
+    tile["center"] = Vector3();
+    tile["vertices"] = vertices;
+    tiles.append(tile);
+    return tiles;
+  }
+
+  // Each triangle goes to the tile (on the ground plane) that contains its centroid
+  std::unordered_map<uint64_t, std::vector<Vector3>> buckets;
+  const Vector3 * src = vertices.ptr();
+  for (int64_t i = 0; i + 2 < vertices.size(); i += 3) {
+    const Vector3 centroid = (src[i] + src[i + 1] + src[i + 2]) / 3.0f;
+    const auto tx = static_cast<int64_t>(std::floor(centroid.x / tile_size));
+    const auto tz = static_cast<int64_t>(std::floor(centroid.z / tile_size));
+    auto & bucket = buckets[(static_cast<uint64_t>(tx) << 32) ^ static_cast<uint32_t>(tz)];
+    bucket.insert(bucket.end(), {src[i], src[i + 1], src[i + 2]});
+  }
+
+  for (const auto & [key, triangles] : buckets) {
+    const auto tx = static_cast<int32_t>(key >> 32);
+    const auto tz = static_cast<int32_t>(key & 0xFFFFFFFF);
+    // Vertices relative to the tile center (better precision far from the map origin)
+    const Vector3 center((tx + 0.5) * tile_size, 0.0f, (tz + 0.5) * tile_size);
+    PackedVector3Array relative;
+    relative.resize(static_cast<int64_t>(triangles.size()));
+    Vector3 * dst = relative.ptrw();
+    for (size_t i = 0; i < triangles.size(); ++i) dst[i] = triangles[i] - center;
+
+    Dictionary tile;
+    tile["center"] = center;
+    tile["vertices"] = relative;
+    tiles.append(tile);
+  }
+  return tiles;
 }
 
 bool VectorMap::decode(const autoware_map_msgs::msg::LaneletMapBin & msg)

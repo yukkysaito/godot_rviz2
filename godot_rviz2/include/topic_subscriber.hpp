@@ -54,6 +54,13 @@ public:
     return msg_;
   }
 
+  // Drops the message (e.g. a large map once it was converted) to free its memory
+  void release()
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    msg_.reset();
+  }
+
   bool has_new()
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -86,6 +93,7 @@ private:                                                                        
   typename rclcpp::Subscription<TYPE>::SharedPtr subscription_;                                   \
                                                                                                   \
   std::optional<ConstSharedPtr> get_last_msg() { return latest_->get(); }                         \
+  void release_last_msg() { latest_->release(); }                                                 \
                                                                                                   \
 public:                                                                                           \
   bool has_new() { return latest_->has_new(); }                                                   \
