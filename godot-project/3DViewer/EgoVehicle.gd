@@ -28,6 +28,9 @@ func _process(delta):
 	# Ego pose
 	set_position(ego_pose.get_ego_position())
 	set_rotation(ego_pose.get_ego_rotation())
+	# The middle of the vehicle (base_link is on the rear axle; +x is forward)
+	RenderingServer.global_shader_parameter_set(
+		"ego_center", position + global_transform.basis.x * (profile.wheelbase * 0.5))
 	if position != Vector3.ZERO:
 		PerfMonitor.mark("ego_pose_valid")
 	

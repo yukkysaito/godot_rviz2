@@ -35,11 +35,13 @@ const MAP_LAYERS := [
 		["lanelet", "road"], ["lanelet", "shoulder"],
 		["polygon", "intersection_area"], ["polygon", "hatched_road_markings_area"],
 		["polygon", "parking_lots"]]},
-	# Lane lines shared by two lanes: ["shared_lines", width, dash, gap] [m] (dashed ones as dashes)
 	{"name": "road_marker", "parts": [
 		["polygon", "pedestrian_marking"],
-		["shared_lines", 0.05, 1.0, 1.0],
 		["linestring", "stop_line", 0.5]]},
+	# Lane lines shared by two lanes: ["shared_lines", width, dash, gap] [m] (dashed ones as
+	# dashes); the strip is wider than the line, so that its edges can be smoothed (see
+	# Shaders/lane_line.gdshader)
+	{"name": "lane_lines", "parts": [["shared_lines", 0.25, 1.0, 1.0]]},
 	# Road borders (curbs): a curtain of light and a soft glow on the ground along them
 	# (["road_borders", style, width, height] [m], style line / curb / wall)
 	{"name": "road_border", "parts": [["road_borders", "wall", 0.0, 0.8]]},

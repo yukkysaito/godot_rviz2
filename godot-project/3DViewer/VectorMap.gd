@@ -13,6 +13,7 @@ func _apply_map() -> void:
 	var layers: Dictionary = RosBridge.map_geometry.get("layers", {})
 	$RoadSurfaceMesh.set_tiles(layers.get("road_surface", []), RosBridge.MAP_TILE_SIZE)
 	$RoadMarkerMesh.set_tiles(layers.get("road_marker", []), RosBridge.MAP_TILE_SIZE)
+	$LaneLineMesh.set_tiles(layers.get("lane_lines", []), RosBridge.MAP_TILE_SIZE)
 	$RoadBorderMesh.set_tiles(layers.get("road_border", []), RosBridge.MAP_TILE_SIZE)
 	$RoadBorderGlowMesh.set_tiles(layers.get("road_border_glow", []), RosBridge.MAP_TILE_SIZE)
 	($TrafficLightGroupsManager as TrafficLightGroupsManager).set_map(

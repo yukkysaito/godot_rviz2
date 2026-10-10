@@ -1,9 +1,11 @@
-[gd_scene load_steps=66 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=69 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
 [ext_resource type="Script" path="res://3DViewer/MapLayerMesh.gd" id="4"]
+[ext_resource type="Shader" path="res://3DViewer/Shaders/lane_line.gdshader" id="lane_line_shader"]
+[ext_resource type="Shader" path="res://3DViewer/Shaders/road_surface.gdshader" id="road_surface_shader"]
 [ext_resource type="Shader" path="res://3DViewer/Shaders/road_border_curtain.gdshader" id="road_border_shader"]
 [ext_resource type="Shader" path="res://3DViewer/Shaders/road_border_glow.gdshader" id="road_border_glow_shader"]
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
@@ -91,12 +93,6 @@ distance_fade_max_distance = 25.0
 [sub_resource type="ArrayMesh" id="10"]
 resource_name = "mesh"
 
-[sub_resource type="StandardMaterial3D" id="17"]
-render_priority = -3
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0, 0.0745098, 0.137255, 1)
-
 [sub_resource type="ArrayMesh" id="16"]
 resource_name = "mesh"
 
@@ -115,6 +111,14 @@ shader = ExtResource("road_border_shader")
 [sub_resource type="ShaderMaterial" id="road_border_glow_material"]
 render_priority = -2
 shader = ExtResource("road_border_glow_shader")
+
+[sub_resource type="ShaderMaterial" id="road_surface_material"]
+render_priority = -4
+shader = ExtResource("road_surface_shader")
+
+[sub_resource type="ShaderMaterial" id="lane_line_material"]
+render_priority = -2
+shader = ExtResource("lane_line_shader")
 
 [sub_resource type="ArrayMesh" id="18"]
 resource_name = "mesh"
@@ -260,7 +264,7 @@ cycle_time = 2.5
 script = ExtResource("25")
 
 [node name="RoadSurfaceMesh" type="MeshInstance3D" parent="VectorMap"]
-material_override = SubResource("17")
+material_override = SubResource("road_surface_material")
 mesh = SubResource("16")
 skeleton = NodePath("../..")
 script = ExtResource("4")
@@ -270,6 +274,12 @@ lit_at_night = true
 material_override = SubResource("19")
 mesh = SubResource("18")
 skeleton = NodePath("../RoadSurfaceMesh")
+script = ExtResource("4")
+
+[node name="LaneLineMesh" type="MeshInstance3D" parent="VectorMap"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+material_override = SubResource("lane_line_material")
+cast_shadow = 0
 script = ExtResource("4")
 
 [node name="RoadBorderMesh" type="MeshInstance3D" parent="VectorMap"]
