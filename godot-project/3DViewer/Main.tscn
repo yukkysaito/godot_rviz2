@@ -600,6 +600,20 @@ focus_mode = 0
 script = ExtResource("ui_setting_toggle")
 key = "view/object_icons"
 
+[node name="PredictedPathContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="PredictedPathLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/PredictedPathContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Predicted Path"
+
+[node name="PredictedPathToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/PredictedPathContainer"]
+layout_mode = 2
+focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "view/predicted_paths"
+
 [node name="DayModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
 

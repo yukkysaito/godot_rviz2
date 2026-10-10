@@ -33,6 +33,15 @@ public:
   Array get_dynamic_object_list(bool ignore_unknown_object = false);
   Array get_unknown_object_triangle_list();
 
+  /**
+   * @brief Predicted paths of the objects as flat strips of width [m] (triangles), for paths
+   * with at least min_confidence.
+   * @return Dictionary {"vertices": PackedVector3Array, "uvs": PackedVector2Array (x: 0 / 1 at
+   *   the left / right edge, y: 0 at the object to 1 at the end of the path),
+   *   "colors": PackedColorArray (alpha: confidence)}
+   */
+  Dictionary get_predicted_paths(double width, double min_confidence, bool ignore_unknown_object);
+
   DynamicObjects() = default;
   ~DynamicObjects() = default;
 
