@@ -17,10 +17,6 @@ extends Node3D
 # -----------------------------
 var group_id: int = -1
 
-# Lamps in front of the board [m], besides z_offset_board: less is not enough for the depth buffer
-# from a distance
-const LAMP_OFFSET := 0.02
-
 # key = "color:arrow" -> Array[TrafficLightBulb]
 # Stored as Variant arrays inside Dictionary, so access via helper methods.
 var _bulbs_by_key: Dictionary = {}
@@ -206,14 +202,14 @@ func _create_board(board: Dictionary) -> Node3D:
 	board_node.basis = _basis_from_normal(normal)
 	return board_node
 
-# The lamp moved onto the board's plane, just in front of it (in maps the lamps are not always
-# exactly on the board, which would hide some of them behind it)
+# The lamp moved onto the board's plane (in maps the lamps are not always exactly on the board,
+# which would hide some of them behind it); the board is behind it by z_offset_board
 func _on_board(bulb: Dictionary, board: Dictionary) -> Dictionary:
 	var normal: Vector3 = (board["normal"] as Vector3).normalized()  # points to the back
 	var pos: Vector3 = bulb.get("position", Vector3.ZERO)
 	var center: Vector3 = board["position"]
 	var result := bulb.duplicate()
-	result["position"] = pos - normal * (normal.dot(pos - center) + LAMP_OFFSET)
+	result["position"] = pos - normal * normal.dot(pos - center)
 	result["normal"] = normal
 	return result
 
