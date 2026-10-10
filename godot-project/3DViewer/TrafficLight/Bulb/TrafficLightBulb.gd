@@ -1,99 +1,71 @@
 class_name TrafficLightBulb
 extends Node3D
 
-# Textures for each (color, arrow) combination.
-# "none:none" is used as a safe fallback.
-const TEX := {
-	"none:none":   preload("res://3DViewer/TrafficLight/Textures/traffic_light_black.png"),
-	"red:none":    preload("res://3DViewer/TrafficLight/Textures/traffic_light_red.png"),
-	"yellow:none": preload("res://3DViewer/TrafficLight/Textures/traffic_light_yellow.png"),
-	"green:none":  preload("res://3DViewer/TrafficLight/Textures/traffic_light_green.png"),
-	"green:left":  preload("res://3DViewer/TrafficLight/Textures/traffic_light_green_left.png"),
-	"green:right": preload("res://3DViewer/TrafficLight/Textures/traffic_light_green_right.png"),
-	"green:up":    preload("res://3DViewer/TrafficLight/Textures/traffic_light_green_up.png"),
-	"green:down":  preload("res://3DViewer/TrafficLight/Textures/traffic_light_green_down.png"),
+# One lamp of a traffic light, drawn procedurally (see Shaders/signal_lamp.gdshader): a crisp
+# round lens at any distance, with an arrow for arrow lamps.
+
+# Lamp colors (linear)
+const COLORS := {
+	"red": Vector3(1.0, 0.04, 0.03),
+	"yellow": Vector3(1.0, 0.5, 0.0),
+	"green": Vector3(0.0, 1.0, 0.38),
 }
+const ARROWS := {"none": 0, "left": 1, "right": 2, "up": 3, "down": 4, "up_left": 5, "up_right": 6}
 
-static func _make_key(color: String, arrow: String) -> String:
-	return "%s:%s" % [color, arrow]
-
-@export var emission_power: float = 20.0
-@export var lens_tint: Color = Color(0.15, 0.15, 0.15, 1.0)
-@export var double_sided: bool = false
-
-# Local Z offsets to avoid z-fighting between lens/glow.
-const Z_LENS: float = 0.000
-const Z_GLOW: float = 0.005
-
-# Scene nodes
 var _lens: MeshInstance3D
-var _glow: MeshInstance3D
+var _glow: MeshInstance3D  # only while lit; tells the color from the side too
 
-# Materials are shared by all bulbs with the same look (texture + settings), so hundreds of
+const GLOW_SIZE := 6.0  # glow diameter / lamp radius
+
+# Materials are shared by all lamps with the same look (color, arrow, lit), so hundreds of
 # traffic lights do not create hundreds of materials.
 static var _material_cache: Dictionary = {}
+static var _glow_materials: Dictionary = {}
 
-# Identity (which bulb type this is in HDMap)
 var _base_color: String = "none"
 var _base_arrow: String = "none"
-
-# State
 var _is_lit: bool = false
-
 
 func _ready() -> void:
 	_ensure_built()
-	# Default appearance: dark lens, glow off
-	_apply_lens_appearance()
-	_apply_glow_texture()
-	_apply_lit(false)
-
+	_apply_material()
 
 # -------------------------------------------------------------------
-# Public API (recommended)
+# Public API
 # -------------------------------------------------------------------
 
-# 1) Geometry only (safe before entering tree: no global_* access)
+# Geometry only (safe before entering the tree: no global_* access)
 func setup_geometry(pos: Vector3, normal: Vector3, radius: float) -> void:
 	_ensure_built()
-
-	# Set size (diameter)
-	var d: float = radius * 2.0
-	(_lens.mesh as PlaneMesh).size = Vector2(d, d)
-	(_glow.mesh as PlaneMesh).size = Vector2(d, d)
-
-	# Local position
+	(_lens.mesh as QuadMesh).size = Vector2(radius * 2.0, radius * 2.0)
+	(_glow.mesh as QuadMesh).size = Vector2(radius * GLOW_SIZE, radius * GLOW_SIZE)
 	position = pos
-
-	# Local orientation: align +Z to the given normal
+	# Align +Z to the given normal
 	var n := normal.normalized()
 	var up := Vector3.UP
 	if abs(n.dot(up)) > 0.98:
 		up = Vector3.RIGHT
 	basis = Basis.looking_at(n, up)
 
-# 2) Identity only (color/arrow). Updates lens texture immediately.
+# Identity only (color / arrow)
 func setup_identity(color: String, arrow: String) -> void:
 	_base_color = color
 	_base_arrow = arrow
-	_apply_lens_appearance()
-	_apply_glow_texture()
+	_apply_material()
 
-# 3) State only (on/off). Does NOT change identity.
+# State only (on / off)
 func set_lit(on: bool) -> void:
 	if on != _is_lit:
-		_apply_lit(on)
+		_is_lit = on
+		_apply_material()
 
-# Compatibility with your previous calls
 func turn_off() -> void:
 	set_lit(false)
 
-# Convenience: old "one-shot" setup (kept for compatibility)
 func setup_from_hdmap(pos: Vector3, normal: Vector3, radius: float, color: String, arrow: String) -> void:
 	setup_geometry(pos, normal, radius)
 	setup_identity(color, arrow)
-	_apply_lit(false)
-
+	set_lit(false)
 
 # -------------------------------------------------------------------
 # Internal
@@ -102,65 +74,38 @@ func setup_from_hdmap(pos: Vector3, normal: Vector3, radius: float, color: Strin
 func _ensure_built() -> void:
 	if _lens != null:
 		return
-
-	# --- Lens mesh ---
 	_lens = MeshInstance3D.new()
 	_lens.name = "Lens"
-	var lens_mesh := PlaneMesh.new()
-	lens_mesh.orientation = PlaneMesh.FACE_Z
-	_lens.mesh = lens_mesh
-	_lens.position.z = Z_LENS
-
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.3, 0.3)
+	_lens.mesh = quad
+	_lens.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_lens)
-
-	# --- Glow mesh ---
 	_glow = MeshInstance3D.new()
 	_glow.name = "Glow"
-	var glow_mesh := PlaneMesh.new()
-	glow_mesh.orientation = PlaneMesh.FACE_Z
-	_glow.mesh = glow_mesh
-	_glow.position.z = Z_GLOW
+	var glow_quad := QuadMesh.new()
+	glow_quad.size = Vector2(0.6, 0.6)
+	_glow.mesh = glow_quad
+	_glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_glow.visible = false
-
 	add_child(_glow)
 
-func _apply_lit(on: bool) -> void:
+func _apply_material() -> void:
 	_ensure_built()
-	_is_lit = on
-	_glow.visible = on
-
-func _apply_lens_appearance() -> void:
-	_ensure_built()
-	var tex: Texture2D = _get_tex(_base_color, _base_arrow)
-	_lens.material_override = _shared_material("lens", tex)
-
-func _apply_glow_texture() -> void:
-	_ensure_built()
-	_glow.material_override = _shared_material("glow", _get_tex(_base_color, _base_arrow))
-
-func _shared_material(kind: String, tex: Texture2D) -> StandardMaterial3D:
-	var key := "%s|%s|%s|%s|%s|%s" % [kind, tex.resource_path, lens_tint, emission_power, double_sided, Z_GLOW]
-	if _material_cache.has(key):
-		return _material_cache[key]
-
-	var mat := StandardMaterial3D.new()
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_texture = tex
-	if double_sided:
-		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	if kind == "lens":
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.albedo_color = lens_tint  # darkened lens keeps the "off" look
-	else:
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-		mat.emission_enabled = true
-		mat.emission_texture = tex
-		mat.emission_energy_multiplier = emission_power
-	_material_cache[key] = mat
-	return mat
-
-func _get_tex(color: String, arrow: String) -> Texture2D:
-	var k := TrafficLightBulb._make_key(color, arrow) # call static properly
-	if TEX.has(k):
-		return TEX[k]
-	return TEX["none:none"]
+	var key := "%s|%s|%s" % [_base_color, _base_arrow, _is_lit]
+	if not _material_cache.has(key):
+		var material := ShaderMaterial.new()
+		material.shader = preload("res://3DViewer/Shaders/signal_lamp.gdshader")
+		material.set_shader_parameter("color", COLORS.get(_base_color, Vector3(0.6, 0.6, 0.6)))
+		material.set_shader_parameter("arrow", ARROWS.get(_base_arrow, 0))
+		material.set_shader_parameter("lit", _is_lit)
+		_material_cache[key] = material
+	_lens.material_override = _material_cache[key]
+	_glow.visible = _is_lit
+	if _is_lit:
+		if not _glow_materials.has(_base_color):
+			var glow := ShaderMaterial.new()
+			glow.shader = preload("res://3DViewer/Shaders/signal_glow.gdshader")
+			glow.set_shader_parameter("color", COLORS.get(_base_color, Vector3(0.6, 0.6, 0.6)))
+			_glow_materials[_base_color] = glow
+		_glow.material_override = _glow_materials[_base_color]
