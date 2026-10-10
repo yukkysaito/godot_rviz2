@@ -17,6 +17,10 @@ extends Node3D
 # -----------------------------
 var group_id: int = -1
 
+# Lamps in front of the board [m], besides z_offset_board: less is not enough for the depth buffer
+# from a distance
+const LAMP_OFFSET := 0.02
+
 # key = "color:arrow" -> Array[TrafficLightBulb]
 # Stored as Variant arrays inside Dictionary, so access via helper methods.
 var _bulbs_by_key: Dictionary = {}
@@ -141,11 +145,13 @@ func _build_one_traffic_light(tl: Dictionary, index: int) -> void:
 	_content_root.add_child(tl_root)
 
 	# --- Board ---
+	var plane := {}  # board center / normal, to put the lamps on the board
 	if tl.has("board"):
 		var board_any: Variant = tl["board"]
 		if typeof(board_any) == TYPE_DICTIONARY:
 			var board_dict: Dictionary = board_any as Dictionary
 			var board_center: Dictionary = _board_4pts_to_center_whn(board_dict)
+			plane = board_center
 			var board_node := _create_board(board_center)
 			if board_node != null:
 				tl_root.add_child(board_node)
@@ -161,6 +167,8 @@ func _build_one_traffic_light(tl: Dictionary, index: int) -> void:
 			continue
 		var bulb_dict: Dictionary = bulb_any as Dictionary
 
+		if not plane.is_empty():
+			bulb_dict = _on_board(bulb_dict, plane)
 		var bulb_node := _create_bulb(bulb_dict)
 		if bulb_node == null:
 			continue
@@ -197,6 +205,17 @@ func _create_board(board: Dictionary) -> Node3D:
 	board_node.position = pos + normal * z_offset_board
 	board_node.basis = _basis_from_normal(normal)
 	return board_node
+
+# The lamp moved onto the board's plane, just in front of it (in maps the lamps are not always
+# exactly on the board, which would hide some of them behind it)
+func _on_board(bulb: Dictionary, board: Dictionary) -> Dictionary:
+	var normal: Vector3 = (board["normal"] as Vector3).normalized()  # points to the back
+	var pos: Vector3 = bulb.get("position", Vector3.ZERO)
+	var center: Vector3 = board["position"]
+	var result := bulb.duplicate()
+	result["position"] = pos - normal * (normal.dot(pos - center) + LAMP_OFFSET)
+	result["normal"] = normal
+	return result
 
 func _create_bulb(bulb: Dictionary) -> TrafficLightBulb:
 	var pos: Vector3 = bulb.get("position", Vector3.ZERO)
