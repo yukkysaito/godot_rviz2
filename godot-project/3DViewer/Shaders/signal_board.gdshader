@@ -18,8 +18,8 @@ void fragment() {
 	float inside = 1.0 - smoothstep(-aa, aa, d);
 	float edge = smoothstep(-rim - aa, -rim + aa, d);
 	ALBEDO = mix(color, color * 0.6, edge);
-	// Opaque (it hides what is behind it), with smooth corners by alpha to coverage
+	// Opaque, cut to the rounded shape. No ALPHA_ANTIALIASING_EDGE: it puts the board in the
+	// transparent pass, sorted against the lamps, so that it covered some of them at some angles.
 	ALPHA = inside;
 	ALPHA_SCISSOR_THRESHOLD = 0.5;
-	ALPHA_ANTIALIASING_EDGE = 0.3;
 }
