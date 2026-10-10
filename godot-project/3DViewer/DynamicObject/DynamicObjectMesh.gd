@@ -97,7 +97,44 @@ func _process(_delta: float) -> void:
 	if show_icons:
 		_render_icons(objects)
 
+	_render_predicted_paths()
+
 	dynamic_objects.set_old()
+
+# ================== Predicted paths ==================
+const PREDICTED_PATH_WIDTH := 0.35  # [m]
+const PREDICTED_PATH_MIN_CONFIDENCE := 0.1
+const PREDICTED_PATH_LIFT := 0.05  # above the road [m]
+
+var show_predicted_paths := false
+var _predicted_path_instance: MeshInstance3D
+
+func _render_predicted_paths() -> void:
+	if _predicted_path_instance == null:
+		_predicted_path_instance = MeshInstance3D.new()
+		_predicted_path_instance.mesh = ArrayMesh.new()
+		_predicted_path_instance.position.y = PREDICTED_PATH_LIFT
+		var material := ShaderMaterial.new()
+		material.shader = preload("res://3DViewer/Shaders/predicted_path.gdshader")
+		material.render_priority = -1
+		_predicted_path_instance.material_override = material
+		_predicted_path_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(_predicted_path_instance)
+	var path_mesh := _predicted_path_instance.mesh as ArrayMesh
+	path_mesh.clear_surfaces()
+	if not show_predicted_paths:
+		return
+	var paths := dynamic_objects.get_predicted_paths(
+		PREDICTED_PATH_WIDTH, PREDICTED_PATH_MIN_CONFIDENCE, ignore_unknown_object)
+	var vertices: PackedVector3Array = paths["vertices"]
+	if vertices.is_empty():
+		return
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_TEX_UV] = paths["uvs"]
+	arrays[Mesh.ARRAY_COLOR] = paths["colors"]
+	path_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 
 # ================== Models ==================
 func _render_models(objects: Array) -> void:
@@ -232,8 +269,19 @@ func _grow_model_pool(t: String, count: int) -> void:
 	for i in range(count):
 		var node := scene.instantiate() as Node3D
 		node.visible = false
+		_apply_object_material(node)
 		add_child(node)
 		pool.append(node)
+
+static var _object_material: ShaderMaterial
+
+# All models share one material (see Shaders/object.gdshader)
+func _apply_object_material(model: Node) -> void:
+	if _object_material == null:
+		_object_material = ShaderMaterial.new()
+		_object_material.shader = preload("res://3DViewer/Shaders/object.gdshader")
+	for mesh_instance in model.find_children("*", "MeshInstance3D", true, false):
+		(mesh_instance as MeshInstance3D).material_override = _object_material
 
 func _borrow_model_node(t: String) -> Node3D:
 	var pool: Array[Node3D] = pools[t]["pool"]
@@ -345,6 +393,7 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 func _bind_settings() -> void:
 	Settings.bind("view/ignore_unknown_objects", _on_ignore_unknown_object_toggle_toggled)
 	Settings.bind("view/object_icons", set_icon_visibility)
+	Settings.bind("view/predicted_paths", func(on): show_predicted_paths = on)
 	Settings.bind("view/object_mode", func(mode): set_3d_model_mode(mode == "model"))
 
 func set_3d_model_mode(enabled: bool) -> void:

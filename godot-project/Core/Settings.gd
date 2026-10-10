@@ -20,6 +20,7 @@ const DEFAULTS := {
 	"view/day_mode": "day",  # day, night
 	"view/object_mode": "model",  # model, geometry
 	"view/object_icons": true,
+	"view/predicted_paths": false,
 	"view/ignore_unknown_objects": false,
 	"view/high_contrast": false,
 	"view/camera_auto_return": true,

@@ -19,7 +19,9 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <cmath>
 #include <string>
+#include <vector>
 #define EIGEN_MPL2_ONLY
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -31,6 +33,9 @@ void DynamicObjects::_bind_methods()
   ClassDB::bind_method(D_METHOD("get_triangle_list"), &DynamicObjects::get_triangle_list);
   ClassDB::bind_method(
     D_METHOD("get_dynamic_object_list"), &DynamicObjects::get_dynamic_object_list);
+  ClassDB::bind_method(
+    D_METHOD("get_predicted_paths", "width", "min_confidence", "ignore_unknown_object"),
+    &DynamicObjects::get_predicted_paths);
   ClassDB::bind_method(
     D_METHOD("get_unknown_object_triangle_list"),
     &DynamicObjects::get_unknown_object_triangle_list);
@@ -143,6 +148,57 @@ Array DynamicObjects::get_unknown_object_triangle_list()
   }
 
   return triangle_list;
+}
+
+Dictionary DynamicObjects::get_predicted_paths(
+  double width, double min_confidence, bool ignore_unknown_object)
+{
+  PackedVector3Array vertices;
+  PackedVector2Array uvs;
+  PackedColorArray colors;
+  Dictionary result;
+  result["vertices"] = vertices;
+  result["uvs"] = uvs;
+  result["colors"] = colors;
+
+  const auto last_msg = get_last_msg();
+  if (!last_msg) return result;
+
+  const double half = width / 2.0;
+  for (const auto & object : last_msg.value()->objects) {
+    if (ignore_unknown_object && main_label(object) == Label::UNKNOWN) continue;
+    for (const auto & predicted : object.kinematics.predicted_paths) {
+      const auto & path = predicted.path;
+      if (path.size() < 2 || predicted.confidence < min_confidence) continue;
+      const Color color(1.0f, 1.0f, 1.0f, predicted.confidence);
+      // Left / right edge points (ROS coordinates) from each pose's heading
+      std::vector<Vector3> left, right;
+      for (const auto & pose : path) {
+        const auto & q = pose.orientation;
+        const double yaw = std::atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+        const Vector3 offset(-std::sin(yaw) * half, std::cos(yaw) * half, 0.0);
+        const Vector3 center(pose.position.x, pose.position.y, pose.position.z);
+        left.push_back(center + offset);
+        right.push_back(center - offset);
+      }
+      const float last = float(path.size() - 1);
+      for (size_t i = 0; i + 1 < path.size(); ++i) {
+        const Vector3 quad[4] = {left[i], right[i], left[i + 1], right[i + 1]};
+        const Vector2 quad_uv[4] = {
+          Vector2(0, i / last), Vector2(1, i / last), Vector2(0, (i + 1) / last),
+          Vector2(1, (i + 1) / last)};
+        for (const int k : {0, 1, 2, 2, 1, 3}) {
+          vertices.push_back(ros2_to_godot(quad[k].x, quad[k].y, quad[k].z));
+          uvs.push_back(quad_uv[k]);
+          colors.push_back(color);
+        }
+      }
+    }
+  }
+  result["vertices"] = vertices;
+  result["uvs"] = uvs;
+  result["colors"] = colors;
+  return result;
 }
 
 Array DynamicObjects::get_dynamic_object_list(bool ignore_unknown_object)

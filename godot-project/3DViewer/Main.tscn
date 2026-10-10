@@ -1,9 +1,11 @@
-[gd_scene load_steps=62 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=67 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
 [ext_resource type="Script" path="res://3DViewer/MapLayerMesh.gd" id="4"]
+[ext_resource type="Script" path="res://3DViewer/Ground.gd" id="ground_script"]
+[ext_resource type="Shader" path="res://3DViewer/Shaders/ground.gdshader" id="ground_shader"]
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
@@ -92,8 +94,9 @@ resource_name = "mesh"
 [sub_resource type="StandardMaterial3D" id="17"]
 render_priority = -3
 transparency = 1
-shading_mode = 0
 albedo_color = Color(0, 0.0745098, 0.137255, 1)
+metallic_specular = 0.0
+roughness = 1.0
 
 [sub_resource type="ArrayMesh" id="16"]
 resource_name = "mesh"
@@ -105,6 +108,15 @@ shading_mode = 0
 albedo_color = Color(0.529412, 0.529412, 0.529412, 1)
 proximity_fade_distance = 1000.0
 distance_fade_max_distance = 200.0
+
+[sub_resource type="ShaderMaterial" id="ground_material"]
+render_priority = -4
+shader = ExtResource("ground_shader")
+
+[sub_resource type="PlaneMesh" id="ground_mesh"]
+size = Vector2(1000, 1000)
+subdivide_width = 16
+subdivide_depth = 16
 
 [sub_resource type="ArrayMesh" id="18"]
 resource_name = "mesh"
@@ -200,7 +212,10 @@ environment = SubResource("Environment_hn68x")
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.75, -0.43301, 0, 3, 0)
+shadow_enabled = true
+shadow_blur = 2.0
 directional_shadow_mode = 0
+directional_shadow_max_distance = 80.0
 sky_mode = 1
 
 [node name="EgoVehicle" type="Node3D" parent="."]
@@ -261,6 +276,12 @@ material_override = SubResource("19")
 mesh = SubResource("18")
 skeleton = NodePath("../RoadSurfaceMesh")
 script = ExtResource("4")
+
+[node name="Ground" type="MeshInstance3D" parent="VectorMap"]
+mesh = SubResource("ground_mesh")
+material_override = SubResource("ground_material")
+cast_shadow = 0
+script = ExtResource("ground_script")
 
 [node name="TrafficLightGroupsManager" type="Node3D" parent="VectorMap"]
 script = ExtResource("14_pvyag")
@@ -599,6 +620,20 @@ layout_mode = 2
 focus_mode = 0
 script = ExtResource("ui_setting_toggle")
 key = "view/object_icons"
+
+[node name="PredictedPathContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="PredictedPathLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/PredictedPathContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Predicted Path"
+
+[node name="PredictedPathToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/PredictedPathContainer"]
+layout_mode = 2
+focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "view/predicted_paths"
 
 [node name="DayModeContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
