@@ -49,6 +49,9 @@ struct TrafficLight
 {
   std::vector<LightBulb> light_bulbs;
   Board board;
+  // Estimated support pole (maps have none): its foot on the nearest road border, if any
+  bool has_pole = false;
+  Vector3 pole_base;  // Godot coordinates
 };
 
 struct TrafficLightGroup
@@ -68,6 +71,7 @@ public:
   Array get_polygon_triangle_list(const String & name);
   Array get_linestring_triangle_list(const String & name, const float width);
   Array get_traffic_light_list();
+  void add_traffic_light_poles(std::vector<TrafficLightGroup> & groups) const;
 
   /**
    * @brief Decodes the last map and builds the requested geometry on a worker thread.
