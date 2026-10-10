@@ -144,7 +144,7 @@ private:
   };
   void build_layer(const Array & parts, LayerGeometry & geometry);
   void build_road_borders(const Array & part, LayerGeometry & geometry) const;
-  std::vector<Vector3> build_lines(const Array & part) const;
+  void build_lines(const Array & part, LayerGeometry & geometry) const;
   lanelet::ConstLineStrings3d get_shared_white_lines() const;
   static Array split_into_tiles(const LayerGeometry & geometry, double tile_size);
 

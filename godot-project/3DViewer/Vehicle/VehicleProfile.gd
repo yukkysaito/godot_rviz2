@@ -13,6 +13,8 @@ class_name VehicleProfile
 @export var body_transform: Transform3D = Transform3D.IDENTITY
 # Distance from base_link (rear axle) to the front end [m]; used for the trajectory's stop wall
 @export var wheelbase_to_front: float = 3.78
+# Distance between the front and rear axles [m]
+@export var wheelbase: float = 2.79
 # Position of the head beam light (night mode) relative to base_link
 @export var head_beam_position: Vector3 = Vector3(4.3, 1.1, 0.0)
 # Near clip distance of the camera [m]

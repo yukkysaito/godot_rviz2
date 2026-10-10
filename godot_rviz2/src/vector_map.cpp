@@ -289,6 +289,31 @@ void append_ribbon(const Points & line, double width, std::vector<Vector3> & tri
   }
 }
 
+// Flat strip of width [m] centered on line, with UV.x 0 / 1 at its right / left edge
+void append_ribbon_uv(
+  const Points & line, double width, std::vector<Vector3> & vertices, std::vector<Vector2> & uvs)
+{
+  std::vector<Vector3> triangles;
+  append_ribbon(line, width, triangles);
+  // append_ribbon makes the strip from left (+normal) and right (-normal) offsets of each point;
+  // recover the side of each vertex from its offset to the nearest line point
+  for (const auto & v : triangles) {
+    double best = 1e300;
+    float side = 0.5f;
+    for (size_t i = 0; i < line.size(); ++i) {
+      const double d = (Vector2(v.x, v.y) - Vector2(line[i].x, line[i].y)).length_squared();
+      if (d >= best) continue;
+      best = d;
+      const Vector3 & next = line[i + 1 < line.size() ? i + 1 : i];
+      const Vector3 & prev = line[i == 0 ? 0 : i - 1];
+      const Vector2 direction(next.x - prev.x, next.y - prev.y);
+      const Vector2 offset(v.x - line[i].x, v.y - line[i].y);
+      side = direction.cross(offset) > 0.0f ? 1.0f : 0.0f;
+    }
+    vertices.push_back(v);
+    uvs.push_back(Vector2(side, 0.0f));
+  }
+}
 }  // namespace line_geometry
 
 VectorMap::VectorMap() : lanelet_map_(new lanelet::LaneletMap) {}
@@ -363,7 +388,7 @@ void VectorMap::build_layer(const Array & parts, LayerGeometry & geometry)
       // Built directly in ROS coordinates (-> Godot), with UVs and normals for road borders
       LayerGeometry ros;
       if (kind == "shared_lines") {
-        ros.vertices = build_lines(part);
+        build_lines(part, ros);
       } else {
         build_road_borders(part, ros);
       }
@@ -487,28 +512,24 @@ lanelet::ConstLineStrings3d VectorMap::get_shared_white_lines() const
   return lanelet::ConstLineStrings3d(shared.begin(), shared.end());
 }
 
-std::vector<Vector3> VectorMap::build_lines(const Array & part) const
+void VectorMap::build_lines(const Array & part, LayerGeometry & geometry) const
 {
-  // ["shared_lines", width, dash, gap]: the shared lane lines, of width [m]; lines with the dashed
-  // subtype are drawn as dashes of dash [m] separated by gap [m]
+  // ["shared_lines", width, dash, gap]: the shared lane lines as strips of width [m] (UV.x 0..1
+  // across); lines with the dashed subtype are drawn as dashes of dash [m] separated by gap [m]
   auto param = [&part](int index, double fallback) {
     return part.size() > index ? double(part[index]) : fallback;
   };
   const double width = param(1, 0.05);
-  std::vector<Vector3> triangles;
   for (const auto & linestring : get_shared_white_lines()) {
     const auto line = line_geometry::to_points(linestring);
     const bool dashed =
       linestring.attributeOr(lanelet::AttributeName::Subtype, "") == std::string("dashed");
-    if (!dashed) {
-      line_geometry::append_ribbon(line, width, triangles);
-      continue;
-    }
-    for (const auto & dash : line_geometry::split_into_dashes(line, param(2, 1.0), param(3, 1.0))) {
-      line_geometry::append_ribbon(dash, width, triangles);
+    const auto pieces = dashed ? line_geometry::split_into_dashes(line, param(2, 1.0), param(3, 1.0))
+                               : std::vector<line_geometry::Points>{line};
+    for (const auto & piece : pieces) {
+      line_geometry::append_ribbon_uv(piece, width, geometry.vertices, geometry.uvs);
     }
   }
-  return triangles;
 }
 
 Array VectorMap::split_into_tiles(const LayerGeometry & geometry, double tile_size)

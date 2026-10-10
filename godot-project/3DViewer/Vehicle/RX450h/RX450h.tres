@@ -8,5 +8,6 @@ script = ExtResource("1")
 body_scene = ExtResource("2")
 body_transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1.4204, 0, 0)
 wheelbase_to_front = 3.78
+wheelbase = 2.79
 head_beam_position = Vector3(4.32562, 1.10939, 0)
 camera_near = 0.2

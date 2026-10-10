@@ -4,7 +4,8 @@ extends MeshInstance3D
 # within the camera's far distance (nothing beyond it is drawn) get a mesh, so large maps stay
 # cheap to draw. The tiles use this node's material_override.
 
-# At night the layer is lit (e.g. by the head lights), keeping its day color as emission
+# At night the layer is lit (e.g. by the head lights), keeping its day color as emission. With a
+# ShaderMaterial, its "night" parameter is set instead.
 @export var lit_at_night: bool = false
 @export var night_albedo: Color = Color(0.05, 0.06, 0.08)
 @export var build_budget_msec: float = 2.0  # time spent on creating meshes per frame
@@ -19,6 +20,9 @@ var _residency_timer := 0.0
 var _day_albedo: Color
 
 func _ready() -> void:
+	var shader_material := material_override as ShaderMaterial
+	if lit_at_night and shader_material != null:
+		Settings.bind("view/day_mode", func(mode): shader_material.set_shader_parameter("night", mode == "night"))
 	var material := material_override as BaseMaterial3D
 	if lit_at_night and material != null:
 		_day_albedo = material.albedo_color

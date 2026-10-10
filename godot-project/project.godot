@@ -37,6 +37,13 @@ ui_view_switch={
 
 common/enable_pause_aware_picking=true
 
+[shader_globals]
+
+ego_center={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
+
 [rendering]
 
 anti_aliasing/quality/msaa_3d=3
