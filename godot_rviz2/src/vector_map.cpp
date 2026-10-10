@@ -24,6 +24,7 @@
 #include <mapbox/earcut.hpp>
 
 #include <array>
+#include <set>
 #include <cmath>
 #include <unordered_map>
 #include <vector>
@@ -214,6 +215,82 @@ void triangulate_strip(
 }
 }  // namespace triangulation
 
+namespace line_geometry
+{
+using Points = std::vector<Vector3>;  // ROS coordinates
+
+Points to_points(const lanelet::ConstLineString3d & linestring)
+{
+  Points points;
+  for (const auto & point : linestring) {
+    points.emplace_back(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z());
+  }
+  return triangulation::remove_duplicates(points);
+}
+
+// Splits a polyline into dashes of dash_length [m] separated by gaps of gap_length [m]
+std::vector<Points> split_into_dashes(const Points & line, double dash_length, double gap_length)
+{
+  std::vector<Points> dashes;
+  if (line.size() < 2 || dash_length <= 0.0) return {line};
+  Points dash{line[0]};
+  bool in_dash = true;
+  double remaining = dash_length;  // of the current dash or gap
+  for (size_t i = 0; i + 1 < line.size(); ++i) {
+    Vector3 from = line[i];
+    const Vector3 to = line[i + 1];
+    double length = from.distance_to(to);
+    while (length > remaining) {
+      const Vector3 split = from + (to - from) * float(remaining / length);
+      if (in_dash) {
+        dash.push_back(split);
+        dashes.push_back(dash);
+        dash.clear();
+      } else {
+        dash = {split};
+      }
+      in_dash = !in_dash;
+      length -= remaining;
+      from = split;
+      remaining = in_dash ? dash_length : gap_length;
+    }
+    remaining -= length;
+    if (in_dash) dash.push_back(to);
+  }
+  if (in_dash && dash.size() >= 2) dashes.push_back(dash);
+  return dashes;
+}
+
+// Flat strip of width [m] centered on line, as up-facing triangles
+void append_ribbon(const Points & line, double width, std::vector<Vector3> & triangles)
+{
+  if (line.size() < 2) return;
+  const double half = width / 2.0;
+  Points left, right;
+  for (size_t i = 0; i < line.size(); ++i) {
+    // Direction at the point: average of the adjacent segments (miter), limited at sharp corners
+    const Vector3 & prev = line[i == 0 ? 0 : i - 1];
+    const Vector3 & next = line[i + 1 < line.size() ? i + 1 : i];
+    const Vector2 back = Vector2(line[i].x - prev.x, line[i].y - prev.y).normalized();
+    const Vector2 front = Vector2(next.x - line[i].x, next.y - line[i].y).normalized();
+    Vector2 direction = (back + front).normalized();
+    if (direction == Vector2()) direction = front == Vector2() ? back : front;
+    const Vector2 normal(-direction.y, direction.x);
+    // Keep the strip width at corners (limited, so sharp corners do not spike)
+    const Vector2 segment = front == Vector2() ? back : front;
+    const double miter = 1.0 / std::max(0.5, double(normal.dot(Vector2(-segment.y, segment.x))));
+    const Vector3 offset(normal.x * half * miter, normal.y * half * miter, 0.0);
+    left.push_back(line[i] + offset);
+    right.push_back(line[i] - offset);
+  }
+  for (size_t i = 0; i + 1 < line.size(); ++i) {
+    triangulation::push_triangle(triangles, left[i], right[i], left[i + 1]);
+    triangulation::push_triangle(triangles, left[i + 1], right[i], right[i + 1]);
+  }
+}
+
+}  // namespace line_geometry
+
 VectorMap::VectorMap() : lanelet_map_(new lanelet::LaneletMap) {}
 
 void VectorMap::_bind_methods()
@@ -281,6 +358,18 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     if (part.size() < 2) continue;
     const String kind = part[0];
     const String name = part[1];
+    if (kind == "shared_lines") {
+      // Built directly as vertices (ROS coordinates -> Godot)
+      std::vector<Vector3> ros_triangles = build_lines(part);
+      const int64_t offset = vertices.size();
+      vertices.resize(offset + int64_t(ros_triangles.size()));
+      Vector3 * dst = vertices.ptrw();
+      for (size_t j = 0; j < ros_triangles.size(); ++j) {
+        const Vector3 & p = ros_triangles[j];
+        dst[offset + int64_t(j)] = ros2_to_godot(p.x, p.y, p.z);
+      }
+      continue;
+    }
     Array triangles;
     if (kind == "lanelet") {
       triangles = get_lanelet_triangle_list(name);
@@ -298,6 +387,52 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     }
   }
   return vertices;
+}
+
+lanelet::ConstLineStrings3d VectorMap::get_shared_white_lines() const
+{
+  // Lane lines (line_thin / line_thick) shared by a road lanelet and another lanelet
+  std::unordered_set<lanelet::ConstLineString3d> shared;
+  const std::set<std::string> ground_labels = {"line_thin", "line_thick"};
+  auto add_if_shared = [&](const lanelet::ConstLanelet & lanelet, const lanelet::ConstLineString3d & bound) {
+    if (!has_label(bound, ground_labels)) return;
+    for (const auto & candidate : lanelet_map_->laneletLayer.findUsages(bound)) {
+      if (candidate == lanelet) continue;
+      if (candidate.leftBound() == bound || candidate.rightBound() == bound) {
+        shared.insert(bound);
+        return;
+      }
+    }
+  };
+  for (const auto & lanelet : road_lanelets_) {
+    add_if_shared(lanelet, lanelet.leftBound());
+    add_if_shared(lanelet, lanelet.rightBound());
+  }
+  return lanelet::ConstLineStrings3d(shared.begin(), shared.end());
+}
+
+std::vector<Vector3> VectorMap::build_lines(const Array & part) const
+{
+  // ["shared_lines", width, dash, gap]: the shared lane lines, of width [m]; lines with the dashed
+  // subtype are drawn as dashes of dash [m] separated by gap [m]
+  auto param = [&part](int index, double fallback) {
+    return part.size() > index ? double(part[index]) : fallback;
+  };
+  const double width = param(1, 0.05);
+  std::vector<Vector3> triangles;
+  for (const auto & linestring : get_shared_white_lines()) {
+    const auto line = line_geometry::to_points(linestring);
+    const bool dashed =
+      linestring.attributeOr(lanelet::AttributeName::Subtype, "") == std::string("dashed");
+    if (!dashed) {
+      line_geometry::append_ribbon(line, width, triangles);
+      continue;
+    }
+    for (const auto & dash : line_geometry::split_into_dashes(line, param(2, 1.0), param(3, 1.0))) {
+      line_geometry::append_ribbon(dash, width, triangles);
+    }
+  }
+  return triangles;
 }
 
 Array VectorMap::split_into_tiles(const PackedVector3Array & vertices, double tile_size)
@@ -415,49 +550,7 @@ Array VectorMap::get_linestring_triangle_list(const String & name, const float w
 {
   Array triangle_list;
   if (name == "shared_white_line") {
-    std::unordered_set<lanelet::ConstLineString3d> added_shared_white_lines;
-    const std::set<std::string> ground_labels = {"line_thin", "line_thick"};
-
-    for (const auto & lanelet : road_lanelets_) {
-      lanelet::ConstLineString3d left_ls = lanelet.leftBound();
-      lanelet::ConstLineString3d right_ls = lanelet.rightBound();
-
-      lanelet::Lanelets right_lane_candidates =
-        lanelet_map_->laneletLayer.findUsages(lanelet.rightBound());
-      for (auto & candidate : right_lane_candidates) {
-        // exclude self lanelet
-        if (candidate == lanelet) continue;
-        // exclude not shared lanelet
-        if (
-          candidate.leftBound() != lanelet.rightBound() &&
-          candidate.rightBound() != lanelet.rightBound())
-          continue;
-
-        if (has_label(lanelet.rightBound(), ground_labels))
-          added_shared_white_lines.insert(lanelet.rightBound());
-      }
-
-      lanelet::Lanelets left_lane_candidates =
-        lanelet_map_->laneletLayer.findUsages(lanelet.leftBound());
-      for (auto & candidate : left_lane_candidates) {
-        // exclude self lanelet
-        if (candidate == lanelet) continue;
-        // exclude not shared lanelet
-        if (
-          candidate.rightBound() != lanelet.leftBound() &&
-          candidate.leftBound() != lanelet.leftBound())
-          continue;
-
-        if (has_label(lanelet.leftBound(), ground_labels))
-          added_shared_white_lines.insert(lanelet.leftBound());
-      }
-    }
-
-    lanelet::ConstLineStrings3d shared_white_lines;
-    for (const auto & line : added_shared_white_lines) {
-      shared_white_lines.push_back(line);
-    }
-    triangle_list = get_as_triangle_list(shared_white_lines, width);
+    triangle_list = get_as_triangle_list(get_shared_white_lines(), width);
   } else if (name == "stop_line") {
     triangle_list = get_as_triangle_list(stop_lines_, width);
   } else if (name == "curbstone") {

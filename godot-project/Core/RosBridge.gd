@@ -35,9 +35,11 @@ const MAP_LAYERS := [
 		["lanelet", "road"], ["lanelet", "shoulder"],
 		["polygon", "intersection_area"], ["polygon", "hatched_road_markings_area"],
 		["polygon", "parking_lots"]]},
+	# Lane lines shared by two lanes: ["shared_lines", width, dash, gap] [m] (dashed ones as dashes)
 	{"name": "road_marker", "parts": [
 		["polygon", "pedestrian_marking"],
-		["linestring", "shared_white_line", 0.05], ["linestring", "stop_line", 0.5]]},
+		["shared_lines", 0.05, 1.0, 1.0],
+		["linestring", "stop_line", 0.5]]},
 ]
 
 const MAP_TILE_SIZE := 100.0  # the map layers are split into tiles of this size [m]
