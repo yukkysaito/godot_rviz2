@@ -332,7 +332,9 @@ bool VectorMap::start_build(const Array & layers, double tile_size)
     if (decode(*msg)) {
       for (int i = 0; i < layers.size(); ++i) {
         const Dictionary layer = layers[i];
-        layer_vertices[layer["name"]] = split_into_tiles(build_layer(layer["parts"]), tile_size);
+        LayerGeometry geometry;
+        build_layer(layer["parts"], geometry);
+        layer_vertices[layer["name"]] = split_into_tiles(geometry, tile_size);
       }
       result["traffic_lights"] = get_traffic_light_list();
     }
@@ -350,23 +352,27 @@ bool VectorMap::is_build_done() { return build_task_.is_done(); }
 
 Dictionary VectorMap::take_build_result() { return build_task_.take(); }
 
-PackedVector3Array VectorMap::build_layer(const Array & parts)
+void VectorMap::build_layer(const Array & parts, LayerGeometry & geometry)
 {
-  PackedVector3Array vertices;
   for (int i = 0; i < parts.size(); ++i) {
     const Array part = parts[i];
     if (part.size() < 2) continue;
     const String kind = part[0];
     const String name = part[1];
-    if (kind == "shared_lines") {
-      // Built directly as vertices (ROS coordinates -> Godot)
-      std::vector<Vector3> ros_triangles = build_lines(part);
-      const int64_t offset = vertices.size();
-      vertices.resize(offset + int64_t(ros_triangles.size()));
-      Vector3 * dst = vertices.ptrw();
-      for (size_t j = 0; j < ros_triangles.size(); ++j) {
-        const Vector3 & p = ros_triangles[j];
-        dst[offset + int64_t(j)] = ros2_to_godot(p.x, p.y, p.z);
+    if (kind == "shared_lines" || kind == "road_borders") {
+      // Built directly in ROS coordinates (-> Godot), with UVs and normals for road borders
+      LayerGeometry ros;
+      if (kind == "shared_lines") {
+        ros.vertices = build_lines(part);
+      } else {
+        build_road_borders(part, ros);
+      }
+      for (size_t j = 0; j < ros.vertices.size(); ++j) {
+        const Vector3 & p = ros.vertices[j];
+        geometry.vertices.push_back(ros2_to_godot(p.x, p.y, p.z));
+        geometry.uvs.push_back(j < ros.uvs.size() ? ros.uvs[j] : Vector2());
+        const Vector3 n = j < ros.normals.size() ? ros.normals[j] : Vector3(0, 0, 1);
+        geometry.normals.push_back(ros2_to_godot(n.x, n.y, n.z));
       }
       continue;
     }
@@ -378,15 +384,85 @@ PackedVector3Array VectorMap::build_layer(const Array & parts)
     } else if (kind == "linestring") {
       triangles = get_linestring_triangle_list(name, part.size() > 2 ? float(part[2]) : 0.1f);
     }
-    const int64_t offset = vertices.size();
-    vertices.resize(offset + triangles.size());
-    Vector3 * dst = vertices.ptrw();
     for (int j = 0; j < triangles.size(); ++j) {
       const Dictionary vertex = triangles[j];
-      dst[offset + j] = vertex["position"];
+      geometry.vertices.push_back(vertex["position"]);
+      geometry.uvs.push_back(Vector2());
+      geometry.normals.push_back(Vector3(0, 1, 0));
     }
   }
-  return vertices;
+}
+
+void VectorMap::build_road_borders(const Array & part, LayerGeometry & geometry) const
+{
+  // ["road_borders", style, width, height]: a shape along every road border (ROS coordinates)
+  //   "line":  flat strip of width, UV.x 0..1 across, UV.y the distance along [m]
+  //   "curb":  low rounded curb of width and height, UV.x 0..1 across its profile
+  //   "wall":  vertical strip of height, UV.x the distance along [m], UV.y 0 at the bottom, 1 at the top
+  const String style = part[1];
+  const double width = part.size() > 2 ? double(part[2]) : 0.1;
+  const double height = part.size() > 3 ? double(part[3]) : 0.15;
+  // Cross-section of the curb: (offset across / half width, height / height), rounded top
+  const std::vector<Vector2> curb_profile = {
+    {-1.0f, 0.0f}, {-0.95f, 0.55f}, {-0.8f, 0.88f}, {-0.5f, 1.0f},
+    {0.5f, 1.0f}, {0.8f, 0.88f}, {0.95f, 0.55f}, {1.0f, 0.0f}};
+  for (const auto & linestring : lanelet_map_->lineStringLayer) {
+    if (linestring.attributeOr(lanelet::AttributeName::Type, "") != std::string("road_border")) continue;
+    const auto line = line_geometry::to_points(linestring);
+    if (line.size() < 2) continue;
+    // Per point: side direction (left of the line), distance along
+    std::vector<Vector3> sides;
+    std::vector<double> along{0.0};
+    for (size_t i = 0; i < line.size(); ++i) {
+      const Vector3 & prev = line[i == 0 ? 0 : i - 1];
+      const Vector3 & next = line[i + 1 < line.size() ? i + 1 : i];
+      const Vector2 d = Vector2(next.x - prev.x, next.y - prev.y).normalized();
+      sides.emplace_back(-d.y, d.x, 0.0f);
+      if (i > 0) along.push_back(along.back() + line[i - 1].distance_to(line[i]));
+    }
+    auto quad = [&geometry](const Vector3 (&p)[4], const Vector2 (&uv)[4], const Vector3 (&n)[4]) {
+      for (const int k : {0, 2, 1, 1, 2, 3}) {
+        geometry.vertices.push_back(p[k]);
+        geometry.uvs.push_back(uv[k]);
+        geometry.normals.push_back(n[k]);
+      }
+    };
+    const Vector3 up(0, 0, 1);
+    for (size_t i = 0; i + 1 < line.size(); ++i) {
+      const float s0 = float(along[i]), s1 = float(along[i + 1]);
+      if (style == "line") {
+        const float h = float(width / 2);
+        const Vector3 p[4] = {line[i] - sides[i] * h, line[i] + sides[i] * h, line[i + 1] - sides[i + 1] * h, line[i + 1] + sides[i + 1] * h};
+        quad(p, {Vector2(0, s0), Vector2(1, s0), Vector2(0, s1), Vector2(1, s1)}, {up, up, up, up});
+      } else if (style == "wall") {
+        const Vector3 top(0, 0, float(height));
+        const Vector3 p[4] = {line[i], line[i] + top, line[i + 1], line[i + 1] + top};
+        quad(p, {Vector2(s0, 0), Vector2(s0, 1), Vector2(s1, 0), Vector2(s1, 1)}, {sides[i], sides[i], sides[i + 1], sides[i + 1]});
+      } else {  // curb
+        auto at = [&](size_t index, const Vector2 & profile) {
+          return line[index] + sides[index] * float(profile.x * width / 2) + up * float(profile.y * height);
+        };
+        auto normal_at = [&](size_t index, size_t k) {
+          // Smooth: average of the neighboring profile segments' normals
+          Vector2 n2;
+          for (const size_t a : {k == 0 ? k : k - 1, k}) {
+            const size_t b = std::min(a + 1, curb_profile.size() - 1);
+            const Vector2 d(float((curb_profile[b].x - curb_profile[a].x) * width / 2),
+                            float((curb_profile[b].y - curb_profile[a].y) * height));
+            n2 += Vector2(d.y, -d.x).normalized();
+          }
+          n2 = n2.normalized();  // (across, up): outward from the curb
+          return (sides[index] * -n2.x + up * -n2.y).normalized();
+        };
+        for (size_t k = 0; k + 1 < curb_profile.size(); ++k) {
+          const float u0 = float(k) / (curb_profile.size() - 1), u1 = float(k + 1) / (curb_profile.size() - 1);
+          const Vector3 p[4] = {at(i, curb_profile[k]), at(i, curb_profile[k + 1]), at(i + 1, curb_profile[k]), at(i + 1, curb_profile[k + 1])};
+          const Vector3 n[4] = {normal_at(i, k), normal_at(i, k + 1), normal_at(i + 1, k), normal_at(i + 1, k + 1)};
+          quad(p, {Vector2(u0, s0), Vector2(u1, s0), Vector2(u0, s1), Vector2(u1, s1)}, n);
+        }
+      }
+    }
+  }
 }
 
 lanelet::ConstLineStrings3d VectorMap::get_shared_white_lines() const
@@ -435,41 +511,53 @@ std::vector<Vector3> VectorMap::build_lines(const Array & part) const
   return triangles;
 }
 
-Array VectorMap::split_into_tiles(const PackedVector3Array & vertices, double tile_size)
+Array VectorMap::split_into_tiles(const LayerGeometry & geometry, double tile_size)
 {
-  Array tiles;
-  if (tile_size <= 0.0) {
-    Dictionary tile;
-    tile["center"] = Vector3();
-    tile["vertices"] = vertices;
-    tiles.append(tile);
-    return tiles;
-  }
-
   // Each triangle goes to the tile (on the ground plane) that contains its centroid
-  std::unordered_map<uint64_t, std::vector<Vector3>> buckets;
-  const Vector3 * src = vertices.ptr();
-  for (int64_t i = 0; i + 2 < vertices.size(); i += 3) {
-    const Vector3 centroid = (src[i] + src[i + 1] + src[i + 2]) / 3.0f;
-    const auto tx = static_cast<int64_t>(std::floor(centroid.x / tile_size));
-    const auto tz = static_cast<int64_t>(std::floor(centroid.z / tile_size));
+  struct Bucket
+  {
+    std::vector<Vector3> vertices, normals;
+    std::vector<Vector2> uvs;
+  };
+  std::unordered_map<uint64_t, Bucket> buckets;
+  const auto & v = geometry.vertices;
+  for (size_t i = 0; i + 2 < v.size(); i += 3) {
+    int64_t tx = 0, tz = 0;
+    if (tile_size > 0.0) {
+      const Vector3 centroid = (v[i] + v[i + 1] + v[i + 2]) / 3.0f;
+      tx = static_cast<int64_t>(std::floor(centroid.x / tile_size));
+      tz = static_cast<int64_t>(std::floor(centroid.z / tile_size));
+    }
     auto & bucket = buckets[(static_cast<uint64_t>(tx) << 32) ^ static_cast<uint32_t>(tz)];
-    bucket.insert(bucket.end(), {src[i], src[i + 1], src[i + 2]});
+    for (size_t k = i; k < i + 3; ++k) {
+      bucket.vertices.push_back(v[k]);
+      bucket.uvs.push_back(geometry.uvs[k]);
+      bucket.normals.push_back(geometry.normals[k]);
+    }
   }
 
-  for (const auto & [key, triangles] : buckets) {
+  Array tiles;
+  for (const auto & [key, bucket] : buckets) {
     const auto tx = static_cast<int32_t>(key >> 32);
     const auto tz = static_cast<int32_t>(key & 0xFFFFFFFF);
     // Vertices relative to the tile center (better precision far from the map origin)
-    const Vector3 center((tx + 0.5) * tile_size, 0.0f, (tz + 0.5) * tile_size);
-    PackedVector3Array relative;
-    relative.resize(static_cast<int64_t>(triangles.size()));
-    Vector3 * dst = relative.ptrw();
-    for (size_t i = 0; i < triangles.size(); ++i) dst[i] = triangles[i] - center;
-
+    const Vector3 center =
+      tile_size > 0.0 ? Vector3((tx + 0.5) * tile_size, 0.0f, (tz + 0.5) * tile_size) : Vector3();
+    PackedVector3Array vertices, normals;
+    PackedVector2Array uvs;
+    vertices.resize(int64_t(bucket.vertices.size()));
+    normals.resize(vertices.size());
+    uvs.resize(vertices.size());
+    for (size_t i = 0; i < bucket.vertices.size(); ++i) {
+      vertices.ptrw()[i] = bucket.vertices[i] - center;
+      normals.ptrw()[i] = bucket.normals[i];
+      uvs.ptrw()[i] = bucket.uvs[i];
+    }
     Dictionary tile;
     tile["center"] = center;
-    tile["vertices"] = relative;
+    tile["vertices"] = vertices;
+    tile["normals"] = normals;
+    tile["uvs"] = uvs;
     tiles.append(tile);
   }
   return tiles;

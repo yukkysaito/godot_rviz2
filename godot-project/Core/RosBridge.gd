@@ -40,6 +40,10 @@ const MAP_LAYERS := [
 		["polygon", "pedestrian_marking"],
 		["shared_lines", 0.05, 1.0, 1.0],
 		["linestring", "stop_line", 0.5]]},
+	# Road borders (curbs): a curtain of light and a soft glow on the ground along them
+	# (["road_borders", style, width, height] [m], style line / curb / wall)
+	{"name": "road_border", "parts": [["road_borders", "wall", 0.0, 0.8]]},
+	{"name": "road_border_glow", "parts": [["road_borders", "line", 0.4, 0.0]]},
 ]
 
 const MAP_TILE_SIZE := 100.0  # the map layers are split into tiles of this size [m]
