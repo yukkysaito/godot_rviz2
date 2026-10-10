@@ -76,7 +76,8 @@ public:
    *   [kind, layer(, width)] with kind "lanelet", "polygon" or "linestring" (see the
    *   get_*_triangle_list methods), or a line string query by type / subtype (comma separated):
    *   ["shared_lines", width, dash, gap] for the lane lines shared by two lanelets (dashed as dashes
-   *   of dash [m] separated by gap [m]).
+   *   of dash [m] separated by gap [m]), or ["road_borders", style, width, height] for a shape
+   *   along the road borders (see build_road_borders()).
    * @param tile_size Each layer is split into square tiles of this size [m] on the ground plane
    *   (by triangle centroid), so that only the tiles in view need meshes. 0: a single tile.
    * @return false if there is no map message or a build is already running.
@@ -92,7 +93,8 @@ public:
   /**
    * @brief Takes the result of the finished build.
    * @return Dictionary {"layers": {name: Array of tiles {"center": Vector3, "vertices":
-   *   PackedVector3Array of triangle vertices relative to center}},
+   *   PackedVector3Array of triangle vertices relative to center, "normals": PackedVector3Array,
+   *   "uvs": PackedVector2Array}},
    *   "traffic_lights": Array (see get_traffic_light_list())}
    */
   Dictionary take_build_result();
@@ -135,10 +137,16 @@ private:
   AsyncTask<Dictionary> build_task_;
 
   bool decode(const autoware_map_msgs::msg::LaneletMapBin & msg);
-  PackedVector3Array build_layer(const Array & parts);
+  struct LayerGeometry
+  {
+    std::vector<Vector3> vertices, normals;  // triangles
+    std::vector<Vector2> uvs;
+  };
+  void build_layer(const Array & parts, LayerGeometry & geometry);
+  void build_road_borders(const Array & part, LayerGeometry & geometry) const;
   std::vector<Vector3> build_lines(const Array & part) const;
   lanelet::ConstLineStrings3d get_shared_white_lines() const;
-  static Array split_into_tiles(const PackedVector3Array & vertices, double tile_size);
+  static Array split_into_tiles(const LayerGeometry & geometry, double tile_size);
 
   Array get_as_triangle_list(const lanelet::ConstPolygons3d & polygons) const;
   Array get_as_triangle_list(const lanelet::ConstLanelets & lanelets) const;

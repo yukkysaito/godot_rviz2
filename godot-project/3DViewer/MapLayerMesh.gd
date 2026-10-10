@@ -11,6 +11,8 @@ extends MeshInstance3D
 @export var residency_interval: float = 0.25  # how often the tiles in view are updated [s]
 
 var _vertices: Array[PackedVector3Array] = []  # triangle vertices per tile, relative to its center
+var _normals: Array[PackedVector3Array] = []
+var _uvs: Array[PackedVector2Array] = []
 var _in_view: TileResidency
 var _meshes: TileMeshes
 var _residency_timer := 0.0
@@ -28,7 +30,8 @@ func _set_night(material: BaseMaterial3D, night: bool) -> void:
 	material.emission_enabled = night
 	material.emission = _day_albedo
 
-# tiles: Array of {"center": Vector3, "vertices": PackedVector3Array} (see VectorMap.start_build())
+# tiles: Array of {"center": Vector3, "vertices": PackedVector3Array, "normals": PackedVector3Array,
+# "uvs": PackedVector2Array} (see VectorMap.start_build())
 func set_tiles(tiles: Array, tile_size: float) -> void:
 	if _meshes != null:
 		_meshes.clear()
@@ -36,10 +39,14 @@ func set_tiles(tiles: Array, tile_size: float) -> void:
 	_in_view = TileResidency.new(0.0, tile_size, tile_size)
 	_meshes = TileMeshes.new(self, [material_override], _make_mesh, _desired_level)
 	_vertices.clear()
+	_normals.clear()
+	_uvs.clear()
 	for tile in tiles:
 		_in_view.add(tile["center"])
 		_meshes.add_tile(tile["center"])
 		_vertices.append(tile["vertices"])
+		_normals.append(tile.get("normals", PackedVector3Array()))
+		_uvs.append(tile.get("uvs", PackedVector2Array()))
 	_residency_timer = 0.0
 
 func _process(delta: float) -> void:
@@ -61,13 +68,17 @@ func _desired_level(id: int) -> int:
 
 func _make_mesh(id: int, _level: int) -> Mesh:
 	var vertices := _vertices[id]
-	var normals := PackedVector3Array()
-	normals.resize(vertices.size())
-	normals.fill(Vector3.UP)
+	var normals := _normals[id]
+	if normals.size() != vertices.size():
+		normals = PackedVector3Array()
+		normals.resize(vertices.size())
+		normals.fill(Vector3.UP)
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
+	if _uvs[id].size() == vertices.size():
+		arrays[Mesh.ARRAY_TEX_UV] = _uvs[id]
 	var tile_mesh := ArrayMesh.new()
 	tile_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	return tile_mesh

@@ -1,9 +1,11 @@
-[gd_scene load_steps=62 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=66 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
 [ext_resource type="Script" path="res://3DViewer/Main.gd" id="3"]
 [ext_resource type="Script" path="res://3DViewer/MapLayerMesh.gd" id="4"]
+[ext_resource type="Shader" path="res://3DViewer/Shaders/road_border_curtain.gdshader" id="road_border_shader"]
+[ext_resource type="Shader" path="res://3DViewer/Shaders/road_border_glow.gdshader" id="road_border_glow_shader"]
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
@@ -105,6 +107,14 @@ shading_mode = 0
 albedo_color = Color(0.529412, 0.529412, 0.529412, 1)
 proximity_fade_distance = 1000.0
 distance_fade_max_distance = 200.0
+
+[sub_resource type="ShaderMaterial" id="road_border_material"]
+render_priority = -1
+shader = ExtResource("road_border_shader")
+
+[sub_resource type="ShaderMaterial" id="road_border_glow_material"]
+render_priority = -2
+shader = ExtResource("road_border_glow_shader")
 
 [sub_resource type="ArrayMesh" id="18"]
 resource_name = "mesh"
@@ -260,6 +270,18 @@ lit_at_night = true
 material_override = SubResource("19")
 mesh = SubResource("18")
 skeleton = NodePath("../RoadSurfaceMesh")
+script = ExtResource("4")
+
+[node name="RoadBorderMesh" type="MeshInstance3D" parent="VectorMap"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+material_override = SubResource("road_border_material")
+cast_shadow = 0
+script = ExtResource("4")
+
+[node name="RoadBorderGlowMesh" type="MeshInstance3D" parent="VectorMap"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+material_override = SubResource("road_border_glow_material")
+cast_shadow = 0
 script = ExtResource("4")
 
 [node name="TrafficLightGroupsManager" type="Node3D" parent="VectorMap"]
