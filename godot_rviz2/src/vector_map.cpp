@@ -23,6 +23,7 @@
 
 #include <mapbox/earcut.hpp>
 
+#include <algorithm>
 #include <array>
 #include <set>
 #include <cmath>
@@ -808,6 +809,7 @@ void convert_to_godot_array(
       board_dict["left_bottom_position"] = traffic_light.board.left_bottom_position;
       board_dict["normal"] = traffic_light.board.normal;
       traffic_light_dict["board"] = board_dict;
+      if (traffic_light.has_pole) traffic_light_dict["pole_base"] = traffic_light.pole_base;
       Array light_bulbs;
       for (const auto & light_bulb : traffic_light.light_bulbs) {
         Dictionary light_bulb_dict;
@@ -917,10 +919,94 @@ void get_traffic_light_groups_from_lanelet_map(
   }
 }
 
+void VectorMap::add_traffic_light_poles(std::vector<TrafficLightGroup> & groups) const
+{
+  // The pole stands on the road border point nearest to the board (2D), within kPoleReach: where a
+  // pole holding the light over the road would stand. Its foot is at the road border's height, which
+  // must be below the board (not a road above or far below, at a grade separation). Lights whose
+  // poles would stand close together share one.
+  constexpr float kPoleReach = 20.0f;  // [m]
+  constexpr float kCell = 10.0f;  // [m]
+  constexpr float kMinHeight = 1.5f;  // board bottom above the foot [m]
+  constexpr float kMaxHeight = 8.0f;
+  constexpr float kShareDistance = 2.0f;  // [m]
+  std::vector<Vector3> poles;  // feet (ROS coordinates)
+  // Road border segments (ROS coordinates) per grid cell
+  std::vector<std::pair<Vector3, Vector3>> segments;
+  std::unordered_map<uint64_t, std::vector<size_t>> cells;
+  auto key_of = [](int64_t x, int64_t y) {
+    return (static_cast<uint64_t>(x) << 32) ^ static_cast<uint32_t>(y);
+  };
+  for (const auto & linestring : lanelet_map_->lineStringLayer) {
+    if (linestring.attributeOr(lanelet::AttributeName::Type, "") != std::string("road_border")) {
+      continue;
+    }
+    const auto line = line_geometry::to_points(linestring);
+    for (size_t i = 0; i + 1 < line.size(); ++i) {
+      const Vector3 & a = line[i];
+      const Vector3 & b = line[i + 1];
+      for (auto x = int64_t(std::floor(std::min(a.x, b.x) / kCell));
+           x <= int64_t(std::floor(std::max(a.x, b.x) / kCell)); ++x) {
+        for (auto y = int64_t(std::floor(std::min(a.y, b.y) / kCell));
+             y <= int64_t(std::floor(std::max(a.y, b.y) / kCell)); ++y) {
+          cells[key_of(x, y)].push_back(segments.size());
+        }
+      }
+      segments.emplace_back(a, b);
+    }
+  }
+  const auto reach = int64_t(std::ceil(kPoleReach / kCell));
+  for (auto & group : groups) {
+    for (auto & traffic_light : group.traffic_lights) {
+      // Board bottom center (ROS coordinates)
+      const Board & board = traffic_light.board;
+      const Vector3 bottom = (board.left_bottom_position + board.right_bottom_position) * 0.5f;
+      const Vector2 p(bottom.x, -bottom.z);
+      const float bottom_height = bottom.y;
+      float best = kPoleReach;
+      Vector3 foot;
+      const auto cx = int64_t(std::floor(p.x / kCell));
+      const auto cy = int64_t(std::floor(p.y / kCell));
+      for (int64_t dx = -reach; dx <= reach; ++dx) {
+        for (int64_t dy = -reach; dy <= reach; ++dy) {
+          const auto cell = cells.find(key_of(cx + dx, cy + dy));
+          if (cell == cells.end()) continue;
+          for (const auto index : cell->second) {
+            const Vector3 & a = segments[index].first;
+            const Vector3 & b = segments[index].second;
+            const Vector2 ab(b.x - a.x, b.y - a.y);
+            const float length2 = ab.length_squared();
+            const float t =
+              length2 > 0.0f ? CLAMP((p - Vector2(a.x, a.y)).dot(ab) / length2, 0.0f, 1.0f) : 0.0f;
+            const Vector3 q = a + (b - a) * t;
+            const float height = bottom_height - q.z;
+            if (height < kMinHeight || height > kMaxHeight) continue;
+            const float d = Vector2(q.x, q.y).distance_to(p);
+            if (d < best) best = d, foot = q;
+          }
+        }
+      }
+      if (best < kPoleReach) {
+        const auto shared = std::find_if(poles.begin(), poles.end(), [&](const Vector3 & pole) {
+          return pole.distance_to(foot) < kShareDistance;
+        });
+        if (shared != poles.end()) {
+          foot = *shared;
+        } else {
+          poles.push_back(foot);
+        }
+        traffic_light.has_pole = true;
+        traffic_light.pole_base = ros2_to_godot(foot.x, foot.y, foot.z);
+      }
+    }
+  }
+}
+
 Array VectorMap::get_traffic_light_list()
 {
   std::vector<TrafficLightGroup> traffic_light_groups;
   get_traffic_light_groups_from_lanelet_map(traffic_lights_, traffic_light_groups);
+  add_traffic_light_poles(traffic_light_groups);
 
   Array traffic_light_list;
   convert_to_godot_array(traffic_light_groups, traffic_light_list);

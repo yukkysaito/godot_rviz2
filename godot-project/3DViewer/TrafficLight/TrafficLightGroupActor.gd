@@ -17,6 +17,13 @@ extends Node3D
 # -----------------------------
 var group_id: int = -1
 
+# Estimated support pole (see VectorMap::add_traffic_light_poles) and the arm to the board [m]
+const POLE_RADIUS := 0.1
+const ARM_RADIUS := 0.05
+static var _pole_mesh: CylinderMesh
+static var _arm_mesh: CylinderMesh
+static var _pole_materials: Dictionary = {}  # color -> ShaderMaterial
+
 # key = "color:arrow" -> Array[TrafficLightBulb]
 # Stored as Variant arrays inside Dictionary, so access via helper methods.
 var _bulbs_by_key: Dictionary = {}
@@ -151,6 +158,8 @@ func _build_one_traffic_light(tl: Dictionary, index: int) -> void:
 			var board_node := _create_board(board_center)
 			if board_node != null:
 				tl_root.add_child(board_node)
+			if tl.has("pole_base"):
+				_add_pole(tl_root, board_center, tl["pole_base"])
 
 	# --- Bulbs ---
 	var bulbs_any: Variant = tl.get("light_bulbs", null)
@@ -212,6 +221,49 @@ func _on_board(bulb: Dictionary, board: Dictionary) -> Dictionary:
 	result["position"] = pos - normal * normal.dot(pos - center)
 	result["normal"] = normal
 	return result
+
+# A pole standing at `base` and an arm from it to the top of the board's back
+func _add_pole(parent: Node3D, board: Dictionary, base: Vector3) -> void:
+	var normal: Vector3 = (board["normal"] as Vector3).normalized()  # points to the back
+	var attach: Vector3 = (board["position"] as Vector3) + normal * (z_offset_board + 0.03) \
+		+ Vector3.UP * (float(board["height"]) * 0.5 + ARM_RADIUS)
+	var top := Vector3(base.x, attach.y, base.z)
+	if _pole_mesh == null:
+		_pole_mesh = _unit_cylinder(POLE_RADIUS, 12)
+		_arm_mesh = _unit_cylinder(ARM_RADIUS, 8)
+	parent.add_child(_cylinder(_pole_mesh, base, top + Vector3.UP * 0.3))
+	if top.distance_to(attach) > POLE_RADIUS * 2.0:
+		parent.add_child(_cylinder(_arm_mesh, top, attach))
+
+static func _unit_cylinder(radius: float, segments: int) -> CylinderMesh:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius
+	mesh.bottom_radius = radius
+	mesh.height = 1.0
+	mesh.radial_segments = segments
+	mesh.rings = 1
+	return mesh
+
+# A shared unit cylinder (along local Y) stretched from `from` to `to`
+func _cylinder(mesh: CylinderMesh, from: Vector3, to: Vector3) -> MeshInstance3D:
+	var axis := to - from
+	var direction := axis.normalized()
+	var side := direction.cross(Vector3.FORWARD if abs(direction.z) < 0.9 else Vector3.RIGHT).normalized()
+	var cylinder := MeshInstance3D.new()
+	cylinder.mesh = mesh
+	cylinder.material_override = _pole_material(board_color)
+	cylinder.basis = Basis(side, axis, side.cross(direction))
+	cylinder.position = (from + to) * 0.5
+	return cylinder
+
+static func _pole_material(color: Color) -> ShaderMaterial:
+	if not _pole_materials.has(color):
+		var material := ShaderMaterial.new()
+		material.shader = preload("res://3DViewer/Shaders/signal_pole.gdshader")
+		var linear := color.srgb_to_linear()
+		material.set_shader_parameter("color", Vector3(linear.r, linear.g, linear.b))
+		_pole_materials[color] = material
+	return _pole_materials[color]
 
 func _create_bulb(bulb: Dictionary) -> TrafficLightBulb:
 	var pos: Vector3 = bulb.get("position", Vector3.ZERO)
