@@ -507,8 +507,8 @@ text = "Anti Alias"
 layout_mode = 2
 script = ExtResource("ui_setting_option")
 key = "display/anti_aliasing"
-values = PackedStringArray("off", "fxaa", "taa", "msaa_2x", "msaa_4x", "msaa_8x")
-labels = PackedStringArray("AA Off", "FXAA", "TAA", "MSAA 2x", "MSAA 4x", "MSAA 8x")
+values = PackedStringArray("off", "fxaa", "msaa_2x_fxaa", "taa", "msaa_2x", "msaa_4x", "msaa_8x")
+labels = PackedStringArray("AA Off", "FXAA", "MSAA 2x + FXAA", "TAA", "MSAA 2x", "MSAA 4x", "MSAA 8x")
 
 [node name="AlwaysOnTopContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body"]
 layout_mode = 2
