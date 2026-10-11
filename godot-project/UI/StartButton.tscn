@@ -1,46 +1,64 @@
 [gd_scene load_steps=6 format=3 uid="uid://cdctd2y5ojije"]
 
-[ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="1_kb51d"]
+[ext_resource type="FontFile" path="res://UI/Fonts/Barlow-SemiBold.ttf" id="1_kb51d"]
 [ext_resource type="Script" path="res://UI/StartButton.gd" id="1_w4g7y"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gp7f6"]
-content_margin_left = 100.0
-content_margin_top = 0.0
-content_margin_right = 100.0
-content_margin_bottom = 0.0
-bg_color = Color(0.0823529, 0.396078, 0.752941, 1)
-corner_radius_top_left = 60
-corner_radius_top_right = 60
-corner_radius_bottom_right = 60
-corner_radius_bottom_left = 60
-shadow_color = Color(0, 0, 0, 0.333333)
-shadow_size = 10
+content_margin_left = 90.0
+content_margin_top = 16.0
+content_margin_right = 90.0
+content_margin_bottom = 16.0
+bg_color = Color(0.16, 0.4, 0.95, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.78, 1.0, 0.8)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+shadow_color = Color(0.3, 0.5, 1.0, 0.35)
+shadow_size = 22
+anti_aliasing_size = 1.5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sxn5x"]
-content_margin_left = 100.0
-content_margin_top = 0.0
-content_margin_right = 100.0
-content_margin_bottom = 0.0
-bg_color = Color(0.0980392, 0.462745, 0.823529, 1)
-corner_radius_top_left = 60
-corner_radius_top_right = 60
-corner_radius_bottom_right = 60
-corner_radius_bottom_left = 60
-shadow_color = Color(0, 0, 0, 0.333333)
-shadow_size = 14
+content_margin_left = 90.0
+content_margin_top = 16.0
+content_margin_right = 90.0
+content_margin_bottom = 16.0
+bg_color = Color(0.22, 0.48, 1.0, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.85, 1.0, 0.9)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+shadow_color = Color(0.3, 0.5, 1.0, 0.5)
+shadow_size = 22
+anti_aliasing_size = 1.5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h2sl8"]
-content_margin_left = 100.0
-content_margin_top = 0.0
-content_margin_right = 100.0
-content_margin_bottom = 0.0
-bg_color = Color(0.0509804, 0.278431, 0.631373, 1)
-corner_radius_top_left = 60
-corner_radius_top_right = 60
-corner_radius_bottom_right = 60
-corner_radius_bottom_left = 60
-shadow_color = Color(0, 0, 0, 0.333333)
-shadow_size = 6
+content_margin_left = 90.0
+content_margin_top = 16.0
+content_margin_right = 90.0
+content_margin_bottom = 16.0
+bg_color = Color(0.1, 0.3, 0.8, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.7, 1.0, 0.8)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+shadow_color = Color(0.3, 0.5, 1.0, 0.25)
+shadow_size = 22
+anti_aliasing_size = 1.5
 
 [node name="CenterContainer" type="CenterContainer"]
 offset_right = 40.0
@@ -52,7 +70,7 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("1_kb51d")
-theme_override_font_sizes/font_size = 90
+theme_override_font_sizes/font_size = 44
 theme_override_styles/normal = SubResource("StyleBoxFlat_gp7f6")
 theme_override_styles/hover = SubResource("StyleBoxFlat_sxn5x")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_h2sl8")

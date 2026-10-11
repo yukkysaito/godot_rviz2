@@ -29,9 +29,10 @@ const DEFAULTS := {
 	"view/adaptive_camera_work": true,
 	"data/pointcloud_map": true,
 	"data/obstacle_segmentation": true,
-	"hud/top_status_bar": true,
-	"hud/operation_control": true,
-	"hud/vehicle_actuator_status": true,
+	# HUD parts (the keys are kept from the earlier HUD, so that saved choices still apply)
+	"hud/top_status_bar": true,  # operation mode and clock
+	"hud/operation_control": true,  # messages and the start button
+	"hud/vehicle_actuator_status": true,  # speed, turn signals, steering, distance to the stop
 	"vehicle/profile": "res://3DViewer/Vehicle/RX450h/RX450h.tres",
 }
 

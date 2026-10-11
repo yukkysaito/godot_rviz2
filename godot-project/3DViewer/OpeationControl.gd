@@ -11,8 +11,8 @@ var navidation_state: NavigationState = RosBridge.routing_state
 # -----------------------------------------------------------------------------
 # External UI references
 # -----------------------------------------------------------------------------
-@export var top_status_bar_path: NodePath
-@onready var _top_status_bar: TopStatusBar = get_node_or_null(top_status_bar_path) as TopStatusBar
+@export var hud_path: NodePath
+@onready var _hud: Hud = get_node_or_null(hud_path) as Hud
 
 @export var start_button_scene: PackedScene = preload("res://UI/StartButton.tscn")
 @export var message_panel_scene: PackedScene = preload("res://UI/MessagePanel.tscn")
@@ -60,9 +60,9 @@ func _update_and_apply_ui() -> void:
 	var can_auto: bool = operation_mode_state.is_autonomous_mode_available()
 	var is_auto: bool = operation_mode_state.is_autonomous_mode()
 
-	# 1) Update TopStatusBar (optional)
-	if _top_status_bar != null:
-		_top_status_bar.set_autonomous(is_auto)
+	# 1) Update the HUD's operation mode (optional)
+	if _hud != null:
+		_hud.set_autonomous(is_auto)
 
 	# 2) Update Operation UI
 	var ui: int = _compute_ui_state(route, can_auto, is_auto)
@@ -182,9 +182,10 @@ func _reconcile_start_button() -> void:
 	if _is_start_visible_target and (_start_root == null or not is_instance_valid(_start_root)):
 		var inst := start_button_scene.instantiate()
 		if inst is Control:
+			# In the lower half, between the ego vehicle and the speed
 			var c := inst as Control
 			c.anchor_left = 0.0
-			c.anchor_top = 0.0
+			c.anchor_top = 0.5
 			c.anchor_right = 1.0
 			c.anchor_bottom = 1.0
 			c.offset_left = 0

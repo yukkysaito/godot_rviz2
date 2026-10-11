@@ -14,6 +14,9 @@ extends MeshInstance3D
 
 const ACCEL_SPAN := 4.0  # [m] the acceleration is averaged over this, so that it changes smoothly
 
+# Distance to the planned stop along the trajectory [m], -1 without one (shown by the HUD)
+var stop_distance := -1.0
+
 var trajectory: Trajectory = RosBridge.trajectory
 var wheelbase_to_front: float = VehicleProfile.current().wheelbase_to_front
 
@@ -34,6 +37,7 @@ func _process(_delta: float) -> void:
 		return
 	var array_mesh := mesh as ArrayMesh
 	array_mesh.clear_surfaces()
+	stop_distance = -1.0
 	var strip := trajectory.get_trajectory_triangle_strip(width)
 	var chevrons := _chevron_arrays(strip)
 	if not chevrons.is_empty():
@@ -106,7 +110,11 @@ func _wall_arrays(strip: Array) -> Array:
 				stop = i
 			break
 	if stop < 0:
+		stop_distance = -1.0
 		return []
+	stop_distance = 0.0
+	for i in range(1, stop + 1):
+		stop_distance += _middle(strip, i).distance_to(_middle(strip, i - 1))
 	var right: Vector3 = strip[stop * 2]["position"]
 	var left: Vector3 = strip[stop * 2 + 1]["position"]
 	var across := (left - right).normalized()
@@ -133,3 +141,6 @@ func _wall_arrays(strip: Array) -> Array:
 	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_TEX_UV2] = uv2s
 	return arrays
+
+func _middle(strip: Array, i: int) -> Vector3:
+	return (strip[i * 2]["position"] + strip[i * 2 + 1]["position"]) * 0.5
