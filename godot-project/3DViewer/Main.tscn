@@ -136,7 +136,11 @@ distance_fade_max_distance = 25.0
 resource_name = "mesh"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2kruo"]
-bg_color = Color(0.196078, 0.196078, 0.196078, 0.952941)
+content_margin_left = 24.0
+content_margin_top = 24.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
+bg_color = Color(0.196078, 0.196078, 0.196078, 1)
 corner_radius_top_right = 30
 corner_radius_bottom_right = 30
 
@@ -345,12 +349,13 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2kruo")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel"]
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(352, 0)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 20)
+[node name="MenuTitle" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"MenuTitle"
+text = "Settings"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 layout_mode = 2
@@ -403,7 +408,7 @@ layout_mode = 2
 [node name="AALabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Anti Alias"
+text = "Anti-aliasing"
 
 [node name="AAOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay/Body/AAModeContainer"]
 layout_mode = 2
@@ -450,7 +455,7 @@ layout_mode = 2
 [node name="PointCloudMapLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Pointcloud Map"
+text = "Point cloud map"
 
 [node name="PointCloudMapToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/PointCloudMapContainer"]
 layout_mode = 2
@@ -464,7 +469,7 @@ layout_mode = 2
 [node name="ObstacleSegmentationLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Obstacle Segmentation"
+text = "Obstacle segmentation"
 
 [node name="ObstacleSegmentationToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData/Body/ObstacleSegmentationContainer"]
 layout_mode = 2
@@ -496,7 +501,7 @@ layout_mode = 2
 [node name="IgnoreUnknownObjectLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Ignore Unknown Object"
+text = "Ignore unknown objects"
 
 [node name="IgnoreUnknownObjectToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/IgnoreUnknownObjectContainer"]
 layout_mode = 2
@@ -510,7 +515,7 @@ layout_mode = 2
 [node name="ObjectModeLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Object Mode"
+text = "Object mode"
 
 [node name="ObjectModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
 layout_mode = 2
@@ -526,7 +531,7 @@ layout_mode = 2
 [node name="ObjectIconLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Object Icon"
+text = "Object icons"
 
 [node name="ObjectIconToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectIconContainer"]
 layout_mode = 2
@@ -540,7 +545,7 @@ layout_mode = 2
 [node name="DayModeLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Day Mode"
+text = "Day mode"
 
 [node name="DayModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
 layout_mode = 2
@@ -556,7 +561,7 @@ layout_mode = 2
 [node name="HighContrastLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/HighContrastContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "High Contrast"
+text = "High contrast"
 
 [node name="HighContrastToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/HighContrastContainer"]
 layout_mode = 2
@@ -570,7 +575,7 @@ layout_mode = 2
 [node name="CameraAutoReturnLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Camera Auto Return"
+text = "Camera auto return"
 
 [node name="CameraAutoReturnToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraAutoReturnContainer"]
 layout_mode = 2
@@ -584,7 +589,7 @@ layout_mode = 2
 [node name="AdaptiveCameraWorkLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/AdaptiveCameraWorkContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Adaptive Camera Work"
+text = "Adaptive camera work"
 
 [node name="AdaptiveCameraWorkToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/AdaptiveCameraWorkContainer"]
 layout_mode = 2
@@ -616,7 +621,7 @@ layout_mode = 2
 [node name="TopStatusBarLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Mode & Clock"
+text = "Mode & clock"
 
 [node name="TopStatusBarToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
@@ -630,7 +635,7 @@ layout_mode = 2
 [node name="OperationControlsLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Message Panel"
+text = "Message panel"
 
 [node name="OperationControlToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OperationControlContainer"]
 layout_mode = 2
@@ -644,7 +649,7 @@ layout_mode = 2
 [node name="VehicleActuatorStatusLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Speed & Signals"
+text = "Speed & signals"
 
 [node name="VehicleActuatorStatusToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2

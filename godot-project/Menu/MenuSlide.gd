@@ -19,6 +19,8 @@ var _is_open := false
 var _tween: Tween
 
 func _ready() -> void:
+	menu_panel.theme = MenuTheme.build()
+	_align_choices(menu_panel)
 	edge_handle.pressed.connect(_toggle)
 	edge_handle.focus_mode = Control.FOCUS_NONE
 
@@ -76,3 +78,11 @@ func _kill_tween() -> void:
 	# Prevent stacking tweens (e.g., repeated clicks)
 	if is_instance_valid(_tween):
 		_tween.kill()
+
+# The choices all as wide, aligned on the right
+func _align_choices(node: Node) -> void:
+	if node is OptionButton:
+		(node as OptionButton).fit_to_longest_item = false
+		(node as OptionButton).custom_minimum_size.x = 160
+	for child in node.get_children():
+		_align_choices(child)
