@@ -28,8 +28,21 @@ float hash21(vec2 p) {
 	return fract(p.x * p.y);
 }
 
+// Integer hash of a lattice point: exact, so that neighboring cells agree on their shared corners.
+// A float hash (as hash21) gives slightly different results for the same corner computed from two
+// cells once the coordinates grow (as the smoke drifts outward), which showed as seams.
+float hash_cell(vec2 i) {
+	uint h = uint(int(i.x)) * 0x8da6b343u ^ uint(int(i.y)) * 0xd8163841u;
+	h ^= h >> 16u;
+	h *= 0x7feb352du;
+	h ^= h >> 15u;
+	h *= 0x846ca68bu;
+	h ^= h >> 16u;
+	return float(h) * (1.0 / 4294967296.0);
+}
+
 vec2 grad(vec2 i) {
-	float a = hash21(i) * TAU;
+	float a = hash_cell(i) * TAU;
 	return vec2(cos(a), sin(a));
 }
 
