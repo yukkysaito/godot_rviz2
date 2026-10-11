@@ -31,8 +31,6 @@ void Trajectory::_bind_methods()
   // Bind the get_trajectory_triangle_strip method to Godot
   ClassDB::bind_method(
     D_METHOD("get_trajectory_triangle_strip"), &Trajectory::get_trajectory_triangle_strip);
-  // Bind the get_wall_triangle_strip method to Godot
-  ClassDB::bind_method(D_METHOD("get_wall_triangle_strip"), &Trajectory::get_wall_triangle_strip);
   // Additional method bindings for the TOPIC_SUBSCRIBER
   TOPIC_SUBSCRIBER_BIND_METHODS(Trajectory);
 }
@@ -70,75 +68,5 @@ Array Trajectory::get_trajectory_triangle_strip(const float width)
       quat, position, (width / 2.0), point.longitudinal_velocity_mps));
   }
 
-  return triangle_strip;
-}
-
-Array Trajectory::get_wall_triangle_strip(
-  const float width, const float height, const float length_offset, const bool ignore_start_point,
-  const bool ignore_end_point)
-{
-  // Initialize an empty array for the wall triangle strip
-  Array triangle_strip;
-  // Retrieve the last trajectory message
-  const auto last_msg = get_last_msg();
-  // If no message is found, return the empty array
-  if (!last_msg) return triangle_strip;
-
-  // Iterate over each point in the trajectory message
-  for (size_t i = 0; i < last_msg.value()->points.size(); i++) {
-    // Skip the start or end point if specified
-    if (
-      (ignore_end_point && i == last_msg.value()->points.size() - 1) ||
-      (ignore_start_point && i == 0)) {
-      continue;
-    }
-
-    const auto & point = last_msg.value()->points[i];
-    // A small epsilon to compare floating-point numbers
-    constexpr float eps = 0.0001;
-    // Only consider points with a velocity lower than the epsilon
-    if (point.longitudinal_velocity_mps < eps) {
-      const auto & pose = point.pose;
-      Eigen::Quaternionf quat(
-        pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-      Eigen::Vector3f position(pose.position.x, pose.position.y, pose.position.z);
-      const float half_width = width / 2.0;
-
-      // Define local points for the wall
-      std::vector<Eigen::Vector3f> local_points = {
-        Eigen::Vector3f(length_offset, -half_width, 0),
-        Eigen::Vector3f(length_offset, half_width, 0),
-        Eigen::Vector3f(length_offset, -half_width, height),
-        Eigen::Vector3f(length_offset, half_width, height)};
-
-      // Define the local and rotated normal
-      const Eigen::Vector3f local_normal(-1, 0, 0);
-      Eigen::Vector3f rotated_normal = quat * local_normal;
-
-      // Transform and append each point to the triangle strip
-      for (size_t j = 0; j < local_points.size(); j++) {
-        const auto & local_point = local_points[j];
-        Eigen::Vector3f rotated_point = quat * local_point;
-
-        Dictionary point_dict;
-        point_dict["position"] = ros2_to_godot(
-          position.x() + rotated_point.x(), position.y() + rotated_point.y(),
-          position.z() + rotated_point.z());
-        point_dict["normal"] =
-          ros2_to_godot(rotated_normal.x(), rotated_normal.y(), rotated_normal.z());
-        // Set color based on the position in the wall
-        if (j == 0 || j == 1) {
-          point_dict["color"] = Color(1.0, 0.0, 0.0, 1.0);  // Red color for the base
-        } else {
-          point_dict["color"] = Color(1.0, 0.0, 0.0, 0.0);  // Transparent red for the top
-        }
-
-        triangle_strip.append(point_dict);
-      }
-
-      // Break after the first point with velocity less than epsilon
-      break;
-    }
-  }
   return triangle_strip;
 }
