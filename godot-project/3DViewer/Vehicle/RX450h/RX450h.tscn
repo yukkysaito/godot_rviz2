@@ -57,6 +57,7 @@ emission = Color(0.922424, 0.373809, 7.70092e-07, 1)
 emission_energy_multiplier = 6.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yup73"]
+transparency = 1
 albedo_color = Color(0.996078, 0.745098, 0.717647, 0.14902)
 emission_enabled = true
 emission = Color(0.854902, 0.192157, 0.0196078, 1)
