@@ -43,20 +43,6 @@ public:
    */
   Array get_trajectory_triangle_strip(const float width);
 
-  /**
-   * @brief Generates a triangle strip for the wall.
-   *
-   * @param width Width of the wall
-   * @param height Height of the wall
-   * @param length_offset Offset along the length of the wall
-   * @param ignore_start_point Whether to ignore the start point
-   * @param ignore_end_point Whether to ignore the end point
-   * @return Array of triangle strips
-   */
-  Array get_wall_triangle_strip(
-    const float width, const float height, const float length_offset, const bool ignore_start_point,
-    const bool ignore_end_point);
-
   Trajectory() = default;
   ~Trajectory() = default;
 

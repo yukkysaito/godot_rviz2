@@ -1,4 +1,4 @@
-[gd_scene load_steps=69 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=68 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -130,12 +130,6 @@ albedo_color = Color(0.0862745, 0.313726, 0.494118, 0.964706)
 
 [sub_resource type="ArrayMesh" id="35"]
 resource_name = "mesh"
-
-[sub_resource type="StandardMaterial3D" id="24"]
-shading_mode = 0
-vertex_color_use_as_albedo = true
-distance_fade_mode = 1
-distance_fade_max_distance = 60.0
 
 [sub_resource type="ArrayMesh" id="23"]
 resource_name = "mesh"
@@ -307,7 +301,6 @@ mesh = SubResource("35")
 script = ExtResource("26")
 
 [node name="TrajectoryMesh" type="MeshInstance3D" parent="."]
-material_override = SubResource("24")
 mesh = SubResource("23")
 script = ExtResource("8")
 
