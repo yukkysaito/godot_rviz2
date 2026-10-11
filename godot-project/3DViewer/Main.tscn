@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=54 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -11,30 +11,16 @@
 [ext_resource type="Script" path="res://3DViewer/PointCloudMapMesh.gd" id="6"]
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
+[ext_resource type="Script" path="res://UI/Hud.gd" id="hud_script"]
 [ext_resource type="Script" path="res://3DViewer/Camera.gd" id="9"]
 [ext_resource type="Script" path="res://3DViewer/DynamicObject/DynamicObjectMesh.gd" id="10"]
 [ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
 [ext_resource type="PackedScene" uid="uid://biwx0nd3tu8lg" path="res://3DViewer/TrafficLight/Board/TrafficLightBoard.tscn" id="15_3ypoo"]
 [ext_resource type="PackedScene" uid="uid://c1jhsuxmew4q7" path="res://3DViewer/TrafficLight/TrafficLightGroupActor.tscn" id="15_hw4ln"]
 [ext_resource type="Script" path="res://3DViewer/OpeationControl.gd" id="18_utxm1"]
-[ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus/Steering.gd" id="19"]
-[ext_resource type="Texture2D" uid="uid://dheocmceyan8" path="res://3DViewer/VehicleActuatorStatus/steering.png" id="20"]
-[ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus.gd" id="20_ox2ly"]
-[ext_resource type="Texture2D" uid="uid://8nsarni0u0kg" path="res://3DViewer/VehicleActuatorStatus/console_meter.png" id="21"]
 [ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="22"]
-[ext_resource type="Texture2D" uid="uid://dxngfcjijk4iq" path="res://3DViewer/VehicleActuatorStatus/console_meter_hand.png" id="23"]
-[ext_resource type="Script" path="res://3DViewer/VehicleActuatorStatus/ConsoleMeter.gd" id="24"]
 [ext_resource type="Script" path="res://3DViewer/VectorMap.gd" id="25"]
 [ext_resource type="Script" path="res://3DViewer/PathMesh.gd" id="26"]
-[ext_resource type="PackedScene" uid="uid://da7j2bxx5eirv" path="res://3DViewer/TopStatusBar/TopStatusBar.tscn" id="27_3n38x"]
-[ext_resource type="Script" path="res://3DViewer/WeatherController.gd" id="28_g20aq"]
-[ext_resource type="Texture2D" uid="uid://delxeda502bmi" path="res://3DViewer/TopStatusBar/clear.png" id="29_mkj48"]
-[ext_resource type="Texture2D" uid="uid://cd0gef87615io" path="res://3DViewer/TopStatusBar/cloudy.png" id="30_k2bgy"]
-[ext_resource type="Texture2D" uid="uid://1m4xk6y1e38y" path="res://3DViewer/TopStatusBar/fog.png" id="31_mx7nu"]
-[ext_resource type="Texture2D" uid="uid://uehqbkwlcguq" path="res://3DViewer/TopStatusBar/rain.png" id="32_n27v5"]
-[ext_resource type="Texture2D" uid="uid://cgkbgks8rowoj" path="res://3DViewer/TopStatusBar/snow.png" id="33_0ovtp"]
-[ext_resource type="Texture2D" uid="uid://did771q82ss7k" path="res://3DViewer/TopStatusBar/thunder.png" id="34_mbrfa"]
-[ext_resource type="Texture2D" uid="uid://dcjlak8lpl4gj" path="res://3DViewer/TopStatusBar/unknown.png" id="35_cirdu"]
 [ext_resource type="Script" path="res://Menu/MenuSlide.gd" id="36_jtj5y"]
 [ext_resource type="Script" path="res://Menu/Selection.gd" id="37_ow1tw"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
@@ -311,76 +297,6 @@ script = ExtResource("10")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="VehicleActuatorStatus" type="Control" parent="HUD"]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -137.0
-offset_top = -149.0
-offset_right = 137.0
-offset_bottom = -21.0
-grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
-script = ExtResource("20_ox2ly")
-
-[node name="HBoxContainer" type="HBoxContainer" parent="HUD/VehicleActuatorStatus"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="SteeringSlot" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
-custom_minimum_size = Vector2(128, 128)
-layout_mode = 2
-mouse_filter = 2
-
-[node name="Steering" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/SteeringSlot"]
-position = Vector2(64, 64)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("20")
-flip_h = true
-region_rect = Rect2(100, 0, 256, 256)
-script = ExtResource("19")
-
-[node name="Spacer" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
-custom_minimum_size = Vector2(10, 0)
-layout_mode = 2
-mouse_filter = 2
-
-[node name="ConsoleMeterSlot" type="Control" parent="HUD/VehicleActuatorStatus/HBoxContainer"]
-custom_minimum_size = Vector2(128, 128)
-layout_mode = 2
-mouse_filter = 2
-
-[node name="ConsoleMeter" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot"]
-position = Vector2(64, 43)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("21")
-script = ExtResource("24")
-
-[node name="VelocityLabel" type="Label" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
-offset_left = -210.0
-offset_top = 58.0
-offset_right = 216.0
-offset_bottom = 185.0
-theme_override_colors/font_color = Color(0.321569, 0.321569, 0.321569, 1)
-theme_override_fonts/font = ExtResource("22")
-theme_override_font_sizes/font_size = 70
-text = "0Km"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Hand" type="Sprite2D" parent="HUD/VehicleActuatorStatus/HBoxContainer/ConsoleMeterSlot/ConsoleMeter"]
-position = Vector2(0, 50)
-texture = ExtResource("23")
-
 [node name="OperationControl" type="Control" parent="HUD"]
 layout_mode = 3
 anchors_preset = 15
@@ -392,25 +308,18 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("18_utxm1")
-top_status_bar_path = NodePath("../TopStatusBar")
+hud_path = NodePath("../Hud")
 
-[node name="TopStatusBar" parent="HUD" instance=ExtResource("27_3n38x")]
+[node name="Hud" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-
-[node name="WeatherController" type="Node" parent="HUD"]
-script = ExtResource("28_g20aq")
-status_bar_path = NodePath("../TopStatusBar")
-icon_clear = ExtResource("29_mkj48")
-icon_cloudy = ExtResource("30_k2bgy")
-icon_fog = ExtResource("31_mx7nu")
-icon_rain = ExtResource("32_n27v5")
-icon_snow = ExtResource("33_0ovtp")
-icon_thunder = ExtResource("34_mbrfa")
-icon_unknown = ExtResource("35_cirdu")
-
-[node name="GeoRequest" type="HTTPRequest" parent="HUD/WeatherController"]
-
-[node name="WeatherRequest" type="HTTPRequest" parent="HUD/WeatherController"]
+script = ExtResource("hud_script")
+trajectory_mesh_path = NodePath("../../TrajectoryMesh")
 
 [node name="Menu" type="CanvasLayer" parent="."]
 layer = 2
@@ -707,7 +616,7 @@ layout_mode = 2
 [node name="TopStatusBarLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Top Bar"
+text = "Mode & Clock"
 
 [node name="TopStatusBarToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/TopStatusBarContainer"]
 layout_mode = 2
@@ -735,7 +644,7 @@ layout_mode = 2
 [node name="VehicleActuatorStatusLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Steering/Meter"
+text = "Speed & Signals"
 
 [node name="VehicleActuatorStatusToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/VehicleActuatorStatusContainer"]
 layout_mode = 2
