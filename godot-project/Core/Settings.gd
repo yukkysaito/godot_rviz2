@@ -16,7 +16,10 @@ extends Node
 const DEFAULTS := {
 	"display/window_mode": "windowed",  # windowed, maximized, borderless_maximized, fullscreen
 	"display/always_on_top": false,
-	"display/anti_aliasing": "msaa_8x",  # off, fxaa, taa, msaa_2x, msaa_4x, msaa_8x
+	# MSAA 2x smooths the geometry edges at a small cost; FXAA after it smooths the edges of surfaces
+	# brighter than white (the sunlit ego vehicle), which MSAA leaves jagged as it is resolved before
+	# tonemapping
+	"display/anti_aliasing": "msaa_2x_fxaa",  # off, fxaa, msaa_2x_fxaa, taa, msaa_2x, msaa_4x, msaa_8x
 	"view/day_mode": "day",  # day, night
 	"view/object_mode": "model",  # model, geometry
 	"view/object_icons": true,
@@ -148,6 +151,9 @@ func _apply_display() -> void:
 			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 		"taa":
 			viewport.use_taa = true
+		"msaa_2x_fxaa":
+			viewport.msaa_3d = Viewport.MSAA_2X
+			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 		"msaa_2x":
 			viewport.msaa_3d = Viewport.MSAA_2X
 		"msaa_4x":

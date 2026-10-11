@@ -46,6 +46,7 @@ ego_center={
 
 [rendering]
 
-anti_aliasing/quality/msaa_3d=3
+anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/screen_space_aa=1
 environment/defaults/default_environment="res://3DViewer/default_env.tres"
 quality/filters/msaa=2
