@@ -25,6 +25,7 @@ void OperationModeChanger::_bind_methods()
     D_METHOD("change_to_autonomous_mode"), &OperationModeChanger::change_to_autonomous_mode);
   ClassDB::bind_method(
     D_METHOD("get_request_state"), &OperationModeChanger::get_request_state);
+  ClassDB::bind_method(D_METHOD("send_request"), &OperationModeChanger::send_request);
 }
 
 bool OperationModeChanger::create_client(const String & service_name)

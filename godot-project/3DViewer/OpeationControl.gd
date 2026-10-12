@@ -121,6 +121,17 @@ func _apply_ui_state(ui: int) -> void:
 			_hide_message()
 			_hide_start_button()
 
+# Presses the start button for the user (e.g. by voice, see UI/Orb.gd), only while it is shown.
+# Returns whether it was pressed.
+func press_start() -> bool:
+	if _last_ui_state != UiState.READY_TO_START or _start_root == null or not is_instance_valid(_start_root):
+		return false
+	var button := _start_root.get_node_or_null("StartButton") as Button
+	if button == null or button.disabled:
+		return false
+	button.pressed.emit()
+	return true
+
 # ===============================================================
 # Message Panel Handling
 # ===============================================================

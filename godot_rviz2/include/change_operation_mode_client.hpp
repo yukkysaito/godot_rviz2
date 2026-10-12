@@ -42,6 +42,12 @@ public:
   bool change_to_autonomous_mode();
 
   /**
+   * @brief Sends the request to the client's service (e.g. /api/operation_mode/change_to_stop),
+   * as change_to_autonomous_mode() does.
+   */
+  bool send_request() { return change_to_autonomous_mode(); }
+
+  /**
    * @brief State of the last request: "idle", "pending", "succeeded" or "failed".
    */
   String get_request_state();

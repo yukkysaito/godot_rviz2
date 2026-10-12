@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=55 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
 [ext_resource type="Script" path="res://UI/Hud.gd" id="hud_script"]
+[ext_resource type="Script" path="res://UI/Orb.gd" id="orb_script"]
 [ext_resource type="Script" path="res://3DViewer/Camera.gd" id="9"]
 [ext_resource type="Script" path="res://3DViewer/DynamicObject/DynamicObjectMesh.gd" id="10"]
 [ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
@@ -324,6 +325,17 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("hud_script")
 trajectory_mesh_path = NodePath("../../TrajectoryMesh")
+
+[node name="Orb" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("orb_script")
+operation_control_path = NodePath("../OperationControl")
 
 [node name="Menu" type="CanvasLayer" parent="."]
 layer = 2
@@ -656,6 +668,20 @@ layout_mode = 2
 focus_mode = 0
 script = ExtResource("ui_setting_toggle")
 key = "hud/vehicle_actuator_status"
+
+[node name="OrbContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
+layout_mode = 2
+
+[node name="OrbLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OrbContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Orb (voice copilot)"
+
+[node name="OrbToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/OrbContainer"]
+layout_mode = 2
+focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "hud/orb"
 
 [node name="MarginContainer2" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 10)

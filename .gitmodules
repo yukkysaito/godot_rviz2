@@ -1,3 +1,6 @@
 [submodule "godot"]
 	path = godot
 	url = https://github.com/godotengine/godot.git
+[submodule "godot_rviz2/thirdparty/whisper.cpp"]
+	path = godot_rviz2/thirdparty/whisper.cpp
+	url = https://github.com/ggml-org/whisper.cpp.git

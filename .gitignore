@@ -1,3 +1,6 @@
 .import
 .vscode
 .zip
+
+# speech recognition models (scripts/build_whisper.sh)
+models/

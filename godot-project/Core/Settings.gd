@@ -33,6 +33,7 @@ const DEFAULTS := {
 	"hud/top_status_bar": true,  # operation mode and clock
 	"hud/operation_control": true,  # messages and the start button
 	"hud/vehicle_actuator_status": true,  # speed, turn signals, steering, distance to the stop
+	"hud/orb": true,  # Orb, the voice copilot (UI/Orb.gd)
 	"vehicle/profile": "res://3DViewer/Vehicle/RX450h/RX450h.tres",
 }
 

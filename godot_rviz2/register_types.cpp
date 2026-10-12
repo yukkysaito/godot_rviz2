@@ -26,6 +26,7 @@
 #include "operation_mode_state.hpp"
 #include "parameter.hpp"
 #include "pointcloud.hpp"
+#include "speech_recognizer.hpp"
 #include "spinner.hpp"
 #include "steering_report.hpp"
 #include "traffic_lights.hpp"
@@ -55,6 +56,7 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<VelocityReport>();
   ClassDB::register_class<VectorMap>();
   ClassDB::register_class<Parameter>();
+  ClassDB::register_class<SpeechRecognizer>();
 }
 
 void uninitialize_godot_rviz2_module(ModuleInitializationLevel p_level)

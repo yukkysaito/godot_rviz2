@@ -99,3 +99,13 @@ msg_libs = list(map(lambda pkg: pkg + msg_gen_prefix, msg_pkgs))
 env.Append(LIBS=ros_libs
                 +['pcl_common']
                 +msg_libs)
+
+# whisper.cpp (speech recognition for the Orb voice copilot), optional: built into
+# thirdparty/whisper.cpp/build by scripts/build_whisper.sh
+whisper_path = "thirdparty/whisper.cpp"
+whisper_build = os.path.join(Dir(".").srcnode().abspath, whisper_path, "build")
+if os.path.exists(os.path.join(whisper_build, "src", "libwhisper.a")):
+    env.Append(CPPPATH=[whisper_path + "/include", whisper_path + "/ggml/include"])
+    env.Append(CPPDEFINES=["GODOT_RVIZ2_WHISPER"])
+    env.Append(LIBPATH=[os.path.join(whisper_build, "src"), os.path.join(whisper_build, "ggml", "src")])
+    env.Append(LIBS=["whisper", "ggml", "ggml-cpu", "ggml-base"])

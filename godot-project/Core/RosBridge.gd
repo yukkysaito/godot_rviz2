@@ -26,6 +26,7 @@ const TOPICS := {
 }
 const SERVICES := {
 	"change_to_autonomous": "/api/operation_mode/change_to_autonomous",
+	"change_to_stop": "/api/operation_mode/change_to_stop",
 }
 
 # Vector map geometry built on a worker thread as soon as the map arrives (even during the
@@ -140,7 +141,8 @@ func get_ego_position() -> Vector3:
 func is_ego_pose_ready() -> bool:
 	return get_ego_position() != Vector3.ZERO
 
-func create_operation_mode_changer() -> OperationModeChanger:
+# A client of an operation mode change (a key of SERVICES)
+func create_operation_mode_changer(service: String = "change_to_autonomous") -> OperationModeChanger:
 	var changer := OperationModeChanger.new()
-	changer.create_client(SERVICES["change_to_autonomous"])
+	changer.create_client(SERVICES[service])
 	return changer
