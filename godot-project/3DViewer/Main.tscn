@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=55 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://3DViewer/ObstacleSegmentationMesh.gd" id="7"]
 [ext_resource type="Script" path="res://3DViewer/TrajectoryMesh.gd" id="8"]
 [ext_resource type="Script" path="res://UI/Hud.gd" id="hud_script"]
+[ext_resource type="Script" path="res://3DViewer/GoalMarker.gd" id="goal_marker_script"]
 [ext_resource type="Script" path="res://3DViewer/Camera.gd" id="9"]
 [ext_resource type="Script" path="res://3DViewer/DynamicObject/DynamicObjectMesh.gd" id="10"]
 [ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
@@ -293,6 +294,9 @@ script = ExtResource("26")
 [node name="TrajectoryMesh" type="MeshInstance3D" parent="."]
 mesh = SubResource("23")
 script = ExtResource("8")
+
+[node name="GoalMarker" type="Node3D" parent="."]
+script = ExtResource("goal_marker_script")
 
 [node name="DynamicObjectMesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("26")

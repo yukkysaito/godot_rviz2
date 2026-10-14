@@ -18,6 +18,7 @@ const TOPICS := {
 	"traffic_signals": "/perception/traffic_light_recognition/traffic_signals",
 	"trajectory": "/planning/trajectory",
 	"behavior_path": "/planning/scenario_planning/lane_driving/behavior_planning/path",
+	"route": "/planning/mission_planning/route",
 	"turn_indicators": "/vehicle/status/turn_indicators_status",
 	"velocity": "/vehicle/status/velocity_status",
 	"steering": "/vehicle/status/steering_status",
@@ -68,6 +69,7 @@ var trajectory := Trajectory.new()
 var behavior_path := BehaviorPath.new()
 var operation_mode := OperationModeState.new()
 var routing_state := NavigationState.new()
+var route := Route.new()
 
 var _turn_indicators := VehicleStatus.new()
 var _velocity := VelocityReport.new()
@@ -84,11 +86,12 @@ var turn_right: bool = false
 func _enter_tree() -> void:
 	GodotRviz2Spinner.new().spin_some()  # starts the ROS node and its executor thread
 
-	# Maps and API states are latched (transient local)
+	# Maps, API states and the route are latched (transient local)
 	vector_map.subscribe(TOPICS["vector_map"], true)
 	pointcloud_map.subscribe(TOPICS["pointcloud_map"], true)
 	operation_mode.subscribe(TOPICS["operation_mode"], true)
 	routing_state.subscribe(TOPICS["routing_state"], true)
+	route.subscribe(TOPICS["route"], true)
 
 	obstacle_segmentation.subscribe(TOPICS["obstacle_segmentation"], false)
 	objects.subscribe(TOPICS["objects"], false)
