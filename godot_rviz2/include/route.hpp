@@ -43,6 +43,11 @@ public:
   Vector3 get_goal_position();
 
   /**
+   * @brief Start position in Godot's coordinate system (Vector3.ZERO without a route).
+   */
+  Vector3 get_start_position();
+
+  /**
    * @brief IDs of the route's preferred lanelets, from the start to the goal (empty without a
    * route).
    */

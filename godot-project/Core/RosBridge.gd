@@ -50,6 +50,7 @@ const MAP_LAYERS := [
 	{"name": "road_border_glow", "parts": [["road_borders", "line", 0.4, 0.0]]},
 ]
 
+const RouteTracker := preload("res://Core/RouteTracker.gd")
 const MAP_TILE_SIZE := 100.0  # the map layers are split into tiles of this size [m]
 
 signal map_ready  # map_geometry was (re)built
@@ -86,6 +87,9 @@ var has_route := false  # a route was received
 var goal_position := Vector3.ZERO
 # Centerline of the route's lanelets from the start to the goal; empty until the map is built
 var route_line := PackedVector3Array()
+# The ego vehicle's progress along the route and the remaining distance (see Core/RouteTracker.gd)
+var route_tracker := RouteTracker.new()
+var _start_position := Vector3.ZERO
 var _route_lanelet_ids := PackedInt64Array()
 var _route_line_outdated := false
 
@@ -122,6 +126,8 @@ func _process(_delta: float) -> void:
 		return
 	_update_map()
 	_update_route()
+	if has_route and is_ego_pose_ready():
+		route_tracker.update(get_ego_position())
 	if pointcloud_map.has_new():
 		PerfMonitor.mark("pointcloud_map_arrived")
 	if _velocity.has_new():
@@ -155,17 +161,32 @@ func _update_route() -> void:
 	if route.has_new():
 		has_route = route.has_route()
 		goal_position = route.get_goal_position()
+		_start_position = route.get_start_position()
 		_route_lanelet_ids = route.get_preferred_lanelet_ids()
 		route.set_old()
 		route_line = PackedVector3Array()  # until the map gives the new one
+		route_tracker.clear()
 		_route_line_outdated = true
 		changed = true
 	if _route_line_outdated and is_map_ready and not is_map_building:
 		route_line = vector_map.get_centerline(_route_lanelet_ids)
+		_set_route_tracker()
 		_route_line_outdated = false
 		changed = true
 	if changed:
 		route_changed.emit()
+
+func _set_route_tracker() -> void:
+	# The start is on the first lanelet and the goal on the last one
+	var first := _line_length(vector_map.get_centerline(_route_lanelet_ids.slice(0, 1)))
+	var last := _line_length(vector_map.get_centerline(_route_lanelet_ids.slice(-1)))
+	route_tracker.set_route(route_line, _start_position, goal_position, first, last)
+
+static func _line_length(line: PackedVector3Array) -> float:
+	var length := 0.0
+	for i in range(1, line.size()):
+		length += line[i].distance_to(line[i - 1])
+	return length
 
 # True if some node publishes the vector map (false e.g. while Autoware is not running)
 func has_map_publisher() -> bool:
