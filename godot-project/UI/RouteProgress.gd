@@ -29,6 +29,7 @@ func _ready() -> void:
 	_band.material = material
 	_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_band)
+	visible = false  # until _process() shows it, with its size
 	Settings.bind("hud/route_progress", func(on): _enabled = on)
 
 func _process(delta: float) -> void:
