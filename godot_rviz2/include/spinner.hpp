@@ -37,6 +37,12 @@ public:
    */
   inline void spin_some() { GodotRviz2::get_instance(); }
 
+  /**
+   * @brief Whether ROS was shut down, e.g. by Ctrl+C (SIGINT) or SIGTERM: rclcpp's signal handler
+   * only shuts ROS down, so the application has to quit itself.
+   */
+  inline bool is_shutdown() { return !rclcpp::ok(); }
+
 protected:
   /**
    * @brief Binds methods to the Godot system.

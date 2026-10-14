@@ -23,4 +23,5 @@ void GodotRviz2Spinner::_bind_methods()
 {
   // Bind the spin_some method to Godot
   ClassDB::bind_method(D_METHOD("spin_some"), &GodotRviz2Spinner::spin_some);
+  ClassDB::bind_method(D_METHOD("is_shutdown"), &GodotRviz2Spinner::is_shutdown);
 }
