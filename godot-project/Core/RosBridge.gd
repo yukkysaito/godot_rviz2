@@ -19,6 +19,7 @@ const TOPICS := {
 	"trajectory": "/planning/trajectory",
 	"behavior_path": "/planning/scenario_planning/lane_driving/behavior_planning/path",
 	"route": "/planning/mission_planning/route",
+	"map_projector_info": "/map/map_projector_info",
 	"turn_indicators": "/vehicle/status/turn_indicators_status",
 	"velocity": "/vehicle/status/velocity_status",
 	"steering": "/vehicle/status/steering_status",
@@ -52,6 +53,7 @@ const MAP_LAYERS := [
 const MAP_TILE_SIZE := 100.0  # the map layers are split into tiles of this size [m]
 
 signal map_ready  # map_geometry was (re)built
+signal route_changed  # the route (goal_position, route_line) changed
 
 # {"layers": {name: Array of tiles}, "traffic_lights": Array} (see VectorMap.take_build_result());
 # empty until the map is built
@@ -70,6 +72,7 @@ var behavior_path := BehaviorPath.new()
 var operation_mode := OperationModeState.new()
 var routing_state := NavigationState.new()
 var route := Route.new()
+var map_projection := MapProjection.new()
 
 var _turn_indicators := VehicleStatus.new()
 var _velocity := VelocityReport.new()
@@ -77,6 +80,14 @@ var _steering := SteeringReport.new()
 
 var _ego_pose := EgoPose.new()
 var _spinner := GodotRviz2Spinner.new()
+
+# --- Route (latest values)
+var has_route := false  # a route was received
+var goal_position := Vector3.ZERO
+# Centerline of the route's lanelets from the start to the goal; empty until the map is built
+var route_line := PackedVector3Array()
+var _route_lanelet_ids := PackedInt64Array()
+var _route_line_outdated := false
 
 # --- Vehicle state (latest values)
 var velocity: float = 0.0          # [m/s]
@@ -93,6 +104,7 @@ func _enter_tree() -> void:
 	operation_mode.subscribe(TOPICS["operation_mode"], true)
 	routing_state.subscribe(TOPICS["routing_state"], true)
 	route.subscribe(TOPICS["route"], true)
+	map_projection.subscribe(TOPICS["map_projector_info"], true)
 
 	obstacle_segmentation.subscribe(TOPICS["obstacle_segmentation"], false)
 	objects.subscribe(TOPICS["objects"], false)
@@ -109,6 +121,7 @@ func _process(_delta: float) -> void:
 		get_tree().quit()
 		return
 	_update_map()
+	_update_route()
 	if pointcloud_map.has_new():
 		PerfMonitor.mark("pointcloud_map_arrived")
 	if _velocity.has_new():
@@ -130,11 +143,29 @@ func _update_map() -> void:
 		PerfMonitor.measure_end("vector_map_geometry")
 		PerfMonitor.mark("vector_map_geometry_ready")
 		map_ready.emit()
+		_route_line_outdated = true
 	if vector_map.has_new() and vector_map.start_build(MAP_LAYERS, MAP_TILE_SIZE):
 		vector_map.set_old()
 		is_map_building = true
 		PerfMonitor.mark("vector_map_arrived")
 		PerfMonitor.measure_begin("vector_map_geometry")
+
+func _update_route() -> void:
+	var changed := false
+	if route.has_new():
+		has_route = route.has_route()
+		goal_position = route.get_goal_position()
+		_route_lanelet_ids = route.get_preferred_lanelet_ids()
+		route.set_old()
+		route_line = PackedVector3Array()  # until the map gives the new one
+		_route_line_outdated = true
+		changed = true
+	if _route_line_outdated and is_map_ready and not is_map_building:
+		route_line = vector_map.get_centerline(_route_lanelet_ids)
+		_route_line_outdated = false
+		changed = true
+	if changed:
+		route_changed.emit()
 
 # True if some node publishes the vector map (false e.g. while Autoware is not running)
 func has_map_publisher() -> bool:
@@ -143,6 +174,10 @@ func has_map_publisher() -> bool:
 # Ego position in Godot coordinates (Vector3.ZERO while unknown)
 func get_ego_position() -> Vector3:
 	return _ego_pose.get_ego_position()
+
+# Ego heading as a rotation about Godot's Y axis [rad]
+func get_ego_yaw() -> float:
+	return _ego_pose.get_ego_rotation().y
 
 # True once the ego pose (map -> base_link) is available
 func is_ego_pose_ready() -> bool:

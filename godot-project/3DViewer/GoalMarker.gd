@@ -14,7 +14,6 @@ extends Node3D
 @export var ground_offset: float = 0.05  # [m] above the goal, to stay over the road surface
 @export var fade_time: float = 0.6  # [s]
 
-var route: Route = RosBridge.route
 var routing_state: NavigationState = RosBridge.routing_state
 
 var _materials: Array[ShaderMaterial] = []
@@ -52,16 +51,15 @@ func _ready() -> void:
 	curtain.material_override.set_shader_parameter("height", curtain_height)
 
 	visible = false
+	position = RosBridge.goal_position
+	RosBridge.route_changed.connect(func(): position = RosBridge.goal_position)
 	var linear := color.srgb_to_linear()  # the shaders take linear colors
 	_set_parameter("color", Vector3(linear.r, linear.g, linear.b))
 	Settings.bind("view/high_contrast", func(enabled): _set_parameter("high_contrast", enabled))
 
 func _process(delta: float) -> void:
-	if route.has_new():
-		position = route.get_goal_position()
-		route.set_old()
 	# Without a routing state (e.g. an older Autoware) the goal is shown while there is a route
-	var shown := (route.has_route() and not routing_state.has_no_route()
+	var shown := (RosBridge.has_route and not routing_state.has_no_route()
 		and not routing_state.is_arrived())
 	_visibility = move_toward(_visibility, 1.0 if shown else 0.0, delta / fade_time)
 	visible = _visibility > 0.0

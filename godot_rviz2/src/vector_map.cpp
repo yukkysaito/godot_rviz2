@@ -332,6 +332,7 @@ void VectorMap::_bind_methods()
   ClassDB::bind_method(D_METHOD("start_build", "layers", "tile_size"), &VectorMap::start_build);
   ClassDB::bind_method(D_METHOD("is_build_done"), &VectorMap::is_build_done);
   ClassDB::bind_method(D_METHOD("take_build_result"), &VectorMap::take_build_result);
+  ClassDB::bind_method(D_METHOD("get_centerline", "lanelet_ids"), &VectorMap::get_centerline);
 
   TOPIC_SUBSCRIBER_BIND_METHODS(VectorMap);
 }
@@ -377,6 +378,22 @@ bool VectorMap::start_build(const Array & layers, double tile_size)
 bool VectorMap::is_build_done() { return build_task_.is_done(); }
 
 Dictionary VectorMap::take_build_result() { return build_task_.take(); }
+
+PackedVector3Array VectorMap::get_centerline(const PackedInt64Array & lanelet_ids)
+{
+  PackedVector3Array points;
+  // The worker of a build replaces the map
+  if (build_task_.is_running()) return points;
+
+  for (int64_t i = 0; i < lanelet_ids.size(); ++i) {
+    const auto it = lanelet_map_->laneletLayer.find(lanelet_ids[i]);
+    if (it == lanelet_map_->laneletLayer.end()) continue;
+    for (const auto & point : it->centerline()) {
+      points.push_back(ros2_to_godot(point.x(), point.y(), point.z()));
+    }
+  }
+  return points;
+}
 
 void VectorMap::build_layer(const Array & parts, LayerGeometry & geometry)
 {

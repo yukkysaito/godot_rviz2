@@ -32,6 +32,8 @@ const DEFAULTS := {
 	# HUD parts (the keys are kept from the earlier HUD, so that saved choices still apply)
 	"hud/top_status_bar": true,  # operation mode and clock
 	"hud/operation_control": true,  # messages and the start button
+	# off, lanelet (the vector map), osm (OpenStreetMap tiles, over the vector map where there are none)
+	"hud/minimap": "osm",
 	"hud/vehicle_actuator_status": true,  # speed, turn signals, steering, distance to the stop
 	"vehicle/profile": "res://3DViewer/Vehicle/RX450h/RX450h.tres",
 }

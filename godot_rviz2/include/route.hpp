@@ -42,6 +42,12 @@ public:
    */
   Vector3 get_goal_position();
 
+  /**
+   * @brief IDs of the route's preferred lanelets, from the start to the goal (empty without a
+   * route).
+   */
+  PackedInt64Array get_preferred_lanelet_ids();
+
   Route() = default;
   ~Route() = default;
 
