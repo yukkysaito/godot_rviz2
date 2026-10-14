@@ -1,13 +1,13 @@
-// Map pin standing on the goal: a flat red pin with a see-through hole, fully facing the camera
-// (like the object icons) with its tip on the goal. The shape is drawn here to stay sharp at any
+// Map pin above the goal: a flat red pin with a see-through hole, fully facing the camera (like
+// the object icons) with its tip at the origin. The shape is drawn here to stay sharp at any
 // size. Its size is `height` nearby and kept at least `min_angle` tall on screen far away; it is
 // drawn over everything so that the goal can be found behind buildings.
 // The mesh is a 1 x 1 quad whose bottom edge is at the origin.
 shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, depth_test_disabled, cull_disabled, shadows_disabled;
 
-uniform vec3 color = vec3(0.79, 0.0, 0.006);  // linear, sRGB (0.9, 0.0, 0.07)
-uniform float height = 3.0;  // [m] of the pin nearby
+uniform vec3 color = vec3(0.79, 0.0, 0.006);  // linear (set by GoalMarker.gd)
+uniform float height = 1.5;  // [m] of the pin nearby
 uniform float min_angle = 0.05;  // [rad] the pin is at least this tall on screen
 uniform float visibility = 1.0;  // 0..1 to fade it in and out
 uniform bool high_contrast = false;
