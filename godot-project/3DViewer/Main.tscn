@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=56 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://UI/Hud.gd" id="hud_script"]
 [ext_resource type="Script" path="res://3DViewer/GoalMarker.gd" id="goal_marker_script"]
 [ext_resource type="Script" path="res://UI/MiniMap.gd" id="minimap_script"]
+[ext_resource type="Script" path="res://UI/RouteProgress.gd" id="route_progress_script"]
 [ext_resource type="Script" path="res://3DViewer/Camera.gd" id="9"]
 [ext_resource type="Script" path="res://3DViewer/DynamicObject/DynamicObjectMesh.gd" id="10"]
 [ext_resource type="Script" path="res://3DViewer/TrafficLight/TrafficLightGroupsManager.gd" id="14_pvyag"]
@@ -322,6 +323,11 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("hud_script")
 trajectory_mesh_path = NodePath("../../TrajectoryMesh")
+
+[node name="RouteProgress" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("route_progress_script")
 
 [node name="MiniMap" type="Control" parent="HUD"]
 layout_mode = 3
@@ -659,6 +665,20 @@ layout_mode = 2
 focus_mode = 0
 script = ExtResource("ui_setting_toggle")
 key = "hud/vehicle_actuator_status"
+
+[node name="RouteProgressContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
+layout_mode = 2
+
+[node name="RouteProgressLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/RouteProgressContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Route progress"
+
+[node name="RouteProgressToggle" type="CheckButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/RouteProgressContainer"]
+layout_mode = 2
+focus_mode = 0
+script = ExtResource("ui_setting_toggle")
+key = "hud/route_progress"
 
 [node name="MiniMapContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body"]
 layout_mode = 2
