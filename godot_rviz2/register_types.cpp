@@ -21,6 +21,7 @@
 #include "core/object/class_db.h"
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
+#include "map_projection.hpp"
 #include "marker_array.hpp"
 #include "navigation_state.hpp"
 #include "operation_mode_state.hpp"
@@ -46,6 +47,7 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<BehaviorPath>();
   ClassDB::register_class<NavigationState>();
   ClassDB::register_class<Route>();
+  ClassDB::register_class<MapProjection>();
   ClassDB::register_class<OperationModeState>();
   ClassDB::register_class<OperationModeChanger>();
   ClassDB::register_class<Trajectory>();

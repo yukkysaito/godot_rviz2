@@ -8,6 +8,7 @@
 - Ubuntu 22.04
 - GPU
 - Autoware (step1 in How to use)
+- Internet connection (optional): the mini map shows OpenStreetMap tiles when online, and the vector map otherwise
 
 ## How to use
 
@@ -18,6 +19,12 @@
 
       ```bash
       sudo apt-get install build-essential scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+      ```
+
+   1. install GeographicLib, used to place the map on OpenStreetMap (usually installed with Autoware).
+
+      ```bash
+      sudo apt-get install libgeographic-dev
       ```
 
    1. clone godot_rviz2

@@ -103,6 +103,12 @@ public:
    */
   Dictionary take_build_result();
 
+  /**
+   * @brief Centerline through the given lanelets in their order (e.g. a route), in Godot's
+   * coordinate system. Lanelets that are not in the map are skipped. Empty while a build runs.
+   */
+  PackedVector3Array get_centerline(const PackedInt64Array & lanelet_ids);
+
   VectorMap();
   ~VectorMap() = default;
 
