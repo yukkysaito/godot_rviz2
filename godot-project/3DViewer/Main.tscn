@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=55 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -49,9 +49,6 @@ sky = SubResource("Sky_fb0c3")
 ambient_light_source = 3
 glow_enabled = true
 glow_intensity = 8.0
-
-[sub_resource type="BoxShape3D" id="1"]
-size = Vector3(4.8091, 1.60975, 2.14476)
 
 [sub_resource type="StandardMaterial3D" id="12"]
 render_priority = -2
@@ -207,14 +204,10 @@ sky_mode = 1
 script = ExtResource("2")
 head_beam_light_path = NodePath("EgoVehicleKinematicBody/HeadBeamLight")
 
-[node name="EgoVehicleKinematicBody" type="CharacterBody3D" parent="EgoVehicle"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44026, 0.82268, 0)
-shape = SubResource("1")
+[node name="EgoVehicleKinematicBody" type="Node3D" parent="EgoVehicle"]
 
 [node name="HeadBeamLight" type="SpotLight3D" parent="EgoVehicle/EgoVehicleKinematicBody"]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.32562, 1.10939, 5.68434e-14)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
 light_energy = 10.0
 light_specular = 3.0
 spot_range = 200.0

@@ -6,17 +6,18 @@ class_name VehicleProfile
 # setting or "-- --vehicle=<Name>", without editing the main scene.
 #
 # The body scene's root must be a VehicleBodyController (wheels, lights, turn signals).
+# The values below are set in each vehicle's profile; their defaults belong to no vehicle.
 
 @export var body_scene: PackedScene
 # Placement of the body scene relative to base_link (Godot coordinates: +x forward, +y up),
 # applied on top of the transform of the body scene's root
 @export var body_transform: Transform3D = Transform3D.IDENTITY
 # Distance from base_link (rear axle) to the front end [m]; used for the trajectory's stop wall
-@export var wheelbase_to_front: float = 3.78
+@export var wheelbase_to_front: float = 0.0
 # Distance between the front and rear axles [m]
-@export var wheelbase: float = 2.79
+@export var wheelbase: float = 0.0
 # Position of the head beam light (night mode) relative to base_link
-@export var head_beam_position: Vector3 = Vector3(4.3, 1.1, 0.0)
+@export var head_beam_position: Vector3 = Vector3.ZERO
 # Near clip distance of the camera [m]
 @export var camera_near: float = 0.2
 
