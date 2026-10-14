@@ -26,6 +26,7 @@
 #include "operation_mode_state.hpp"
 #include "parameter.hpp"
 #include "pointcloud.hpp"
+#include "route.hpp"
 #include "spinner.hpp"
 #include "steering_report.hpp"
 #include "traffic_lights.hpp"
@@ -44,6 +45,7 @@ void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
   ClassDB::register_class<PointCloud>();
   ClassDB::register_class<BehaviorPath>();
   ClassDB::register_class<NavigationState>();
+  ClassDB::register_class<Route>();
   ClassDB::register_class<OperationModeState>();
   ClassDB::register_class<OperationModeChanger>();
   ClassDB::register_class<Trajectory>();
