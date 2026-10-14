@@ -1,18 +1,12 @@
 extends VehicleBodyController
 
-# RX450h body: wheels, lights and turn signals of the model
+# RX450h body: wheels and lights of the model (the turn signals are lit by VehicleBodyController)
 
 # Wheels
 @export var wheel_back_r_path: NodePath
 @export var wheel_back_l_path: NodePath
 @export var wheel_front_r_path: NodePath
 @export var wheel_front_l_path: NodePath
-
-# Turn signals
-@export var turn_signal_r_path: NodePath
-@export var turn_signal_r_small_path: NodePath
-@export var turn_signal_l_path: NodePath
-@export var turn_signal_l_small_path: NodePath
 
 # Night lights
 @export var head_light_path: NodePath
@@ -26,11 +20,6 @@ extends VehicleBodyController
 @onready var wheel_back_l: Node3D = get_node(wheel_back_l_path) as Node3D
 @onready var wheel_front_r: Node3D = get_node(wheel_front_r_path) as Node3D
 @onready var wheel_front_l: Node3D = get_node(wheel_front_l_path) as Node3D
-
-@onready var turn_signal_r: Node = get_node(turn_signal_r_path)
-@onready var turn_signal_r_small: Node = get_node(turn_signal_r_small_path)
-@onready var turn_signal_l: Node = get_node(turn_signal_l_path)
-@onready var turn_signal_l_small: Node = get_node(turn_signal_l_small_path)
 
 @onready var head_light: Node = get_node(head_light_path)
 @onready var head_small_light: Node = get_node(head_small_light_path)
@@ -70,19 +59,3 @@ func rotate_wheels_by_distance(move_delta: float) -> void:
 func set_steering_angle(angle: float) -> void:
 	wheel_front_r.rotation = Vector3(wheel_front_r.rotation.x, angle, 0.0)
 	wheel_front_l.rotation = Vector3(wheel_front_l.rotation.x, angle, 0.0)
-
-func turn_on_right_signal() -> void:
-	turn_signal_r.call("turn_on")
-	turn_signal_r_small.call("turn_on")
-
-func turn_off_right_signal() -> void:
-	turn_signal_r.call("turn_off")
-	turn_signal_r_small.call("turn_off")
-
-func turn_on_left_signal() -> void:
-	turn_signal_l.call("turn_on")
-	turn_signal_l_small.call("turn_on")
-
-func turn_off_left_signal() -> void:
-	turn_signal_l.call("turn_off")
-	turn_signal_l_small.call("turn_off")

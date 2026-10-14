@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://5ayw2a03ou6w" path="res://3DViewer/Vehicle/RX450h/RX450h.glb" id="1_qgkfj"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/RX450h/RX450hBody.gd" id="2_iercg"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/BrakeLight.gd" id="22"]
-[ext_resource type="Script" path="res://3DViewer/Vehicle/TurnSignal.gd" id="23"]
+[ext_resource type="Script" path="res://3DViewer/Vehicle/LampLight.gd" id="lamp_light"]
 [ext_resource type="Script" path="res://3DViewer/Vehicle/Light.gd" id="28"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xu21l"]
@@ -88,14 +88,13 @@ wheel_back_r_path = NodePath("WheelBackR")
 wheel_back_l_path = NodePath("WheelBackL")
 wheel_front_r_path = NodePath("WheelFrontR")
 wheel_front_l_path = NodePath("WheelFrontL")
-turn_signal_r_path = NodePath("TurnSignalR")
-turn_signal_r_small_path = NodePath("BodyCar/TurnSignalR_002")
-turn_signal_l_path = NodePath("TurnSignalL")
-turn_signal_l_small_path = NodePath("BodyCar/TurnSignalL_002")
 head_light_path = NodePath("HeadLight")
 head_small_light_path = NodePath("BodyCar/HeadLight_002")
 fog_light_path = NodePath("FogLight")
 brake_light_path = NodePath("BreakLight")
+tire_radius = 0.378
+left_turn_signals = Array[NodePath]([NodePath("TurnSignalL"), NodePath("BodyCar/TurnSignalL_002"), NodePath("TurnSignalLightFL"), NodePath("TurnSignalLightRL")])
+right_turn_signals = Array[NodePath]([NodePath("TurnSignalR"), NodePath("BodyCar/TurnSignalR_002"), NodePath("TurnSignalLightFR"), NodePath("TurnSignalLightRR")])
 
 [node name="FogLight" parent="." index="0"]
 surface_material_override/0 = SubResource("StandardMaterial3D_xu21l")
@@ -114,11 +113,11 @@ script = ExtResource("28")
 
 [node name="TurnSignalL_002" parent="BodyCar" index="1"]
 surface_material_override/0 = SubResource("StandardMaterial3D_t2674")
-script = ExtResource("23")
+script = ExtResource("28")
 
 [node name="TurnSignalR_002" parent="BodyCar" index="2"]
 surface_material_override/0 = SubResource("StandardMaterial3D_gbyvr")
-script = ExtResource("23")
+script = ExtResource("28")
 
 [node name="SteeringWheel" parent="." index="2"]
 surface_material_override/0 = SubResource("StandardMaterial3D_blef2")
@@ -143,7 +142,7 @@ visible = false
 
 [node name="TurnSignalR" parent="." index="9"]
 surface_material_override/0 = SubResource("StandardMaterial3D_gyqh1")
-script = ExtResource("23")
+script = ExtResource("28")
 
 [node name="BreakLight" parent="." index="10"]
 surface_material_override/0 = SubResource("StandardMaterial3D_yup73")
@@ -161,4 +160,21 @@ transform = Transform3D(0.01, 0, 0, 0, -4.37114e-10, -0.01, 0, 0.01, -4.37114e-1
 
 [node name="TurnSignalL" parent="." index="17"]
 surface_material_override/0 = SubResource("StandardMaterial3D_wtn4r")
-script = ExtResource("23")
+script = ExtResource("28")
+
+
+[node name="TurnSignalLightFL" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.85, 2.1)
+script = ExtResource("lamp_light")
+
+[node name="TurnSignalLightRL" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 1.0, -2.3)
+script = ExtResource("lamp_light")
+
+[node name="TurnSignalLightFR" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.85, 2.1)
+script = ExtResource("lamp_light")
+
+[node name="TurnSignalLightRR" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.0, -2.3)
+script = ExtResource("lamp_light")
