@@ -76,6 +76,7 @@ var _velocity := VelocityReport.new()
 var _steering := SteeringReport.new()
 
 var _ego_pose := EgoPose.new()
+var _spinner := GodotRviz2Spinner.new()
 
 # --- Vehicle state (latest values)
 var velocity: float = 0.0          # [m/s]
@@ -84,7 +85,7 @@ var turn_left: bool = false
 var turn_right: bool = false
 
 func _enter_tree() -> void:
-	GodotRviz2Spinner.new().spin_some()  # starts the ROS node and its executor thread
+	_spinner.spin_some()  # starts the ROS node and its executor thread
 
 	# Maps, API states and the route are latched (transient local)
 	vector_map.subscribe(TOPICS["vector_map"], true)
@@ -103,6 +104,10 @@ func _enter_tree() -> void:
 	_steering.subscribe(TOPICS["steering"], false)
 
 func _process(_delta: float) -> void:
+	# Ctrl+C or SIGTERM shuts ROS down (rclcpp handles the signals): quit with it
+	if _spinner.is_shutdown():
+		get_tree().quit()
+		return
 	_update_map()
 	if pointcloud_map.has_new():
 		PerfMonitor.mark("pointcloud_map_arrived")
