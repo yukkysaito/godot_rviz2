@@ -39,15 +39,20 @@ func _ready() -> void:
 	_ap.play(_walk_name)
 	_ap.speed_scale = 0.0
 
-	# Run only when visible (good for pooled instances).
-	set_process(visible)
+	# Run only when visible: a pooled, hidden instance would still pose its skeleton every frame
+	_set_running(visible)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
-		set_process(visible)
+		_set_running(visible)
 		# If it becomes visible again, ensure playback is alive.
 		if visible and _ap != null and not _ap.is_playing():
 			_ap.play(_walk_name)
+
+func _set_running(running: bool) -> void:
+	set_process(running)
+	if _ap != null:
+		_ap.process_mode = Node.PROCESS_MODE_INHERIT if running else Node.PROCESS_MODE_DISABLED
 
 func _process(_delta: float) -> void:
 	if _ap == null or _walk_name == StringName() or not visible:
