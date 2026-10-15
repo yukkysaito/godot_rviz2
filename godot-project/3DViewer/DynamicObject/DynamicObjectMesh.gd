@@ -34,6 +34,10 @@ const ICON_EXTRA_OFFSET_M := 0.5  # gap between the object top and the icon [m]
 @export var fade_time: float = 0.3  # [s]
 @export var match_distance: float = 2.0  # [m] for matching without ids, plus 0.3 s of travel
 @export var snap_distance: float = 5.0  # [m] farther jumps are not smoothed
+# [deg] larger turns between two measurements are not smoothed: an object does not turn that much
+# in a frame of the perception, so it was seen the other way round (e.g. a car's front and back
+# taken for each other), and spinning it around to there would look like a real turn
+@export var snap_turn: float = 120.0
 @export var max_extrapolation: float = 0.5  # [s] without a new message, the objects stop there
 
 # Opacity of the shown models: below 1 they are drawn see-through
@@ -187,6 +191,8 @@ func _measure(track: Track, obj: Dictionary) -> void:
 	track.age = 0.0
 	if track.position.distance_to(track.target) > snap_distance:
 		track.position = track.target
+		track.rotation = rotation
+	elif absf(angle_difference(track.rotation.y, rotation.y)) > deg_to_rad(snap_turn):
 		track.rotation = rotation
 
 func _advance_tracks(delta: float) -> void:
