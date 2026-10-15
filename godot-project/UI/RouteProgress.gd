@@ -21,6 +21,7 @@ var _band := ColorRect.new()
 var _progress := 0.0
 var _visibility := 0.0
 var _enabled := true
+var _distance_text := ""  # drawn under the bar
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -45,14 +46,19 @@ func _process(delta: float) -> void:
 	var window := get_viewport_rect().size
 	var s := window.y / 1080.0
 	var length := minf(bar_length * s, window.x * max_width)
-	size = Vector2(length, band_height * s)
-	position = Vector2((window.x - length) * 0.5, top * s - size.y * 0.5)
-	_band.size = size
 	var material := _band.material as ShaderMaterial
 	material.set_shader_parameter("progress", _progress)
-	material.set_shader_parameter("length_px", length)
 	modulate.a = _visibility
-	queue_redraw()
+	# The track and the text are drawn again only when they change (the band flows in its shader)
+	var distance_text := _format_distance(tracker.remaining_distance)
+	var new_size := Vector2(length, band_height * s)
+	if new_size != size or distance_text != _distance_text:
+		size = new_size
+		position = Vector2((window.x - length) * 0.5, top * s - size.y * 0.5)
+		_band.size = size
+		material.set_shader_parameter("length_px", length)
+		_distance_text = distance_text
+		queue_redraw()
 
 # The track (a thin line from a diamond at the start to a small goal pin) and, under its goal end,
 # the remaining distance
@@ -68,7 +74,7 @@ func _draw() -> void:
 	_draw_goal_pin(Vector2(size.x - 4 * s, middle), s)
 
 	var baseline := middle + 26 * s
-	var distance := _format_distance(RosBridge.route_tracker.remaining_distance)
+	var distance := _distance_text
 	var font_size := int(20 * s)
 	var width := FONT_BOLD.get_string_size(distance, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	draw_string(FONT_BOLD, Vector2(size.x - width, baseline), distance, HORIZONTAL_ALIGNMENT_LEFT, -1,
