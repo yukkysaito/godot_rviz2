@@ -2,16 +2,29 @@
 extends Node3D
 class_name PedestrianAnimator
 # Loop a "Walk" clip via AnimationPlayer.
-# Playback rate is scaled by node meta "speed_mps" (float, m/s).
+# Playback rate is scaled by node meta "speed_mps" (float, m/s). When the pedestrian stops, the
+# clip plays on to the next pose with the feet closest (rest_times) and stops there, instead of
+# freezing mid-stride, and the legs then straighten (their bones turn to the skeleton's rest, which
+# stands straight) so that it stands with the feet together; it walks on from there, its legs
+# blending back into the walk. The clip is advanced here (manual callback mode), so that the legs
+# can be posed after it.
 
 @export var walk_clip_name: StringName = &"Walk"   # Exact clip name if known
 @export var walk_ref_speed_mps: float = 1.5        # Speed where rate ≈ 1.0
+# [s] times in the walk clip with the feet together (where the feet are closest in Pedestrian.glb)
+@export var rest_times: PackedFloat32Array = PackedFloat32Array([0.25, 0.875])
+@export var settle_rate: float = 0.8  # play rate at least, walking on to the feet together
+@export var stand_time: float = 0.25  # [s] to straighten the legs once stopped, and back
 
 const IDLE_THRESHOLD: float = 0.15
 const MAX_PLAY_RATE: float = 2.0
 
 var _ap: AnimationPlayer
 var _walk_name: StringName = StringName()
+var _resting := true  # stopped with the feet together
+var _skeleton: Skeleton3D
+var _leg_bones := PackedInt32Array()
+var _stand := 1.0  # 0: legs as the clip poses them .. 1: straight
 
 func _ready() -> void:
 	# Avoid conflicts: if an AnimationTree exists, disable it.
@@ -24,7 +37,16 @@ func _ready() -> void:
 		set_process(false)
 		return
 
-	_ap.playback_process_mode = AnimationPlayer.ANIMATION_PROCESS_IDLE
+	_ap.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	_skeleton = _find_skeleton(self)
+	if _skeleton != null:
+		for bone in _skeleton.get_bone_count():
+			var bone_name := _skeleton.get_bone_name(bone)
+			var side := bone_name.begins_with("Left") or bone_name.begins_with("Right")
+			for part in ["UpLeg", "Leg", "Foot", "ToeBase"]:
+				if side and bone_name.ends_with(part):
+					_leg_bones.append(bone)
+					break
 
 	# Resolve a walk clip (preferred name > contains "walk" > first clip).
 	_walk_name = _resolve_walk(_ap, walk_clip_name)
@@ -38,6 +60,8 @@ func _ready() -> void:
 
 	_ap.play(_walk_name)
 	_ap.speed_scale = 0.0
+	if not rest_times.is_empty():
+		_ap.seek(rest_times[0], true)  # standing with the feet together
 
 	# Run only when visible: a pooled, hidden instance would still pose its skeleton every frame
 	_set_running(visible)
@@ -54,7 +78,7 @@ func _set_running(running: bool) -> void:
 	if _ap != null:
 		_ap.process_mode = Node.PROCESS_MODE_INHERIT if running else Node.PROCESS_MODE_DISABLED
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _ap == null or _walk_name == StringName() or not visible:
 		return
 
@@ -64,8 +88,9 @@ func _process(_delta: float) -> void:
 		speed_mps = float(get_meta("speed_mps"))
 
 	if speed_mps < IDLE_THRESHOLD:
-		_ap.speed_scale = 0.0
+		_settle(delta)
 	else:
+		_resting = false
 		# manual max(walk_ref_speed_mps, 0.01) to keep type as float
 		var ref: float = walk_ref_speed_mps
 		if ref < 0.01:
@@ -83,6 +108,45 @@ func _process(_delta: float) -> void:
 	# Keep playback alive (AnimationPlayer may be stopped externally).
 	if not _ap.is_playing():
 		_ap.play(_walk_name)
+	_ap.advance(delta)
+	_pose_legs(delta)
+
+# Straightens the legs from the clip's pose while resting (and back once walking)
+func _pose_legs(delta: float) -> void:
+	_stand = move_toward(_stand, 1.0 if _resting else 0.0, delta / maxf(stand_time, 0.001))
+	if _skeleton == null or _stand <= 0.0:
+		return
+	var weight := smoothstep(0.0, 1.0, _stand)
+	for bone in _leg_bones:
+		var straight := _skeleton.get_bone_rest(bone).basis.get_rotation_quaternion()
+		_skeleton.set_bone_pose_rotation(bone, _skeleton.get_bone_pose_rotation(bone).slerp(straight, weight))
+
+static func _find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node
+	for child in node.get_children():
+		var found := _find_skeleton(child)
+		if found != null:
+			return found
+	return null
+
+# Plays on until the feet are together, then stops there
+func _settle(delta: float) -> void:
+	if _resting or rest_times.is_empty():
+		_ap.speed_scale = 0.0
+		return
+	var length := _ap.current_animation_length
+	var position := _ap.current_animation_position
+	var next := INF  # [s] of the clip, past its end for the next loop
+	for time in rest_times:
+		next = minf(next, time if time >= position else time + length)
+	var rate := maxf(_ap.speed_scale, settle_rate)
+	if next - position <= rate * delta:
+		_ap.seek(fmod(next, length), true)
+		_ap.speed_scale = 0.0
+		_resting = true
+	else:
+		_ap.speed_scale = rate
 
 func _resolve_walk(ap: AnimationPlayer, preferred: StringName) -> StringName:
 	if preferred != StringName() and ap.has_animation(preferred):
