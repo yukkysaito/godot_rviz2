@@ -8,7 +8,7 @@ extends Node3D
 
 @export var color: Color = Color(0.9, 0.0, 0.07)
 @export var pin_height: float = 1.5  # [m] nearby (kept visible on screen far away)
-@export var pin_lift: float = 3.0  # [m] of the pin's tip above the goal
+@export var pin_lift: float = 3.0  # [m] of the pin's tip above the goal, along the view's up
 @export var ring_radius: float = 0.8  # [m]
 @export var curtain_height: float = 0.6  # [m]
 @export var ground_offset: float = 0.05  # [m] above the goal, to stay over the road surface
@@ -22,8 +22,9 @@ var _visibility := 0.0
 func _ready() -> void:
 	var quad := QuadMesh.new()
 	quad.center_offset = Vector3(0.0, 0.5, 0.0)  # the shader expects the bottom edge at the origin
-	var pin := _add_part(quad, preload("res://3DViewer/Shaders/goal_pin.gdshader"), pin_lift)
+	var pin := _add_part(quad, preload("res://3DViewer/Shaders/goal_pin.gdshader"), 0.0)
 	pin.material_override.set_shader_parameter("height", pin_height)
+	pin.material_override.set_shader_parameter("lift", pin_lift)
 	# Drawn over everything, so after the other transparent objects
 	pin.material_override.render_priority = 1
 	# The vertex shader turns the quad to the camera and makes it larger far away
