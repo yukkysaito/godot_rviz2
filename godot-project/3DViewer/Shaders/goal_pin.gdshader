@@ -1,7 +1,9 @@
 // Map pin above the goal: a flat red pin with a see-through hole, fully facing the camera (like
-// the object icons) with its tip at the origin. The shape is drawn here to stay sharp at any
-// size. Its size is `height` nearby and kept at least `min_angle` tall on screen far away; it is
-// drawn over everything so that the goal can be found behind buildings.
+// the object icons), its tip `lift` above the origin along the view's up, so that it stays right
+// above the goal on the screen from any view (lifted along the world's up, it slid sideways in
+// views from above). The shape is drawn here to stay sharp at any size. Its size is `height`
+// nearby and kept at least `min_angle` tall on screen far away; it is drawn over everything so
+// that the goal can be found behind buildings.
 // The mesh is a 1 x 1 quad whose bottom edge is at the origin.
 shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, depth_test_disabled, cull_disabled, shadows_disabled;
@@ -9,6 +11,7 @@ render_mode unshaded, blend_mix, depth_draw_never, depth_test_disabled, cull_dis
 uniform vec3 color = vec3(0.79, 0.0, 0.006);  // linear (set by GoalMarker.gd)
 uniform float height = 1.5;  // [m] of the pin nearby
 uniform float min_angle = 0.05;  // [rad] the pin is at least this tall on screen
+uniform float lift = 3.0;  // [m] of the tip above the goal, high enough to stay over the vehicle
 uniform float visibility = 1.0;  // 0..1 to fade it in and out
 uniform bool high_contrast = false;
 
@@ -22,6 +25,7 @@ void vertex() {
 	vec3 anchor = MODEL_MATRIX[3].xyz;
 	float size = max(height, length(CAMERA_POSITION_WORLD - anchor) * min_angle);
 	VERTEX = vec3(VERTEX.x * WIDTH, VERTEX.y * (1.0 + MARGIN) - MARGIN, 0.0) * size;
+	VERTEX.y += lift;
 	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
 }
 
