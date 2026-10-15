@@ -19,6 +19,8 @@ extends Control
 @export var view_smoothing: float = 6.0  # [1/s] how fast the view moves to its target
 @export var expand_time: float = 0.3  # [s] to open over the whole window and back
 @export var build_budget_msec: float = 2.0  # time spent on the road meshes per frame
+# [1/s] the map is drawn this often (every frame while it opens or closes)
+@export var update_rate: float = 15.0
 
 const GROUND := Color(0.035, 0.05, 0.085)
 const ROAD := Color(0.24, 0.28, 0.37)
@@ -51,13 +53,15 @@ var _center := Vector2.ZERO
 var _rotation := 0.0
 var _zoom := 1.0
 var _view_initialized := false
+var _since_update := INF  # [s] since the map was last drawn
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_viewport.disable_3d = true
 	_viewport.transparent_bg = true  # the ground color is put behind it by the rounded mask
-	_viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
-	_viewport.msaa_2d = Viewport.MSAA_4X
+	# Drawn update_rate times a second (see _process), as drawing it every frame cost the CPU much
+	_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	_viewport.msaa_2d = Viewport.MSAA_2X
 	add_child(_viewport)
 	_roads.z_index = -100  # under the tiles (see OsmTiles.gd)
 	_viewport.add_child(_roads)
@@ -137,12 +141,18 @@ func _process(delta: float) -> void:
 		return
 	_build_road_tiles()
 	var expansion := move_toward(_expansion, 1.0 if _expanded else 0.0, delta / expand_time)
-	if expansion != _expansion:
+	var resizing := expansion != _expansion
+	if resizing:
 		_expansion = expansion
 		_apply_rect()
-	_update_view(delta)
+	_since_update += delta
+	if not resizing and _since_update < 1.0 / update_rate:
+		return
+	_update_view(minf(_since_update, 0.5))
+	_since_update = 0.0
 	if _mode == "osm":
 		_tiles.update_view(_center, _zoom, size.length() * 0.5 / _zoom)
+	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	_overlay.queue_redraw()
 
 # --- View

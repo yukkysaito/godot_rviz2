@@ -7,6 +7,8 @@ class_name Hud
 # - bottom center: the speed, the turn signals, the steering angle and, when the vehicle is planned
 #   to stop ahead, the distance to the stop
 # Sized for a 1080 px high window and scaled with the window height.
+# What it shows is gathered every frame, and it is drawn again only when that changed (drawing it,
+# with its texts, is the main cost of a frame on the CPU).
 
 @export var trajectory_mesh_path: NodePath  # for the distance to the planned stop
 @export var stop_display_range: float = 150.0  # [m] the stop shows within this distance
@@ -29,6 +31,12 @@ var _show_status := true  # mode and clock
 var _show_cluster := true  # speed, signals, steering, stop
 var _labels: FontVariation  # letter-spaced, for the small capitals
 var _clock := ""
+# What is shown (see _process), and what was drawn last
+var _kmh := 0
+var _steer := 0.0  # -1..1 along the steering arc, > 0: to the right
+var _signals_lit := [false, false]  # left, right
+var _stop_text := ""
+var _drawn := []
 
 @onready var _trajectory_mesh: Node = get_node_or_null(trajectory_mesh_path)
 
@@ -46,7 +54,19 @@ func set_autonomous(enabled: bool) -> void:
 
 func _process(_delta: float) -> void:
 	_clock = Time.get_time_string_from_system().substr(0, 5)
-	queue_redraw()
+	_kmh = int(round(absf(RosBridge.velocity) * 3.6))
+	var ratio := clampf(absf(RosBridge.steering_angle) / max_steering_angle, 0.0, 1.0)
+	_steer = snappedf(-signf(RosBridge.steering_angle) * pow(ratio, STEERING_CURVE), 0.005)
+	var blink := fmod(Time.get_ticks_msec() / 1000.0, 0.8) < 0.5
+	_signals_lit = [RosBridge.turn_left and blink, RosBridge.turn_right and blink]
+	var stop_distance: float = _trajectory_mesh.stop_distance if _trajectory_mesh != null else -1.0
+	var stop_shown := stop_distance > 1.0 and stop_distance < stop_display_range
+	_stop_text = "STOP  %d m" % int(round(stop_distance)) if stop_shown else ""
+	var shown := [size, _show_status, _show_cluster, _autonomous, _clock, _kmh, _steer, _signals_lit,
+		_stop_text]
+	if shown != _drawn:
+		_drawn = shown
+		queue_redraw()
 
 func _draw() -> void:
 	var s := size.y / 1080.0
@@ -72,8 +92,7 @@ func _draw_cluster(center: Vector2, s: float) -> void:
 	_draw_shade(Rect2(center.x - 420 * s, size.y - 260 * s, 840 * s, 260 * s), 0.5)
 
 	# Speed
-	var kmh := int(round(absf(RosBridge.velocity) * 3.6))
-	_draw_text_center(FONT_BOLD, str(kmh), center + Vector2(0, 18 * s), 76 * s, TEXT)
+	_draw_text_center(FONT_BOLD, str(_kmh), center + Vector2(0, 18 * s), 76 * s, TEXT)
 	_draw_text_center(_labels, "KM/H", center + Vector2(0, 46 * s), 13 * s, MUTED)
 
 	# Steering: a thin arc over the speed with a mark at the current angle
@@ -81,24 +100,20 @@ func _draw_cluster(center: Vector2, s: float) -> void:
 	var arc_center := center + Vector2(0, 8 * s)
 	var half_span := 0.55
 	draw_arc(arc_center, radius, -PI * 0.5 - half_span, -PI * 0.5 + half_span, 48, Color(1, 1, 1, 0.14), 2 * s, true)
-	var ratio := clampf(absf(RosBridge.steering_angle) / max_steering_angle, 0.0, 1.0)
-	var steer := -signf(RosBridge.steering_angle) * pow(ratio, STEERING_CURVE)  # > 0: to the right
-	var angle := -PI * 0.5 + steer * half_span
-	if absf(steer) > 0.01:  # the arc from the middle to the mark, colored
+	var angle := -PI * 0.5 + _steer * half_span
+	if absf(_steer) > 0.01:  # the arc from the middle to the mark, colored
 		draw_arc(arc_center, radius, minf(-PI * 0.5, angle), maxf(-PI * 0.5, angle), 32, ACCENT, 2.5 * s, true)
 	var mark := arc_center + Vector2(cos(angle), sin(angle)) * radius
 	_draw_dot(mark, 6 * s, Color(ACCENT, 0.18))
 	_draw_dot(mark, 3.5 * s, ACCENT)
 
 	# Turn signals, blinking
-	var blink := fmod(Time.get_ticks_msec() / 1000.0, 0.8) < 0.5
-	_draw_signal(center + Vector2(-150 * s, -2 * s), -1.0, RosBridge.turn_left and blink, s)
-	_draw_signal(center + Vector2(150 * s, -2 * s), 1.0, RosBridge.turn_right and blink, s)
+	_draw_signal(center + Vector2(-150 * s, -2 * s), -1.0, _signals_lit[0], s)
+	_draw_signal(center + Vector2(150 * s, -2 * s), 1.0, _signals_lit[1], s)
 
 	# Distance to the planned stop
-	var stop_distance: float = _trajectory_mesh.stop_distance if _trajectory_mesh != null else -1.0
-	if stop_distance > 1.0 and stop_distance < stop_display_range:
-		var text := "STOP  %d m" % int(round(stop_distance))
+	if not _stop_text.is_empty():
+		var text := _stop_text
 		var font_size := int(14 * s)
 		var width := _labels.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 		var rect := Rect2(center + Vector2(-width * 0.5 - 18 * s, -126 * s), Vector2(width + 36 * s, 30 * s))
