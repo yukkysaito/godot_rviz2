@@ -48,17 +48,22 @@ Array MarkerArray::get_triangle_list(const String & ns)
   for (const auto & marker : last_msg.value()->markers) {
     if (to_std(ns) == marker.ns && marker.type == Type::TRIANGLE_LIST) {
       const auto & points = marker.points;
+      const ViewFrame view(marker.header.frame_id);
+      // The points are relative to the pose if there is one, otherwise in the frame
+      auto vertex = [&](const geometry_msgs::msg::Point & p) -> Eigen::Vector4f {
+        const Eigen::Vector3d v =
+          has_origin_pose(marker) ? Eigen::Vector3d(p.x, p.y, p.z) : view.to_view(p);
+        return {float(v.x()), float(v.y()), float(v.z()), 1.0f};
+      };
       for (size_t i = 2; i < points.size(); i += 3) {
         const std::array<Eigen::Vector4f, 3> local_vertices = {
-          Eigen::Vector4f{points[i - 2].x, points[i - 2].y, points[i - 2].z, 1},
-          Eigen::Vector4f{points[i - 1].x, points[i - 1].y, points[i - 1].z, 1},
-          Eigen::Vector4f{points[i].x, points[i].y, points[i].z, 1}};
+          vertex(points[i - 2]), vertex(points[i - 1]), vertex(points[i])};
 
         std::array<Eigen::Vector4f, 3> vertices;
         if (has_origin_pose(marker)) {
           const auto & pos = marker.pose.position;
           const auto & quat = marker.pose.orientation;
-          Eigen::Translation3f translation(pos.x, pos.y, pos.z);
+          Eigen::Translation3f translation(view.to_view(pos).cast<float>());
           Eigen::Quaternionf quaternion(quat.w, quat.x, quat.y, quat.z);
           Eigen::Matrix4f transform = (translation * quaternion).matrix();
           std::array<Eigen::Vector4f, 3> global_vertices{
@@ -112,7 +117,7 @@ Array MarkerArray::get_color_spheres(const String & ns)
     if (to_std(ns) == marker.ns && marker.type == Type::SPHERE) {
       Array color_sphere;
       Color color(marker.color.r, marker.color.g, marker.color.b, marker.color.a);
-      Vector3 position(ros2_to_godot(marker.pose.position));
+      Vector3 position(ViewFrame(marker.header.frame_id).to_godot(marker.pose.position));
       Vector3 rotation;                                              // TODO add rotation
       Vector3 size(marker.scale.x, marker.scale.z, marker.scale.y);  // TODO add rotation
       color_sphere.append(color);

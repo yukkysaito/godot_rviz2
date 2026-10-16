@@ -32,7 +32,8 @@ Vector3 Route::get_goal_position()
   const auto last_msg = get_last_msg();
   if (!last_msg) return Vector3(0, 0, 0);
 
-  return ros2_to_godot(last_msg.value()->goal_pose.position);
+  const auto & msg = *last_msg.value();
+  return ViewFrame(msg.header.frame_id).to_godot(msg.goal_pose.position);
 }
 
 Vector3 Route::get_start_position()
@@ -40,7 +41,8 @@ Vector3 Route::get_start_position()
   const auto last_msg = get_last_msg();
   if (!last_msg) return Vector3(0, 0, 0);
 
-  return ros2_to_godot(last_msg.value()->start_pose.position);
+  const auto & msg = *last_msg.value();
+  return ViewFrame(msg.header.frame_id).to_godot(msg.start_pose.position);
 }
 
 PackedInt64Array Route::get_preferred_lanelet_ids()

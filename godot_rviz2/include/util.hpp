@@ -27,6 +27,7 @@
 #include "geometry_msgs/msg/transform.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
+#include <functional>
 #include <optional>
 #include <string>
 
@@ -63,12 +64,6 @@ std::vector<Vector2> inverse_clockwise(const std::vector<Vector2> & polygon_2d);
  */
 Dictionary create_offset_point_dict(
   const Eigen::Quaternionf & quat, const Eigen::Vector3f & position, const float width_offset);
-
-/**
- * TODO
- */
-Array calculate_line_as_triangle_strip(
-  const std::vector<geometry_msgs::msg::Point> & line, float width);
 
 /**
  * @brief Retrieves a transformation from the TF2 buffer without waiting.
@@ -123,6 +118,88 @@ inline Vector3 ros2_to_godot(const Eigen::Vector3f & p)
 {
   return ros2_to_godot(p.x(), p.y(), p.z());
 }
+
+/// The map frame, in which Autoware's maps and most of its messages are.
+inline constexpr char kMapFrame[] = "map";
+
+/**
+ * @brief The origin of Godot's coordinates in the map frame: the "viewer" frame.
+ *
+ * Map coordinates are large (tens of kilometers), where a float only has steps of several
+ * millimeters, so that moving things (the ego vehicle, objects) would jitter from frame to frame.
+ * Godot's coordinates are therefore relative to the viewer frame, which autoware_map_tf_generator
+ * puts in the middle of the map. The first map sets the origin (see resolve()), which then stays
+ * for the whole session: positions converted before that are in map coordinates.
+ */
+namespace map_origin
+{
+/**
+ * @brief The origin [map frame], zero while it is not set.
+ */
+Eigen::Vector3d get();
+
+/**
+ * @brief Sets the origin if it is not set yet: to the viewer frame if TF has it, otherwise to
+ * middle(), the middle of the map (where autoware_map_tf_generator puts the viewer frame).
+ * Called with each map, before its geometry is built. Thread safe.
+ */
+void resolve(const std::function<Eigen::Vector3d()> & middle);
+
+/// True once the origin is set.
+bool is_set();
+}  // namespace map_origin
+
+/**
+ * @brief Converts positions in a frame to Godot's coordinates.
+ *
+ * Positions in the map frame are taken relative to map_origin, in double before they become float.
+ * An empty frame_id is taken as the map frame, as it was before frames were told apart; positions
+ * in other frames are converted as they are. Directions, sizes and rotations are not positions:
+ * convert them with ros2_to_godot().
+ */
+class ViewFrame
+{
+public:
+  explicit ViewFrame(const std::string & frame_id)
+  : offset_(frame_id.empty() || frame_id == kMapFrame ? map_origin::get() : Eigen::Vector3d::Zero())
+  {
+  }
+
+  /// Relative to the view, in ROS axes (for geometry that is built in ROS axes)
+  Eigen::Vector3d to_view(const Eigen::Vector3d & p) const { return p - offset_; }
+  Eigen::Vector3d to_view(const geometry_msgs::msg::Point & p) const
+  {
+    return to_view(Eigen::Vector3d(p.x, p.y, p.z));
+  }
+  Eigen::Vector3d to_view(const geometry_msgs::msg::Vector3 & p) const
+  {
+    return to_view(Eigen::Vector3d(p.x, p.y, p.z));
+  }
+
+  /// In Godot's coordinates
+  template <class PointT>
+  Vector3 to_godot(const PointT & p) const
+  {
+    const Eigen::Vector3d v = to_view(p);
+    return ros2_to_godot(v.x(), v.y(), v.z());
+  }
+
+  /// From Godot's coordinates back to this frame (the inverse of to_godot())
+  Eigen::Vector3d from_godot(const Vector3 & p) const
+  {
+    return Eigen::Vector3d(p.x, -p.z, p.y) + offset_;
+  }
+
+private:
+  Eigen::Vector3d offset_;
+};
+
+/**
+ * @brief A strip of width [m] along line (positions in view's frame), as a triangle strip of
+ * point dictionaries (see create_offset_point_dict()).
+ */
+Array calculate_line_as_triangle_strip(
+  const std::vector<geometry_msgs::msg::Point> & line, float width, const ViewFrame & view);
 
 /**
  * @brief Calculates the cross product of two Eigen::Vector3f vectors.

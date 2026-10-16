@@ -32,8 +32,13 @@
 
 #include "util.hpp"
 
+#include "godot_rviz2.hpp"
+
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/utils.h>
+
+#include <atomic>
+#include <mutex>
 
 bool is_clockwise(const std::vector<Vector2> & polygon_2d)
 {
@@ -93,13 +98,13 @@ Dictionary create_offset_point_dict(
 }
 
 Array calculate_line_as_triangle_strip(
-  const std::vector<geometry_msgs::msg::Point> & line, float width)
+  const std::vector<geometry_msgs::msg::Point> & line, float width, const ViewFrame & view)
 {
   Array line_triangle_points;
   Eigen::Vector2f previous_front_vec;
 
   for (size_t i = 0; i < line.size(); ++i) {
-    const Eigen::Vector3f position(line.at(i).x, line.at(i).y, line.at(i).z);
+    const Eigen::Vector3f position = view.to_view(line.at(i)).cast<float>();
 
     float yaw;
     if (i == 0) {  // start point
@@ -309,3 +314,33 @@ void generate_polygon3d(
     normals.push_back({normal[0], normal[1], normal[2]});
   }
 }
+
+namespace map_origin
+{
+namespace
+{
+std::mutex mutex;  // for resolve()
+std::atomic<bool> is_origin_set{false};
+Eigen::Vector3d origin = Eigen::Vector3d::Zero();  // written once, before is_origin_set
+}  // namespace
+
+bool is_set() { return is_origin_set.load(std::memory_order_acquire); }
+
+Eigen::Vector3d get() { return is_set() ? origin : Eigen::Vector3d::Zero(); }
+
+void resolve(const std::function<Eigen::Vector3d()> & middle)
+{
+  if (is_set()) return;
+  std::lock_guard<std::mutex> lock(mutex);
+  if (is_set()) return;
+  const auto viewer = get_transform(
+    *GodotRviz2::get_instance().get_tf_buffer(), "viewer", kMapFrame, rclcpp::Time(0));
+  origin = viewer
+             ? Eigen::Vector3d(viewer->translation.x, viewer->translation.y, viewer->translation.z)
+             : middle();
+  is_origin_set.store(true, std::memory_order_release);
+  RCLCPP_INFO(
+    rclcpp::get_logger("godot_rviz2"), "Origin of the view: (%.3f, %.3f, %.3f) in the map, %s",
+    origin.x(), origin.y(), origin.z(), viewer ? "the viewer frame" : "the middle of the map");
+}
+}  // namespace map_origin

@@ -42,8 +42,9 @@ public:
   bool is_available();
 
   /**
-   * @brief Number of projections received so far: positions converted before it changed (e.g.
-   * another map was loaded) are out of date.
+   * @brief Number of projections received so far (and changes of the origin of the view, see
+   * map_origin): positions converted before it changed (e.g. another map was loaded) are out of
+   * date.
    */
   int64_t get_revision();
 
@@ -80,6 +81,7 @@ private:
   };
   std::optional<Origin> origin_;
   int64_t revision_ = 0;
+  bool view_origin_set_ = false;  // map_origin::is_set() at the last revision
 
   const std::optional<Origin> & get_origin();
 };

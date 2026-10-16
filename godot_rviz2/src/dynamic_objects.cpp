@@ -74,13 +74,14 @@ Array DynamicObjects::get_triangle_list(bool ignore_unknown_object)
   const auto last_msg = get_last_msg();
   if (!last_msg) return triangle_list;
 
+  const ViewFrame view(last_msg.value()->header.frame_id);
   for (const auto & object : last_msg.value()->objects) {
     if (ignore_unknown_object && main_label(object) == Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
     const auto & quat = object.kinematics.initial_pose_with_covariance.pose.orientation;
     const auto & shape = object.shape;
 
-    Eigen::Translation3f translation(pos.x, pos.y, pos.z);
+    Eigen::Translation3f translation(view.to_view(pos).cast<float>());
     Eigen::Quaternionf quaternion(quat.w, quat.x, quat.y, quat.z);
     std::vector<Vector3> vertices, normals;
 
@@ -113,13 +114,14 @@ Array DynamicObjects::get_unknown_object_triangle_list()
   const auto last_msg = get_last_msg();
   if (!last_msg) return triangle_list;
 
+  const ViewFrame view(last_msg.value()->header.frame_id);
   for (const auto & object : last_msg.value()->objects) {
     if (main_label(object) != Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
     const auto & quat = object.kinematics.initial_pose_with_covariance.pose.orientation;
     const auto & shape = object.shape;
 
-    Eigen::Translation3f translation(pos.x, pos.y, pos.z);
+    Eigen::Translation3f translation(view.to_view(pos).cast<float>());
     Eigen::Quaternionf quaternion(quat.w, quat.x, quat.y, quat.z);
     std::vector<Vector3> vertices, normals;
 
@@ -152,6 +154,7 @@ Array DynamicObjects::get_dynamic_object_list(bool ignore_unknown_object)
   const auto last_msg = get_last_msg();
   if (!last_msg) return dynamic_object_list;
 
+  const ViewFrame view(last_msg.value()->header.frame_id);
   for (const auto & object : last_msg.value()->objects) {
     if (ignore_unknown_object && main_label(object) == Label::UNKNOWN) continue;
     const auto & pos = object.kinematics.initial_pose_with_covariance.pose.position;
@@ -167,7 +170,7 @@ Array DynamicObjects::get_dynamic_object_list(bool ignore_unknown_object)
     const uint8_t label = main_label(object);
     Dictionary dynamic_object;
     dynamic_object["id"] = to_uuid_string(object);
-    dynamic_object["position"] = ros2_to_godot(pos.x, pos.y, pos.z);
+    dynamic_object["position"] = view.to_godot(pos);
     dynamic_object["rotation"] = ros2_to_godot(roll, pitch, yaw);
     dynamic_object["size"] =
       ros2_to_godot(shape.dimensions.x, shape.dimensions.y, shape.dimensions.z);
