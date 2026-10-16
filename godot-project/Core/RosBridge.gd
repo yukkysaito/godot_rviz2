@@ -169,6 +169,9 @@ func _update_route() -> void:
 		_route_line_outdated = true
 		changed = true
 	if _route_line_outdated and is_map_ready and not is_map_building:
+		# Again: a route that came before the first map has positions from before the view's origin
+		goal_position = route.get_goal_position()
+		_start_position = route.get_start_position()
 		route_line = vector_map.get_centerline(_route_lanelet_ids)
 		_set_route_tracker()
 		_route_line_outdated = false

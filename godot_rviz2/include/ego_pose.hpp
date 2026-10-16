@@ -49,12 +49,12 @@ public:
     // Access the shared TF2 buffer from the singleton instance of GodotRviz2
     const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
     // Retrieve the transformation from base_link to map frame
-    const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
+    const auto transform = get_transform(*tf_buffer, "base_link", kMapFrame, rclcpp::Time(0));
     // Return a default Vector3 if no transformation is found
     if (!transform) return Vector3(0, 0, 0);
 
     // Convert ROS 2 coordinates to Godot's coordinate system
-    return ros2_to_godot(transform.value().translation);
+    return ViewFrame(kMapFrame).to_godot(transform.value().translation);
   }
 
   /**
@@ -67,7 +67,7 @@ public:
     // Access the shared TF2 buffer from the singleton instance of GodotRviz2
     const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
     // Retrieve the transformation from base_link to map frame
-    const auto transform = get_transform(*tf_buffer, "base_link", "map", rclcpp::Time(0));
+    const auto transform = get_transform(*tf_buffer, "base_link", kMapFrame, rclcpp::Time(0));
     // Return a default Vector3 if no transformation is found
     if (!transform) return Vector3(0, 0, 0);
 

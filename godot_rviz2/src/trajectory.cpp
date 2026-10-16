@@ -53,13 +53,14 @@ Array Trajectory::get_trajectory_triangle_strip(const float width)
   // If no message is found, return the empty array
   if (!last_msg) return triangle_strip;
 
+  const ViewFrame view(last_msg.value()->header.frame_id);
   // Iterate over each point in the trajectory message
   for (const auto & point : last_msg.value()->points) {
     // Extract pose information from the point
     const auto & pose = point.pose;
     Eigen::Quaternionf quat(
       pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-    Eigen::Vector3f position(pose.position.x, pose.position.y, pose.position.z);
+    const Eigen::Vector3f position = view.to_view(pose.position).cast<float>();
 
     // Append two points for each trajectory point to form a strip
     triangle_strip.append(create_offset_point_dict_with_velocity(

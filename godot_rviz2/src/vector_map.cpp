@@ -216,16 +216,24 @@ void triangulate_strip(
 }
 }  // namespace triangulation
 
+namespace
+{
+// A map point relative to the view, in ROS axes: the map's geometry is built from these
+Vector3 to_view(const ViewFrame & view, const lanelet::ConstPoint3d & point)
+{
+  const Eigen::Vector3d p = view.to_view(point.basicPoint());
+  return Vector3(p.x(), p.y(), p.z());
+}
+}  // namespace
+
 namespace line_geometry
 {
-using Points = std::vector<Vector3>;  // ROS coordinates
+using Points = std::vector<Vector3>;  // ROS axes, relative to the view
 
-Points to_points(const lanelet::ConstLineString3d & linestring)
+Points to_points(const lanelet::ConstLineString3d & linestring, const ViewFrame & view)
 {
   Points points;
-  for (const auto & point : linestring) {
-    points.emplace_back(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z());
-  }
+  for (const auto & point : linestring) points.push_back(to_view(view, point));
   return triangulation::remove_duplicates(points);
 }
 
@@ -385,12 +393,11 @@ PackedVector3Array VectorMap::get_centerline(const PackedInt64Array & lanelet_id
   // The worker of a build replaces the map
   if (build_task_.is_running()) return points;
 
+  const ViewFrame view(kMapFrame);
   for (int64_t i = 0; i < lanelet_ids.size(); ++i) {
     const auto it = lanelet_map_->laneletLayer.find(lanelet_ids[i]);
     if (it == lanelet_map_->laneletLayer.end()) continue;
-    for (const auto & point : it->centerline()) {
-      points.push_back(ros2_to_godot(point.x(), point.y(), point.z()));
-    }
+    for (const auto & point : it->centerline()) points.push_back(view.to_godot(point.basicPoint()));
   }
   return points;
 }
@@ -446,12 +453,13 @@ void VectorMap::build_road_borders(const Array & part, LayerGeometry & geometry)
   const double width = part.size() > 2 ? double(part[2]) : 0.1;
   const double height = part.size() > 3 ? double(part[3]) : 0.15;
   // Cross-section of the curb: (offset across / half width, height / height), rounded top
+  const ViewFrame view(kMapFrame);
   const std::vector<Vector2> curb_profile = {
     {-1.0f, 0.0f}, {-0.95f, 0.55f}, {-0.8f, 0.88f}, {-0.5f, 1.0f},
     {0.5f, 1.0f}, {0.8f, 0.88f}, {0.95f, 0.55f}, {1.0f, 0.0f}};
   for (const auto & linestring : lanelet_map_->lineStringLayer) {
     if (linestring.attributeOr(lanelet::AttributeName::Type, "") != std::string("road_border")) continue;
-    const auto line = line_geometry::to_points(linestring);
+    const auto line = line_geometry::to_points(linestring, view);
     if (line.size() < 2) continue;
     // Per point: side direction (left of the line), distance along
     std::vector<Vector3> sides;
@@ -538,8 +546,9 @@ void VectorMap::build_lines(const Array & part, LayerGeometry & geometry) const
     return part.size() > index ? double(part[index]) : fallback;
   };
   const double width = param(1, 0.05);
+  const ViewFrame view(kMapFrame);
   for (const auto & linestring : get_shared_white_lines()) {
-    const auto line = line_geometry::to_points(linestring);
+    const auto line = line_geometry::to_points(linestring, view);
     const bool dashed =
       linestring.attributeOr(lanelet::AttributeName::Subtype, "") == std::string("dashed");
     const auto pieces = dashed ? line_geometry::split_into_dashes(line, param(2, 1.0), param(3, 1.0))
@@ -605,6 +614,13 @@ Array VectorMap::split_into_tiles(const LayerGeometry & geometry, double tile_si
 bool VectorMap::decode(const autoware_map_msgs::msg::LaneletMapBin & msg)
 {
   lanelet::utils::conversion::fromBinMsg(msg, lanelet_map_);
+  // The origin of the view, if this is the first map: the viewer frame, or where it would be
+  map_origin::resolve([this]() {
+    Eigen::Vector3d sum = Eigen::Vector3d::Zero();
+    for (const auto & point : lanelet_map_->pointLayer) sum += point.basicPoint();
+    const auto count = std::max<size_t>(1, lanelet_map_->pointLayer.size());
+    return Eigen::Vector3d(sum / double(count));
+  });
   // lanelet
   all_lanelets_ = lanelet::utils::query::laneletLayer(lanelet_map_);
   road_lanelets_ = lanelet_utils::get_lanelets(lanelet_map_, lanelet::AttributeValueString::Road);
@@ -708,16 +724,14 @@ Array VectorMap::get_linestring_triangle_list(const String & name, const float w
 Array VectorMap::get_as_triangle_list(const lanelet::ConstPolygons3d & polygons) const
 {
   Array triangle_list;
+  const ViewFrame view(kMapFrame);
 
   for (const auto & ll2_polygon : polygons) {
     std::vector<Vector3> triangles;
 
     std::vector<Vector3> polygon;
 
-    for (const auto & point : ll2_polygon) {
-      polygon.push_back(
-        Vector3(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z()));
-    }
+    for (const auto & point : ll2_polygon) polygon.push_back(to_view(view, point));
 
     if (!triangulation::triangulate(polygon, triangles)) ++triangulation_failures_;
 
@@ -734,6 +748,7 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstPolygons3d & polygons)
 Array VectorMap::get_as_triangle_list(const lanelet::ConstLineStrings3d & linestring_polygons) const
 {
   Array triangle_list;
+  const ViewFrame view(kMapFrame);
 
   for (const auto & linestring : linestring_polygons) {
     if (linestring.size() < 3) {
@@ -743,10 +758,7 @@ Array VectorMap::get_as_triangle_list(const lanelet::ConstLineStrings3d & linest
 
     std::vector<Vector3> polygon;
 
-    for (const auto & point : linestring) {
-      polygon.push_back(
-        Vector3(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z()));
-    }
+    for (const auto & point : linestring) polygon.push_back(to_view(view, point));
     if (linestring.front().id() == linestring.back().id()) {
       polygon.pop_back();
     }
@@ -767,6 +779,7 @@ Array VectorMap::get_as_triangle_list(
   const lanelet::ConstLineStrings3d & linestrings, const float width) const
 {
   Array triangle_list;
+  const ViewFrame view(kMapFrame);
   for (const auto & linestring : linestrings) {
     std::vector<geometry_msgs::msg::Point> line;
     for (const auto & point : linestring) {
@@ -777,7 +790,7 @@ Array VectorMap::get_as_triangle_list(
       line.push_back(p);
     }
     triangle_list.append_array(
-      convert_strip_to_list(calculate_line_as_triangle_strip(line, width)));
+      convert_strip_to_list(calculate_line_as_triangle_strip(line, width, view)));
   }
   return triangle_list;
 }
@@ -785,15 +798,14 @@ Array VectorMap::get_as_triangle_list(
 Array VectorMap::get_as_triangle_list(const lanelet::ConstLanelets & lanelets) const
 {
   Array triangle_list;
+  const ViewFrame view(kMapFrame);
 
   for (const auto & lanelet : lanelets) {
     std::vector<Vector3> triangles;
 
-    auto to_points = [](const auto & bound) {
+    auto to_points = [&view](const auto & bound) {
       std::vector<Vector3> points;
-      for (const auto & point : bound) {
-        points.emplace_back(point.basicPoint().x(), point.basicPoint().y(), point.basicPoint().z());
-      }
+      for (const auto & point : bound) points.push_back(to_view(view, point));
       return points;
     };
     triangulation::triangulate_strip(
@@ -851,6 +863,7 @@ void get_traffic_light_groups_from_lanelet_map(
   const std::vector<lanelet::AutowareTrafficLightConstPtr> & regulatory_elements,
   std::vector<TrafficLightGroup> & traffic_light_groups)
 {
+  const ViewFrame view(kMapFrame);
   for (const auto & regulatory_element : regulatory_elements) {
     const auto reg_traffic_lights = regulatory_element->trafficLights();
     std::unordered_map<int /* board id */, Board> boards_map;
@@ -868,14 +881,12 @@ void get_traffic_light_groups_from_lanelet_map(
         height = std::stof(linestring.attribute("height").value());
       }
       Board board;
-      Eigen::Vector3f right_top(
-        linestring.back().x(), linestring.back().y(), linestring.back().z() + height);
-      Eigen::Vector3f left_top(
-        linestring.front().x(), linestring.front().y(), linestring.front().z() + height);
-      Eigen::Vector3f right_bottom(
-        linestring.back().x(), linestring.back().y(), linestring.back().z());
-      Eigen::Vector3f left_bottom(
-        linestring.front().x(), linestring.front().y(), linestring.front().z());
+      const Eigen::Vector3f right_bottom =
+        view.to_view(linestring.back().basicPoint()).cast<float>();
+      const Eigen::Vector3f left_bottom =
+        view.to_view(linestring.front().basicPoint()).cast<float>();
+      const Eigen::Vector3f right_top = right_bottom + Eigen::Vector3f(0, 0, height);
+      const Eigen::Vector3f left_top = left_bottom + Eigen::Vector3f(0, 0, height);
 
       board.right_top_position = ros2_to_godot(right_top);
       board.left_top_position = ros2_to_godot(left_top);
@@ -904,8 +915,7 @@ void get_traffic_light_groups_from_lanelet_map(
 
         LightBulb light_bulb;
         light_bulb.color = point_light_bulb.attribute("color").value();
-        light_bulb.position =
-          ros2_to_godot(point_light_bulb.x(), point_light_bulb.y(), point_light_bulb.z());
+        light_bulb.position = view.to_godot(point_light_bulb.basicPoint());
         if (point_light_bulb.hasAttribute("arrow")) {
           light_bulb.arrow = point_light_bulb.attribute("arrow").value();
         }
@@ -947,6 +957,7 @@ void VectorMap::add_traffic_light_poles(std::vector<TrafficLightGroup> & groups)
   constexpr float kMinHeight = 1.5f;  // board bottom above the foot [m]
   constexpr float kMaxHeight = 8.0f;
   constexpr float kShareDistance = 2.0f;  // [m]
+  const ViewFrame view(kMapFrame);
   std::vector<Vector3> poles;  // feet (ROS coordinates)
   // Road border segments (ROS coordinates) per grid cell
   std::vector<std::pair<Vector3, Vector3>> segments;
@@ -958,7 +969,7 @@ void VectorMap::add_traffic_light_poles(std::vector<TrafficLightGroup> & groups)
     if (linestring.attributeOr(lanelet::AttributeName::Type, "") != std::string("road_border")) {
       continue;
     }
-    const auto line = line_geometry::to_points(linestring);
+    const auto line = line_geometry::to_points(linestring, view);
     for (size_t i = 0; i + 1 < line.size(); ++i) {
       const Vector3 & a = line[i];
       const Vector3 & b = line[i + 1];

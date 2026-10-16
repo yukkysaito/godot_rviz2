@@ -46,29 +46,39 @@ void PointCloud::_bind_methods()
 }
 
 /**
+ * @brief The transform of a cloud's points to target_frame at its stamp, if TF has it.
+ */
+static std::optional<Eigen::Isometry3d> lookup_cloud_transform(
+  const sensor_msgs::msg::PointCloud2 & cloud, const std::string & target_frame)
+{
+  rclcpp::Clock clock{RCL_ROS_TIME};
+  const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
+  try {
+    // Do not wait: this runs on the render loop. If the transform for this stamp is not
+    // available yet, the cloud is skipped and the next message is used.
+    return tf2::transformToEigen(
+      tf_buffer->lookupTransform(target_frame, cloud.header.frame_id, cloud.header.stamp));
+  } catch (const tf2::TransformException & ex) {
+    RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
+    return std::nullopt;
+  }
+}
+
+/**
  * @brief Transforms a point cloud to a specified target frame.
  *
  * @param input The input point cloud.
- * @param tf2 The TF2 buffer for looking up transformations.
  * @param target_frame The target frame to which the point cloud will be transformed.
  * @param output The output transformed point cloud.
  * @return bool True if the transformation is successful, false otherwise.
  */
 bool transform_pointcloud(
-  const sensor_msgs::msg::PointCloud2 & input, const tf2_ros::Buffer & tf2,
-  const std::string & target_frame, sensor_msgs::msg::PointCloud2 & output)
+  const sensor_msgs::msg::PointCloud2 & input, const std::string & target_frame,
+  sensor_msgs::msg::PointCloud2 & output)
 {
-  rclcpp::Clock clock{RCL_ROS_TIME};
-  geometry_msgs::msg::TransformStamped tf_stamped{};
-  try {
-    // Do not wait: this runs on the render loop. If the transform for this stamp is not
-    // available yet, the cloud is skipped and the next message is used.
-    tf_stamped = tf2.lookupTransform(target_frame, input.header.frame_id, input.header.stamp);
-  } catch (const tf2::TransformException & ex) {
-    RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
-    return false;
-  }
-  Eigen::Matrix4f tf_matrix = tf2::transformToEigen(tf_stamped.transform).matrix().cast<float>();
+  const auto transform = lookup_cloud_transform(input, target_frame);
+  if (!transform) return false;
+  Eigen::Matrix4f tf_matrix = transform->matrix().cast<float>();
   pcl_ros::transformPointCloud(tf_matrix, input, output);
   output.header.stamp = input.header.stamp;
   output.header.frame_id = target_frame;
@@ -86,8 +96,7 @@ static sensor_msgs::msg::PointCloud2::ConstSharedPtr get_msg_in_frame(
   if (frame_id == last_msg.value()->header.frame_id) return last_msg.value();
 
   auto transformed_msg_ptr = std::make_shared<sensor_msgs::msg::PointCloud2>();
-  const auto tf_buffer = GodotRviz2::get_instance().get_tf_buffer();
-  if (!transform_pointcloud(*(last_msg.value()), *tf_buffer, frame_id, *transformed_msg_ptr)) {
+  if (!transform_pointcloud(*(last_msg.value()), frame_id, *transformed_msg_ptr)) {
     return nullptr;
   }
   return transformed_msg_ptr;
@@ -96,15 +105,27 @@ static sensor_msgs::msg::PointCloud2::ConstSharedPtr get_msg_in_frame(
 PackedVector3Array PointCloud::get_pointcloud(const String & frame_id)
 {
   PackedVector3Array pointcloud;
-  const auto msg_ptr = get_msg_in_frame(get_last_msg(), to_std(frame_id));
-  if (!msg_ptr) return pointcloud;
+  const auto last_msg = get_last_msg();
+  if (!last_msg) return pointcloud;
+  const auto & msg = *last_msg.value();
+
+  // Transformed in double: in the map frame, the points become large coordinates, which only
+  // become small again relative to the view
+  const std::string frame = to_std(frame_id);
+  Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
+  if (frame != msg.header.frame_id) {
+    const auto found = lookup_cloud_transform(msg, frame);
+    if (!found) return pointcloud;
+    transform = *found;
+  }
 
   // Convert the point cloud to a Godot array
-  sensor_msgs::PointCloud2ConstIterator<float> iter_x(*msg_ptr, "x"), iter_y(*msg_ptr, "y"),
-    iter_z(*msg_ptr, "z");
+  const ViewFrame view(frame);
+  sensor_msgs::PointCloud2ConstIterator<float> iter_x(msg, "x"), iter_y(msg, "y"), iter_z(msg, "z");
   for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
     // Append each point to the Godot array after converting from ROS 2 to Godot's coordinate system
-    pointcloud.append(ros2_to_godot(*iter_x, *iter_y, *iter_z));
+    pointcloud.append(
+      view.to_godot(Eigen::Vector3d(transform * Eigen::Vector3d(*iter_x, *iter_y, *iter_z))));
   }
 
   return pointcloud;
@@ -205,8 +226,24 @@ void quantize(
 }  // namespace
 
 /**
+ * @brief Middle of the points of msg (ROS coordinates).
+ */
+static Eigen::Vector3d middle_of(const sensor_msgs::msg::PointCloud2 & msg)
+{
+  Eigen::Vector3d sum = Eigen::Vector3d::Zero();
+  size_t count = 0;
+  sensor_msgs::PointCloud2ConstIterator<float> x(msg, "x"), y(msg, "y"), z(msg, "z");
+  for (; x != x.end(); ++x, ++y, ++z) {
+    if (!std::isfinite(*x) || !std::isfinite(*y) || !std::isfinite(*z)) continue;
+    sum += Eigen::Vector3d(*x, *y, *z);
+    ++count;
+  }
+  return Eigen::Vector3d(sum / double(std::max<size_t>(1, count)));
+}
+
+/**
  * @brief Splits msg into tiles and downsamples each tile at every level, nearest to
- * (origin_x, origin_y) [ROS coordinates] first, passing each tile to emit.
+ * (origin_x, origin_y) [ROS axes, relative to the view] first, passing each tile to emit.
  */
 static void make_tiles(
   const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr,
@@ -216,6 +253,9 @@ static void make_tiles(
   if (!msg_ptr || tile_size <= 0.0 || voxel_sizes.empty()) return;
 
   const auto & msg = *msg_ptr;
+  // The points relative to the view (the tiles too)
+  if (msg.header.frame_id == kMapFrame) map_origin::resolve([&msg]() { return middle_of(msg); });
+  const ViewFrame view(msg.header.frame_id);
   const int off_x = float_field_offset(msg, "x");
   const int off_y = float_field_offset(msg, "y");
   const int off_z = float_field_offset(msg, "z");
@@ -226,11 +266,12 @@ static void make_tiles(
   auto point_at = [&](size_t i) {
     const size_t row = i / msg.width;
     const uint8_t * p = data + row * msg.row_step + (i - row * msg.width) * msg.point_step;
-    RosPoint point;
-    std::memcpy(&point.x, p + off_x, sizeof(float));
-    std::memcpy(&point.y, p + off_y, sizeof(float));
-    std::memcpy(&point.z, p + off_z, sizeof(float));
-    return point;
+    float x, y, z;
+    std::memcpy(&x, p + off_x, sizeof(float));
+    std::memcpy(&y, p + off_y, sizeof(float));
+    std::memcpy(&z, p + off_z, sizeof(float));
+    const Eigen::Vector3d v = view.to_view(Eigen::Vector3d(x, y, z));
+    return RosPoint{float(v.x()), float(v.y()), float(v.z())};
   };
 
   // 1. Bucket the points by tile (counting sort of point indices)
@@ -352,7 +393,7 @@ bool PointCloud::start_tiles(
   tiles_taken_ = 0;
   const auto store = tiles_;
   std::vector<double> voxels(voxel_sizes.ptr(), voxel_sizes.ptr() + voxel_sizes.size());
-  // Godot -> ROS coordinates (see ros2_to_godot())
+  // Godot -> ROS axes (see ros2_to_godot()), relative to the view like the tiles
   const double origin_x = origin.x;
   const double origin_y = -origin.z;
   return tiles_task_.start([last_msg, frame = to_std(frame_id), voxels, tile_size, origin_x,

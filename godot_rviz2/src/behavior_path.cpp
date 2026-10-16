@@ -63,13 +63,14 @@ Array BehaviorPath::get_path_triangle_strip(const float width)
   // If no message is found, return the empty array
   if (!last_msg) return triangle_strip;
 
+  const ViewFrame view(last_msg.value()->header.frame_id);
   // Iterate over each point in the path message
   for (const auto & point : last_msg.value()->points) {
     // Extract pose information from the point
     const auto & pose = point.pose;
     Eigen::Quaternionf quat(
       pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-    Eigen::Vector3f position(pose.position.x, pose.position.y, pose.position.z);
+    const Eigen::Vector3f position = view.to_view(pose.position).cast<float>();
 
     // Append two points for each path point to form a strip
     triangle_strip.append(create_offset_point_dict_with_velocity(
@@ -97,8 +98,9 @@ Dictionary BehaviorPath::get_drivable_area_triangle_strip(const float width)
     return drivable_area_lines;
   }
 
-  drivable_area_lines["left_line"] = calculate_line_as_triangle_strip(left_line, width);
-  drivable_area_lines["right_line"] = calculate_line_as_triangle_strip(right_line, width);
+  const ViewFrame view(last_msg.value()->header.frame_id);
+  drivable_area_lines["left_line"] = calculate_line_as_triangle_strip(left_line, width, view);
+  drivable_area_lines["right_line"] = calculate_line_as_triangle_strip(right_line, width, view);
 
   return drivable_area_lines;
 }

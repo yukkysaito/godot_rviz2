@@ -81,6 +81,11 @@ bool MapProjection::is_available() { return get_origin().has_value(); }
 int64_t MapProjection::get_revision()
 {
   get_origin();
+  // Positions in Godot's coordinates also change when the origin of the view is set
+  if (map_origin::is_set() != view_origin_set_) {
+    view_origin_set_ = map_origin::is_set();
+    ++revision_;
+  }
   return revision_;
 }
 
@@ -89,9 +94,9 @@ Vector2 MapProjection::to_lat_lon(const Vector3 & position)
   const auto & origin = get_origin();
   if (!origin) return Vector2();
 
-  // Godot's (x, z) is the map's (x, -y)
-  const double x = origin->easting + position.x;
-  const double y = origin->northing - position.z;
+  const Eigen::Vector3d map_position = ViewFrame(kMapFrame).from_godot(position);
+  const double x = origin->easting + map_position.x();
+  const double y = origin->northing + map_position.y();
   double latitude = 0.0;
   double longitude = 0.0;
   if (origin->type == ProjectorInfo::TRANSVERSE_MERCATOR) {
@@ -125,5 +130,8 @@ Vector3 MapProjection::from_lat_lon(double latitude, double longitude)
     double k = 0.0;
     GeographicLib::UTMUPS::Forward(latitude, longitude, zone, northp, x, y, gamma, k, origin->zone);
   }
-  return ros2_to_godot(x - origin->easting, y - origin->northing, 0.0);
+  Vector3 position =
+    ViewFrame(kMapFrame).to_godot(Eigen::Vector3d(x - origin->easting, y - origin->northing, 0.0));
+  position.y = 0.0f;  // at height 0 in Godot's coordinates
+  return position;
 }
