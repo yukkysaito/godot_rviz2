@@ -2,17 +2,19 @@ extends Control
 class_name Hud
 
 # Heads-up display drawn over the 3D view, crisp at any resolution (vector drawing, no images):
-# - top left: the operation mode (autonomous / manual)
-# - top right: the clock
+# - top left: the operation mode (AUTO / MANUAL)
+# - top right: the clock (with the route progress of UI/RouteProgress.gd between them, the top row)
 # - bottom center: the speed, the turn signals, the steering angle and, when the vehicle is planned
 #   to stop ahead, the distance to the stop
-# Sized for a 1080 px high window and scaled with the window height.
+# Sized for a 1080 px high window and scaled with the window height; the top row also shrinks in a
+# narrow window (e.g. a portrait one), so that it stays in one row.
 # What it shows is gathered every frame, and it is drawn again only when that changed (drawing it,
 # with its texts, is the main cost of a frame on the CPU).
 
 @export var trajectory_mesh_path: NodePath  # for the distance to the planned stop
 @export var stop_display_range: float = 150.0  # [m] the stop shows within this distance
 @export var max_steering_angle: float = 0.5  # [rad] at the end of the steering arc
+@export var top_row_width: float = 620.0  # [px] of a 1080 px high window the top row needs at full size
 # Small angles are shown larger (angle^STEERING_CURVE), as most driving is within a few degrees
 const STEERING_CURVE := 0.5
 
@@ -68,24 +70,53 @@ func _process(_delta: float) -> void:
 		_drawn = shown
 		queue_redraw()
 
+# Scale of the top row (the mode, the route progress and the clock): the HUD's, smaller in a window
+# narrower than top_row_width at that scale
+func top_row_scale() -> float:
+	return minf(size.y / 1080.0, size.x / top_row_width)
+
+# How far the top status bar reaches in from the left and from the right edge [px] (the mode and
+# the clock), for the route progress between them. Zero while it is hidden.
+func status_bar_insets() -> Vector2:
+	if not _show_status:
+		return Vector2.ZERO
+	var t := top_row_scale()
+	var origin := Vector2(28, 28) * t
+	# The wider of the two modes, so that the row does not move when the mode changes
+	var mode := maxf(_mode_rect(origin, t, "AUTO").end.x, _mode_rect(origin, t, "MANUAL").end.x)
+	var clock := FONT_LIGHT.get_string_size(_clock, HORIZONTAL_ALIGNMENT_LEFT, -1, int(30 * t)).x
+	return Vector2(mode, 32 * t + clock)
+
 func _draw() -> void:
 	var s := size.y / 1080.0
 	if _show_status:
-		_draw_mode(Vector2(28, 28) * s, s)
-		_draw_text_right(FONT_LIGHT, _clock, Vector2(size.x - 32 * s, 56 * s), 30 * s, TEXT)
+		var t := top_row_scale()
+		_draw_mode(Vector2(28, 28) * t, t)
+		_draw_text_right(FONT_LIGHT, _clock, Vector2(size.x - 32 * t, 56 * t), 30 * t, TEXT)
 	if _show_cluster:
 		_draw_cluster(Vector2(size.x * 0.5, size.y - 92 * s), s)
 
-# A pill with a dot and AUTONOMOUS / MANUAL
+# A pill with a glowing dot and AUTO / MANUAL: blue while autonomous, gray while manual
 func _draw_mode(origin: Vector2, s: float) -> void:
-	var text := "AUTONOMOUS" if _autonomous else "MANUAL"
+	var text := _mode_text()
 	var font_size := int(15 * s)
-	var width := _labels.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
-	var rect := Rect2(origin, Vector2(width + 52 * s, 36 * s))
+	var rect := _mode_rect(origin, s, text)
+	var color := ACCENT if _autonomous else MUTED
 	_draw_pill(rect, PANEL, Color(ACCENT, 0.5) if _autonomous else Color(1, 1, 1, 0.12), s)
-	_draw_dot(origin + Vector2(20, 18) * s, 3.5 * s, ACCENT if _autonomous else MUTED)
+	var dot := origin + Vector2(20, 18) * s
+	for i in 3:  # the glow, fading out
+		_draw_dot(dot, (5.5 + 2.0 * i) * s, Color(color, 0.16 - 0.04 * i))
+	_draw_dot(dot, 4.0 * s, color)
+	_draw_dot(dot, 2.2 * s, color.lerp(Color.WHITE, 0.55))
 	draw_string(_labels, origin + Vector2(36 * s, 23.5 * s), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size,
 		TEXT if _autonomous else MUTED)
+
+func _mode_text() -> String:
+	return "AUTO" if _autonomous else "MANUAL"
+
+func _mode_rect(origin: Vector2, s: float, text: String) -> Rect2:
+	var width := _labels.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(15 * s)).x
+	return Rect2(origin, Vector2(width + 52 * s, 36 * s))
 
 func _draw_cluster(center: Vector2, s: float) -> void:
 	# A soft shade under it, so that it reads over any scene
