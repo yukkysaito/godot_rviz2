@@ -8,7 +8,9 @@ Import('env')
 
 ros_distro = "humble"
 cpp_version = "-std=c++17"
-ros_path = "/opt/ros/" + ros_distro
+# Target root filesystem for cross builds (empty for native builds)
+sysroot = ARGUMENTS.get("sysroot", "")
+ros_path = sysroot + "/opt/ros/" + ros_distro
 autoware_path = os.environ['COLCON_PREFIX_PATH']
 
 # include package list
@@ -54,8 +56,8 @@ msg_pkgs = ["tf2_msgs",
             "autoware_perception_msgs",
             "autoware_vehicle_msgs"]
 
-pcl_include_path = "/usr/include/pcl-1.12"
-eigen3_include_path = "/usr/include/eigen3"
+pcl_include_path = sysroot + "/usr/include/pcl-1.12"
+eigen3_include_path = sysroot + "/usr/include/eigen3"
 
 env.add_source_files(env.modules_sources, "src/*.cpp")
 env.add_source_files(env.modules_sources, "register_types.cpp")
@@ -89,7 +91,7 @@ else:
 
 env.Append(LIBPATH=[ros_lib_path, 
                     ros_lib_path+"/"+arch_lib,
-                    "/usr/lib/"+arch_lib]
+                    sysroot+"/usr/lib/"+arch_lib]
                     +autoware_lib_paths)
 
 env.Append(CCFLAGS=[cpp_version, "-fexceptions"])
