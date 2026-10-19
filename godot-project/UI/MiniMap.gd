@@ -114,6 +114,10 @@ func _layout() -> void:
 	_window_rect = Rect2(Vector2.ONE * gap, window - Vector2.ONE * 2.0 * gap)
 	_apply_rect()
 
+# Where the map is while not opened over the window (e.g. for UI/RouteProgress.gd to keep clear of)
+func corner_rect() -> Rect2:
+	return _corner_rect
+
 # Places the map between the corner and the whole window, as far as it is expanded
 func _apply_rect() -> void:
 	var e := smoothstep(0.0, 1.0, _expansion)
