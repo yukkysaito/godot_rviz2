@@ -21,7 +21,7 @@ const DEFAULTS := {
 	# tonemapping
 	"display/anti_aliasing": "msaa_2x_fxaa",  # off, fxaa, msaa_2x_fxaa, taa, msaa_2x, msaa_4x, msaa_8x
 	"view/day_mode": "day",  # day, night
-	"view/object_mode": "model",  # model, geometry
+	"view/object_mode": "model",  # model, model_plain (the models in one color), geometry
 	"view/object_icons": true,
 	"view/ignore_unknown_objects": false,
 	"view/high_contrast": false,

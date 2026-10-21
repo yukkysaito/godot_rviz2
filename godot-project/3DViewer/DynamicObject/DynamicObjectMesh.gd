@@ -4,6 +4,7 @@ class_name DynamicObjectRenderer
 # ================== Editor-exposed settings ==================
 var ignore_unknown_object: bool
 var object_3d_model_mode: bool
+var model_colors := true  # false: the models in one color
 
 @export var initial_pool: int = 16     # Initial pool size per type
 
@@ -76,6 +77,7 @@ var _see_through_materials := {}  # Material -> Material
 var _default_material := StandardMaterial3D.new()
 # Known from the first model of each type
 var _model_heights := {}  # type -> top of the model [m]
+var _model_materials := {}  # Material -> true: shared by the models of a type
 
 # Icon mesh/material shared by all icons of a type: icon_assets[type] = { "mesh", "material" }
 var icon_assets := {}
@@ -312,7 +314,20 @@ func _new_model(t: String) -> Node3D:
 	add_child(node)
 	if not _model_heights.has(t):  # the first of its type
 		_model_heights[t] = _model_top(node)
+		_add_model_materials(node)
 	return node
+
+# The materials of the surfaces colored by their vertex colors
+func _add_model_materials(model: Node3D) -> void:
+	var meshes: Array[MeshInstance3D] = []
+	_collect_meshes(model, meshes)
+	for mesh_instance in meshes:
+		var mesh := mesh_instance.mesh
+		for i in mesh.get_surface_count():
+			var material := mesh.surface_get_material(i) as BaseMaterial3D
+			if material != null and mesh.surface_get_format(i) & Mesh.ARRAY_FORMAT_COLOR:
+				_model_materials[material] = true
+				material.vertex_color_use_as_albedo = model_colors
 
 func _model_top(model: Node3D) -> float:
 	var meshes: Array[MeshInstance3D] = []
@@ -425,10 +440,23 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 func _bind_settings() -> void:
 	Settings.bind("view/ignore_unknown_objects", _on_ignore_unknown_object_toggle_toggled)
 	Settings.bind("view/object_icons", set_icon_visibility)
-	Settings.bind("view/object_mode", func(mode): set_3d_model_mode(mode == "model"))
+	Settings.bind("view/object_mode", _on_object_mode)
+
+func _on_object_mode(mode: String) -> void:
+	set_3d_model_mode(mode == "model" or mode == "model_plain")
+	set_model_colors(mode != "model_plain")
 
 func set_3d_model_mode(enabled: bool) -> void:
 	object_3d_model_mode = enabled
+
+# The models have their colors as vertex colors: in one color, their (shared) materials just leave
+# them out, and the pools stay the same
+func set_model_colors(enabled: bool) -> void:
+	model_colors = enabled
+	for material in _model_materials:
+		material.vertex_color_use_as_albedo = enabled
+		if _see_through_materials.has(material):
+			_see_through_materials[material].vertex_color_use_as_albedo = enabled
 
 func set_icon_visibility(enabled: bool) -> void:
 	show_icons = enabled

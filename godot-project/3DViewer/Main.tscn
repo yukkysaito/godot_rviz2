@@ -531,8 +531,8 @@ layout_mode = 2
 focus_mode = 0
 script = ExtResource("ui_setting_option")
 key = "view/object_mode"
-values = PackedStringArray("model", "geometry")
-labels = PackedStringArray("3D Model", "Geometry")
+values = PackedStringArray("model", "model_plain", "geometry")
+labels = PackedStringArray("3D Model (Color)", "3D Model (Plain)", "Geometry")
 
 [node name="ObjectIconContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
