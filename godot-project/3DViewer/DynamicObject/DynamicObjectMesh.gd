@@ -74,6 +74,8 @@ const ICON_TEX := {
 # (shared per material), which still write depth so that the model's own parts hide each other
 var _see_through_materials := {}  # Material -> Material
 var _default_material := StandardMaterial3D.new()
+# Known from the first model of each type
+var _model_heights := {}  # type -> top of the model [m]
 
 # Icon mesh/material shared by all icons of a type: icon_assets[type] = { "mesh", "material" }
 var icon_assets := {}
@@ -252,7 +254,9 @@ func _draw(track: Track) -> void:
 	if track.icon != null:
 		# Above the object top; the icon shader turns it to the camera
 		var height: float = (icon_assets[track.type]["mesh"] as QuadMesh).size.y
-		track.icon.position = track.position + Vector3.UP * (track.size.y + ICON_EXTRA_OFFSET_M + 0.5 * height)
+		# A model keeps its own height, a box takes the measured one
+		var top: float = _model_heights[track.type] if track.model != null else track.size.y
+		track.icon.position = track.position + Vector3.UP * (top + ICON_EXTRA_OFFSET_M + 0.5 * height)
 		track.icon.transparency = 1.0 - track.fade
 		track.icon.visible = true
 
@@ -306,7 +310,23 @@ func _new_model(t: String) -> Node3D:
 	var node := (pools[t]["scene"] as PackedScene).instantiate() as Node3D
 	node.visible = false
 	add_child(node)
+	if not _model_heights.has(t):  # the first of its type
+		_model_heights[t] = _model_top(node)
 	return node
+
+func _model_top(model: Node3D) -> float:
+	var meshes: Array[MeshInstance3D] = []
+	_collect_meshes(model, meshes)
+	var top := 0.0
+	var to_model := model.global_transform.affine_inverse()
+	for mesh_instance in meshes:
+		var skeleton := mesh_instance.get_node_or_null(mesh_instance.skeleton) as Skeleton3D
+		if skeleton != null:  # skinned: the box of the mesh is from before the bones move it
+			for bone in skeleton.get_bone_count():
+				top = maxf(top, (to_model * skeleton.global_transform * skeleton.get_bone_global_pose(bone)).origin.y)
+		else:
+			top = maxf(top, (to_model * mesh_instance.global_transform * mesh_instance.get_aabb()).end.y)
+	return top
 
 func _take_model(t: String) -> Node3D:
 	var free: Array[Node3D] = pools[t]["free"]
