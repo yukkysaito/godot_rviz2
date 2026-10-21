@@ -92,6 +92,7 @@ class Track:
 	var velocity: Vector3  # world [m/s]
 	var speed: float
 	var size: Vector3
+	var length: float  # drawn, for the models fitted to it
 	var age: float  # since the last message [s]
 	var fade: float = 0.0
 	var see_through := false  # has the see-through materials
@@ -169,6 +170,7 @@ func _update_tracks(objects: Array) -> void:
 			_measure(best, obj)
 			best.position = best.target
 			best.rotation = best.target_rotation
+			best.length = best.size.x
 		else:
 			_measure(best, obj)
 	for track in _tracks:
@@ -204,6 +206,7 @@ func _advance_tracks(delta: float) -> void:
 			track.target += track.velocity * delta
 		track.age += delta
 		track.position = track.position.lerp(track.target, follow)
+		track.length = lerpf(track.length, track.size.x, follow)
 		track.rotation = Vector3(lerp_angle(track.rotation.x, track.target_rotation.x, follow),
 			lerp_angle(track.rotation.y, track.target_rotation.y, follow),
 			lerp_angle(track.rotation.z, track.target_rotation.z, follow))
@@ -233,6 +236,8 @@ func _draw(track: Track) -> void:
 		track.model.position = track.position
 		track.model.rotation = track.rotation
 		track.model.set_meta("speed_mps", track.speed)  # for PedestrianAnimator
+		if track.model is LengthFittedModel:
+			(track.model as LengthFittedModel).fit_length(track.length)
 		# Transparent only when not fully opaque (it costs sorting), as modeled otherwise
 		var opacity := track.fade * model_opacity
 		var see_through := opacity < 1.0
