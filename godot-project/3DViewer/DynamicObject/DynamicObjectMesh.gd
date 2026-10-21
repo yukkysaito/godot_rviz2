@@ -52,18 +52,19 @@ var pools := {
 	"car":        {"scene": preload("res://3DViewer/DynamicObject/Car.tscn")        as PackedScene, "free": [] as Array[Node3D]},
 	"pedestrian": {"scene": preload("res://3DViewer/DynamicObject/Pedestrian.tscn") as PackedScene, "free": [] as Array[Node3D]},
 	"truck":      {"scene": preload("res://3DViewer/DynamicObject/Truck.tscn")      as PackedScene, "free": [] as Array[Node3D]},
-	"trailer":    {"scene": preload("res://3DViewer/DynamicObject/Trailer.tscn")    as PackedScene, "free": [] as Array[Node3D]},
 	"bus":        {"scene": preload("res://3DViewer/DynamicObject/Bus.tscn")        as PackedScene, "free": [] as Array[Node3D]},
 	"bicycle":    {"scene": preload("res://3DViewer/DynamicObject/Bicycle.tscn")    as PackedScene, "free": [] as Array[Node3D]},
 	"motorcycle": {"scene": preload("res://3DViewer/DynamicObject/Motorcycle.tscn") as PackedScene, "free": [] as Array[Node3D]},
 }
+
+# Classes drawn as another: a trailer looks like a truck, and the detection often switches between them
+const SAME_AS := {"trailer": "truck"}
 
 # Icon textures (type -> Texture2D). Paths follow: res://DynamicObject/Foo.png
 const ICON_TEX := {
 	"car": preload("res://3DViewer/DynamicObject/Car.png"),
 	"pedestrian": preload("res://3DViewer/DynamicObject/Pedestrian.png"),
 	"truck": preload("res://3DViewer/DynamicObject/Truck.png"),
-	"trailer": preload("res://3DViewer/DynamicObject/Trailer.png"),
 	"bus": preload("res://3DViewer/DynamicObject/Bus.png"),
 	"bicycle": preload("res://3DViewer/DynamicObject/Bicycle.png"),
 	"motorcycle": preload("res://3DViewer/DynamicObject/Motorcycle.png"),
@@ -139,7 +140,7 @@ func _update_tracks(objects: Array) -> void:
 			by_id[track.type + track.id] = track
 	var rest: Array[Dictionary] = []
 	for obj in objects:
-		var t: String = obj.get("class", "")
+		var t := _object_type(obj)
 		if not pools.has(t):
 			continue
 		var id := _object_id(obj)
@@ -149,7 +150,7 @@ func _update_tracks(objects: Array) -> void:
 		else:
 			rest.append(obj)
 	for obj in rest:
-		var t: String = obj.get("class", "")
+		var t := _object_type(obj)
 		var id := _object_id(obj)
 		var position := _object_position(obj)
 		var best: Track = null
@@ -260,6 +261,11 @@ func _release(track: Track) -> void:
 		_release_model(track)
 	if track.icon != null:
 		_release_icon(track)
+
+# The type an object is drawn and tracked as: its class, or the class it looks like
+func _object_type(obj: Dictionary) -> String:
+	var t: String = obj.get("class", "")
+	return SAME_AS.get(t, t)
 
 # The tracking id, "" without one (all zero when the objects are not tracked)
 func _object_id(obj: Dictionary) -> String:
