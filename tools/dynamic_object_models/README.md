@@ -11,6 +11,7 @@ blender -b --python tools/dynamic_object_models/bus.py         # -> Bus.glb
 blender -b --python tools/dynamic_object_models/truck.py       # -> Truck.glb
 blender -b --python tools/dynamic_object_models/bicycle.py     # -> Bicycle.glb
 blender -b --python tools/dynamic_object_models/motorcycle.py  # -> Motorcycle.glb
+blender -b --python tools/dynamic_object_models/pedestrian.py  # -> Pedestrian.glb (smoothed)
 ```
 
 Pass `-- <path>.glb` to write somewhere else. Tested with Blender 5.2.
