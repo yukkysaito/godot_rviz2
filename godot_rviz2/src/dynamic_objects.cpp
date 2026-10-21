@@ -65,6 +65,25 @@ String to_uuid_string(const autoware_perception_msgs::msg::PredictedObject & obj
   }
   return String(id.c_str());
 }
+
+// Length, width and height. A polygon has only its height in the dimensions: the length and
+// the width are the extent of its footprint (in the object frame).
+Vector3 object_size(const autoware_perception_msgs::msg::Shape & shape)
+{
+  double length = shape.dimensions.x;
+  double width = shape.dimensions.y;
+  if (
+    shape.type == autoware_perception_msgs::msg::Shape::POLYGON &&
+    !shape.footprint.points.empty()) {
+    Eigen::AlignedBox2d extent;
+    for (const auto & point : shape.footprint.points) {
+      extent.extend(Eigen::Vector2d(point.x, point.y));
+    }
+    length = extent.sizes().x();
+    width = extent.sizes().y();
+  }
+  return ros2_to_godot(length, width, shape.dimensions.z);
+}
 }  // namespace
 
 Array DynamicObjects::get_triangle_list(bool ignore_unknown_object)
@@ -172,8 +191,7 @@ Array DynamicObjects::get_dynamic_object_list(bool ignore_unknown_object)
     dynamic_object["id"] = to_uuid_string(object);
     dynamic_object["position"] = view.to_godot(pos);
     dynamic_object["rotation"] = ros2_to_godot(roll, pitch, yaw);
-    dynamic_object["size"] =
-      ros2_to_godot(shape.dimensions.x, shape.dimensions.y, shape.dimensions.z);
+    dynamic_object["size"] = object_size(shape);
     dynamic_object["velocity"] = ros2_to_godot(velocity.x, velocity.y, velocity.z);
     if (label == Label::PEDESTRIAN) {
       dynamic_object["class"] = "pedestrian";
