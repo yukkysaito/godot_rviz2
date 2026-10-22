@@ -4,6 +4,7 @@ class_name DynamicObjectRenderer
 # ================== Editor-exposed settings ==================
 var ignore_unknown_object: bool
 var object_3d_model_mode: bool
+var model_colors := true  # false: the models in one color
 
 @export var initial_pool: int = 16     # Initial pool size per type
 
@@ -52,18 +53,19 @@ var pools := {
 	"car":        {"scene": preload("res://3DViewer/DynamicObject/Car.tscn")        as PackedScene, "free": [] as Array[Node3D]},
 	"pedestrian": {"scene": preload("res://3DViewer/DynamicObject/Pedestrian.tscn") as PackedScene, "free": [] as Array[Node3D]},
 	"truck":      {"scene": preload("res://3DViewer/DynamicObject/Truck.tscn")      as PackedScene, "free": [] as Array[Node3D]},
-	"trailer":    {"scene": preload("res://3DViewer/DynamicObject/Trailer.tscn")    as PackedScene, "free": [] as Array[Node3D]},
 	"bus":        {"scene": preload("res://3DViewer/DynamicObject/Bus.tscn")        as PackedScene, "free": [] as Array[Node3D]},
 	"bicycle":    {"scene": preload("res://3DViewer/DynamicObject/Bicycle.tscn")    as PackedScene, "free": [] as Array[Node3D]},
 	"motorcycle": {"scene": preload("res://3DViewer/DynamicObject/Motorcycle.tscn") as PackedScene, "free": [] as Array[Node3D]},
 }
+
+# Classes drawn as another: a trailer looks like a truck, and the detection often switches between them
+const SAME_AS := {"trailer": "truck"}
 
 # Icon textures (type -> Texture2D). Paths follow: res://DynamicObject/Foo.png
 const ICON_TEX := {
 	"car": preload("res://3DViewer/DynamicObject/Car.png"),
 	"pedestrian": preload("res://3DViewer/DynamicObject/Pedestrian.png"),
 	"truck": preload("res://3DViewer/DynamicObject/Truck.png"),
-	"trailer": preload("res://3DViewer/DynamicObject/Trailer.png"),
 	"bus": preload("res://3DViewer/DynamicObject/Bus.png"),
 	"bicycle": preload("res://3DViewer/DynamicObject/Bicycle.png"),
 	"motorcycle": preload("res://3DViewer/DynamicObject/Motorcycle.png"),
@@ -73,6 +75,9 @@ const ICON_TEX := {
 # (shared per material), which still write depth so that the model's own parts hide each other
 var _see_through_materials := {}  # Material -> Material
 var _default_material := StandardMaterial3D.new()
+# Known from the first model of each type
+var _model_heights := {}  # type -> top of the model [m]
+var _model_materials := {}  # Material -> true: shared by the models of a type
 
 # Icon mesh/material shared by all icons of a type: icon_assets[type] = { "mesh", "material" }
 var icon_assets := {}
@@ -92,6 +97,7 @@ class Track:
 	var velocity: Vector3  # world [m/s]
 	var speed: float
 	var size: Vector3
+	var length: float  # drawn, for the models fitted to it
 	var age: float  # since the last message [s]
 	var fade: float = 0.0
 	var see_through := false  # has the see-through materials
@@ -138,7 +144,7 @@ func _update_tracks(objects: Array) -> void:
 			by_id[track.type + track.id] = track
 	var rest: Array[Dictionary] = []
 	for obj in objects:
-		var t: String = obj.get("class", "")
+		var t := _object_type(obj)
 		if not pools.has(t):
 			continue
 		var id := _object_id(obj)
@@ -148,7 +154,7 @@ func _update_tracks(objects: Array) -> void:
 		else:
 			rest.append(obj)
 	for obj in rest:
-		var t: String = obj.get("class", "")
+		var t := _object_type(obj)
 		var id := _object_id(obj)
 		var position := _object_position(obj)
 		var best: Track = null
@@ -169,6 +175,7 @@ func _update_tracks(objects: Array) -> void:
 			_measure(best, obj)
 			best.position = best.target
 			best.rotation = best.target_rotation
+			best.length = best.size.x
 		else:
 			_measure(best, obj)
 	for track in _tracks:
@@ -204,6 +211,7 @@ func _advance_tracks(delta: float) -> void:
 			track.target += track.velocity * delta
 		track.age += delta
 		track.position = track.position.lerp(track.target, follow)
+		track.length = lerpf(track.length, track.size.x, follow)
 		track.rotation = Vector3(lerp_angle(track.rotation.x, track.target_rotation.x, follow),
 			lerp_angle(track.rotation.y, track.target_rotation.y, follow),
 			lerp_angle(track.rotation.z, track.target_rotation.z, follow))
@@ -233,6 +241,8 @@ func _draw(track: Track) -> void:
 		track.model.position = track.position
 		track.model.rotation = track.rotation
 		track.model.set_meta("speed_mps", track.speed)  # for PedestrianAnimator
+		if track.model is LengthFittedModel:
+			(track.model as LengthFittedModel).fit_length(track.length)
 		# Transparent only when not fully opaque (it costs sorting), as modeled otherwise
 		var opacity := track.fade * model_opacity
 		var see_through := opacity < 1.0
@@ -246,7 +256,9 @@ func _draw(track: Track) -> void:
 	if track.icon != null:
 		# Above the object top; the icon shader turns it to the camera
 		var height: float = (icon_assets[track.type]["mesh"] as QuadMesh).size.y
-		track.icon.position = track.position + Vector3.UP * (track.size.y + ICON_EXTRA_OFFSET_M + 0.5 * height)
+		# A model keeps its own height, a box takes the measured one
+		var top: float = _model_heights[track.type] if track.model != null else track.size.y
+		track.icon.position = track.position + Vector3.UP * (top + ICON_EXTRA_OFFSET_M + 0.5 * height)
 		track.icon.transparency = 1.0 - track.fade
 		track.icon.visible = true
 
@@ -255,6 +267,11 @@ func _release(track: Track) -> void:
 		_release_model(track)
 	if track.icon != null:
 		_release_icon(track)
+
+# The type an object is drawn and tracked as: its class, or the class it looks like
+func _object_type(obj: Dictionary) -> String:
+	var t: String = obj.get("class", "")
+	return SAME_AS.get(t, t)
 
 # The tracking id, "" without one (all zero when the objects are not tracked)
 func _object_id(obj: Dictionary) -> String:
@@ -295,7 +312,36 @@ func _new_model(t: String) -> Node3D:
 	var node := (pools[t]["scene"] as PackedScene).instantiate() as Node3D
 	node.visible = false
 	add_child(node)
+	if not _model_heights.has(t):  # the first of its type
+		_model_heights[t] = _model_top(node)
+		_add_model_materials(node)
 	return node
+
+# The materials of the surfaces colored by their vertex colors
+func _add_model_materials(model: Node3D) -> void:
+	var meshes: Array[MeshInstance3D] = []
+	_collect_meshes(model, meshes)
+	for mesh_instance in meshes:
+		var mesh := mesh_instance.mesh
+		for i in mesh.get_surface_count():
+			var material := mesh.surface_get_material(i) as BaseMaterial3D
+			if material != null and mesh.surface_get_format(i) & Mesh.ARRAY_FORMAT_COLOR:
+				_model_materials[material] = true
+				material.vertex_color_use_as_albedo = model_colors
+
+func _model_top(model: Node3D) -> float:
+	var meshes: Array[MeshInstance3D] = []
+	_collect_meshes(model, meshes)
+	var top := 0.0
+	var to_model := model.global_transform.affine_inverse()
+	for mesh_instance in meshes:
+		var skeleton := mesh_instance.get_node_or_null(mesh_instance.skeleton) as Skeleton3D
+		if skeleton != null:  # skinned: the box of the mesh is from before the bones move it
+			for bone in skeleton.get_bone_count():
+				top = maxf(top, (to_model * skeleton.global_transform * skeleton.get_bone_global_pose(bone)).origin.y)
+		else:
+			top = maxf(top, (to_model * mesh_instance.global_transform * mesh_instance.get_aabb()).end.y)
+	return top
 
 func _take_model(t: String) -> Node3D:
 	var free: Array[Node3D] = pools[t]["free"]
@@ -394,10 +440,23 @@ func _apply_ground_offset(pos: Vector3, size: Vector3) -> Vector3:
 func _bind_settings() -> void:
 	Settings.bind("view/ignore_unknown_objects", _on_ignore_unknown_object_toggle_toggled)
 	Settings.bind("view/object_icons", set_icon_visibility)
-	Settings.bind("view/object_mode", func(mode): set_3d_model_mode(mode == "model"))
+	Settings.bind("view/object_mode", _on_object_mode)
+
+func _on_object_mode(mode: String) -> void:
+	set_3d_model_mode(mode == "model" or mode == "model_plain")
+	set_model_colors(mode != "model_plain")
 
 func set_3d_model_mode(enabled: bool) -> void:
 	object_3d_model_mode = enabled
+
+# The models have their colors as vertex colors: in one color, their (shared) materials just leave
+# them out, and the pools stay the same
+func set_model_colors(enabled: bool) -> void:
+	model_colors = enabled
+	for material in _model_materials:
+		material.vertex_color_use_as_albedo = enabled
+		if _see_through_materials.has(material):
+			_see_through_materials[material].vertex_color_use_as_albedo = enabled
 
 func set_icon_visibility(enabled: bool) -> void:
 	show_icons = enabled

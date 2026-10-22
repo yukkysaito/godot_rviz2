@@ -1,5 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bqvh70kin1uwr"]
+[gd_scene load_steps=3 format=3 uid="uid://bqvh70kin1uwr"]
 
 [ext_resource type="PackedScene" uid="uid://ue602kue1n4f" path="res://3DViewer/DynamicObject/Bus.glb" id="1_eoacy"]
+[ext_resource type="Script" path="res://3DViewer/DynamicObject/LengthFittedModel.gd" id="2_fit"]
 
 [node name="Bus2" instance=ExtResource("1_eoacy")]
+script = ExtResource("2_fit")
