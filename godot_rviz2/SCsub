@@ -89,10 +89,10 @@ elif arch in ["x86_64", "amd64"]:
 else:
     arch_lib = arch + "-linux-gnu"
 
-env.Append(LIBPATH=[ros_lib_path, 
-                    ros_lib_path+"/"+arch_lib,
-                    sysroot+"/usr/lib/"+arch_lib]
-                    +autoware_lib_paths)
+lib_paths = [ros_lib_path, ros_lib_path + "/" + arch_lib, sysroot + "/usr/lib/" + arch_lib] + autoware_lib_paths
+env.Append(LIBPATH=lib_paths)
+# The libraries' own dependencies (e.g. lanelet2_io of lanelet2_extension) are in the same paths
+env.Append(LINKFLAGS=["-Wl,-rpath-link," + ":".join(lib_paths)])
 
 env.Append(CCFLAGS=[cpp_version, "-fexceptions"])
 
