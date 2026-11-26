@@ -79,11 +79,8 @@ const ICON_TEX := {
 # their mesh (just before them, in the back to front order of the transparent drawing), so that
 # only their nearest surface shows, while what is behind them still does.
 const DEPTH_FIRST := ["truck", "bus"]
-const SEE_THROUGH_DEPTH := preload("res://3DViewer/Shaders/see_through_depth.gdshader")
-const DEPTH_TWIN := "SeeThroughDepth"
 const DEPTH_TWIN_SORTING := 0.01  # [m] further back than the mesh: drawn just before it
 var _see_through_materials := {}  # Material -> Material
-var _see_through_depth := ShaderMaterial.new()
 var _default_material := StandardMaterial3D.new()
 # Known from the first model of each type
 var _model_heights := {}  # type -> top of the model [m]
@@ -371,7 +368,7 @@ func _release_model(track: Track) -> void:
 	track.meshes = []
 
 func _collect_meshes(node: Node, out: Array[MeshInstance3D]) -> void:
-	if node.name == DEPTH_TWIN:
+	if SeeThroughDepth.is_twin(node):
 		return
 	if node is MeshInstance3D:
 		out.append(node as MeshInstance3D)
@@ -382,29 +379,7 @@ func _set_see_through(mesh_instance: MeshInstance3D, see_through: bool, depth_fi
 	for i in mesh_instance.mesh.get_surface_count():
 		var material := mesh_instance.mesh.surface_get_material(i)
 		mesh_instance.set_surface_override_material(i, _see_through_material(material) if see_through else null)
-	var twin := mesh_instance.get_node_or_null(DEPTH_TWIN) as MeshInstance3D
-	if twin == null and see_through and depth_first:
-		twin = _new_depth_twin(mesh_instance)
-	if twin != null:
-		twin.visible = see_through
-
-# The same mesh (and skin), drawing only its depth
-func _new_depth_twin(mesh_instance: MeshInstance3D) -> MeshInstance3D:
-	if _see_through_depth.shader == null:
-		_see_through_depth.shader = SEE_THROUGH_DEPTH
-	var twin := MeshInstance3D.new()
-	twin.name = DEPTH_TWIN
-	twin.mesh = mesh_instance.mesh
-	twin.skin = mesh_instance.skin
-	twin.custom_aabb = mesh_instance.custom_aabb
-	twin.material_override = _see_through_depth
-	twin.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	twin.sorting_offset = mesh_instance.sorting_offset - DEPTH_TWIN_SORTING
-	mesh_instance.add_child(twin)
-	var skeleton := mesh_instance.get_node_or_null(mesh_instance.skeleton)
-	if skeleton != null:
-		twin.skeleton = twin.get_path_to(skeleton)
-	return twin
+	SeeThroughDepth.set_shown(mesh_instance, see_through and depth_first, DEPTH_TWIN_SORTING)
 
 func _see_through_material(material: Material) -> Material:
 	if material == null:
