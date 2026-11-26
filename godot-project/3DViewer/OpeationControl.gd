@@ -13,6 +13,8 @@ var navidation_state: NavigationState = RosBridge.routing_state
 # -----------------------------------------------------------------------------
 @export var hud_path: NodePath
 @onready var _hud: Hud = get_node_or_null(hud_path) as Hud
+@export var mini_map_path: NodePath = ^"../MiniMap"  # for the message to keep clear of
+@onready var _mini_map: Control = get_node_or_null(mini_map_path) as Control
 
 @export var start_button_scene: PackedScene = preload("res://UI/StartButton.tscn")
 @export var message_panel_scene: PackedScene = preload("res://UI/MessagePanel.tscn")
@@ -130,18 +132,9 @@ func _show_message(text: String) -> bool:
 		_msg_root.show_message(text)
 		return false
 
-	# Instantiate MessagePanel.tscn
+	# Instantiate MessagePanel.tscn (it places itself in the window)
 	var inst := message_panel_scene.instantiate()
-	if inst is Control:
-		var c := inst as Control
-		c.anchor_left = 0.0
-		c.anchor_top = 0.0
-		c.anchor_right = 1.0
-		c.anchor_bottom = 0.3
-		c.offset_left = 0
-		c.offset_top = 0
-		c.offset_right = 0
-		c.offset_bottom = 0
+	inst.mini_map = _mini_map
 
 	add_child(inst)
 	_msg_root = inst

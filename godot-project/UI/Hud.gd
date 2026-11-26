@@ -39,6 +39,7 @@ var _steer := 0.0  # -1..1 along the steering arc, > 0: to the right
 var _signals_lit := [false, false]  # left, right
 var _stop_text := ""
 var _drawn := []
+var _pill := PillStyleBox.new()  # the mode and the stop
 
 @onready var _trajectory_mesh: Node = get_node_or_null(trajectory_mesh_path)
 
@@ -187,13 +188,10 @@ func _draw_shape(points: PackedVector2Array, color: Color) -> void:
 	draw_polyline(outline, color, 1.0, true)
 
 func _draw_pill(rect: Rect2, fill: Color, border: Color, s: float) -> void:
-	var box := StyleBoxFlat.new()
-	box.bg_color = fill
-	box.border_color = border
-	box.set_border_width_all(maxi(1, int(round(1.2 * s))))
-	box.set_corner_radius_all(int(rect.size.y * 0.5))
-	box.anti_aliasing = true
-	draw_style_box(box, rect)
+	_pill.bg_color = fill
+	_pill.border_color = border
+	_pill.border_width = maxf(1.0, 1.2 * s)
+	draw_style_box(_pill, rect)
 
 # `baseline` is the text's baseline
 func _draw_text_center(font: Font, text: String, baseline: Vector2, font_size: float, color: Color) -> void:
