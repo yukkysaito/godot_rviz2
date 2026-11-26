@@ -21,6 +21,7 @@ func _ready():
 	$EgoVehicleKinematicBody.add_child(vehicle_body)
 	head_beam_light.position = profile.head_beam_position
 	$Camera3D/Horizon/Vertical/ViewCamera.near = profile.camera_near
+	Settings.bind("view/ego_opacity", func(opacity): vehicle_body.set_opacity(float(opacity)))
 
 	Settings.bind("view/day_mode", func(mode): set_night_mode(mode == "night"))
 

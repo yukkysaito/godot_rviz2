@@ -1,4 +1,5 @@
 extends Node3D
+class_name LampLight
 
 # Light of a lamp (e.g. a turn signal, see VehicleBodyController) spilling around it, so that it
 # reads as a light from any view, also from above where the lamp itself is small or hidden:

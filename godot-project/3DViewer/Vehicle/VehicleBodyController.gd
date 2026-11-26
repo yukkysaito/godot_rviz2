@@ -18,6 +18,11 @@ enum Side { LEFT, RIGHT }
 @export var left_turn_signals: Array[NodePath] = []
 @export var right_turn_signals: Array[NodePath] = []
 
+# See-through (set_opacity below 1): the twins of the body's meshes (SeeThroughDepth) all draw
+# their depth before the body's colors, as if this much [m] further back, so that only the body's
+# nearest surface shows
+const SEE_THROUGH_SORTING := 10.0
+
 var _signal_on := [false, false]  # per Side
 var _signal_lit := [false, false]
 var _blink_time := 0.0  # [s] into the current blink
@@ -33,6 +38,13 @@ func rotate_wheels_by_distance(_move_delta: float) -> void:
 # Steers the front wheels [rad]
 func set_steering_angle(_angle: float) -> void:
 	pass
+
+# 1: opaque, below: see-through (the model's meshes, not the light its lamps spill around)
+func set_opacity(opacity: float) -> void:
+	var see_through := opacity < 1.0
+	for mesh_instance in _model_meshes(self, []):
+		mesh_instance.transparency = 1.0 - opacity
+		SeeThroughDepth.set_shown(mesh_instance, see_through, SEE_THROUGH_SORTING)
 
 func turn_on_right_signal() -> void:
 	_set_signal(Side.RIGHT, true)
@@ -76,3 +88,12 @@ func _nodes(paths: Array[NodePath]) -> Array[Node]:
 	for path in paths:
 		nodes.append(get_node(path))
 	return nodes
+
+func _model_meshes(node: Node, out: Array[MeshInstance3D]) -> Array[MeshInstance3D]:
+	if node is LampLight or SeeThroughDepth.is_twin(node):
+		return out
+	if node is MeshInstance3D:
+		out.append(node as MeshInstance3D)
+	for child in node.get_children():
+		_model_meshes(child, out)
+	return out

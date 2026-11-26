@@ -27,6 +27,11 @@ const DEFAULTS := {
 	"view/high_contrast": false,
 	"view/camera_auto_return": true,
 	"view/adaptive_camera_work": true,
+	"view/ego_opacity": 1.0,  # of the ego vehicle: below 1 it is see-through
+	# Third-person view: its distance as a ratio and its pitch [deg] added, both around the middle of
+	# the vehicle (see 3DViewer/Camera.gd). A vehicle's build can set its own in Config/project.cfg.
+	"view/camera_distance": 1.0,
+	"view/camera_pitch": 0.0,
 	"data/pointcloud_map": true,
 	"data/obstacle_segmentation": true,
 	# HUD parts (the keys are kept from the earlier HUD, so that saved choices still apply)
@@ -46,6 +51,7 @@ const PRESET_DIR := "res://Config/Presets/"
 signal changed(key: String, value: Variant)
 
 var _values := {}
+var _defaults := {}  # the values before the user's (of DEFAULTS, the project and the preset)
 var _user := ConfigFile.new()  # only the values the user changed
 var _listeners := {}  # key -> Array[Callable]
 var _save_pending := false
@@ -57,6 +63,7 @@ func _enter_tree() -> void:
 	var preset := _cmdline_value("--preset=")
 	if not preset.is_empty():
 		_merge(PRESET_DIR + preset + ".cfg")
+	_defaults = _values.duplicate()
 	if _user.load(USER_FILE) == OK:
 		_merge_config(_user)
 	var vehicle := _cmdline_value("--vehicle=")
@@ -79,6 +86,19 @@ func set_value(key: String, value: Variant) -> void:
 	_user.set_value(parts[0], parts[1], value)
 	_save_soon()
 	_notify(key, value)
+
+# Forgets the user's choice of a value: back to its default
+func reset_value(key: String) -> void:
+	if not DEFAULTS.has(key):
+		push_warning("Unknown setting: %s" % key)
+		return
+	var parts := key.split("/", true, 1)
+	if _user.has_section_key(parts[0], parts[1]):
+		_user.erase_section_key(parts[0], parts[1])
+		_save_soon()
+	if _values.get(key) != _defaults[key]:
+		_values[key] = _defaults[key]
+		_notify(key, _defaults[key])
 
 # Calls callback(value) now and whenever the value changes. A callback whose object was freed
 # is dropped.
