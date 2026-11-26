@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=57 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -29,6 +29,7 @@
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
 [ext_resource type="Script" path="res://UI/SettingOption.gd" id="ui_setting_option"]
 [ext_resource type="Script" path="res://UI/SettingToggle.gd" id="ui_setting_toggle"]
+[ext_resource type="Script" path="res://UI/SettingSlider.gd" id="ui_setting_slider"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_m8ng5"]
 sky_top_color = Color(0, 0, 0, 1)
@@ -605,6 +606,60 @@ layout_mode = 2
 focus_mode = 0
 script = ExtResource("ui_setting_toggle")
 key = "view/adaptive_camera_work"
+
+[node name="EgoOpacityContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="EgoOpacityLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/EgoOpacityContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ego opacity"
+
+[node name="EgoOpacitySlider" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/EgoOpacityContainer"]
+layout_mode = 2
+script = ExtResource("ui_setting_slider")
+key = "view/ego_opacity"
+min_value = 0.2
+max_value = 1.0
+step = 0.05
+value_format = "%.0f%%"
+value_scale = 100.0
+
+[node name="CameraDistanceContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="CameraDistanceLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraDistanceContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Camera distance"
+
+[node name="CameraDistanceSlider" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraDistanceContainer"]
+layout_mode = 2
+script = ExtResource("ui_setting_slider")
+key = "view/camera_distance"
+min_value = 0.5
+max_value = 3.0
+step = 0.05
+value_format = "x%.2f"
+value_scale = 1.0
+
+[node name="CameraPitchContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
+layout_mode = 2
+
+[node name="CameraPitchLabel" type="Label" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraPitchContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Camera angle"
+
+[node name="CameraPitchSlider" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/CameraPitchContainer"]
+layout_mode = 2
+script = ExtResource("ui_setting_slider")
+key = "view/camera_pitch"
+min_value = -20.0
+max_value = 40.0
+step = 1.0
+value_format = "%+.0f°"
+value_scale = 1.0
 
 [node name="SelectionHUD" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content"]
 layout_mode = 2

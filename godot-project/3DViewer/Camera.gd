@@ -4,6 +4,10 @@ extends Node3D
 const MODE_NAME := 0
 const MODE_OFFSET := 1
 const MODE_ROT := 2
+const TPV := 0  # index of the third-person view in view_mode
+# Third-person view at the default camera distance and angle (see _apply_tpv_view)
+const TPV_OFFSET := Vector3(-9, 4.25, 0)
+const TPV_PITCH_DEG := 25.0
 
 # --- Cache node references to avoid repeated lookups ---
 @onready var ego_vehicle: Node = get_parent()
@@ -13,7 +17,7 @@ const MODE_ROT := 2
 
 # --- Original data structure preserved (no logic change) ---
 var view_mode = [
-	["tpv", Vector3(-9, 4.25, 0), Vector3(deg_to_rad(-25), deg_to_rad(-90), deg_to_rad(0))],
+	["tpv", TPV_OFFSET, Vector3(deg_to_rad(-TPV_PITCH_DEG), deg_to_rad(-90), deg_to_rad(0))],
 	["bev", Vector3(0, 100, 0), Vector3(deg_to_rad(-90), deg_to_rad(0), deg_to_rad(0))]
 ]
 
@@ -63,14 +67,36 @@ func _effective_camera_offset() -> Vector3:
 		offset += turn_signal_camera_offset * turn_signal_view_blend
 	return offset
 
+# Zoomed toward the middle of the vehicle in the third-person view (so that the vehicle stays where it
+# is in the view), toward base_link in the others
 func _effective_camera_position() -> Vector3:
-	return _effective_camera_offset() * camera_zoom_ratio
+	var center := _tpv_pivot() if current_view_mode == TPV else Vector3.ZERO
+	return center + (_effective_camera_offset() - center) * camera_zoom_ratio
 
 func _effective_camera_rotation() -> Vector3:
 	var target_rotation: Vector3 = _mode_rot(current_view_mode)
 	if _mode_name(current_view_mode) == "tpv":
 		target_rotation.x = lerpf(target_rotation.x, deg_to_rad(-turn_signal_camera_pitch_deg), turn_signal_view_blend)
 	return target_rotation
+
+# The middle of the vehicle on the ground, which the third-person view turns and zooms around
+func _tpv_pivot() -> Vector3:
+	return Vector3(VehicleProfile.current().wheelbase * 0.5, 0.0, 0.0)
+
+# The third-person view: the default one (TPV_OFFSET, TPV_PITCH_DEG), turned up or down by the pitch
+# added in the menu and moved away or closer by the distance ratio, both around the middle of the
+# vehicle, so that the vehicle stays where it is in the view
+func _apply_tpv_view() -> void:
+	var pivot := _tpv_pivot()
+	var base_pitch := deg_to_rad(TPV_PITCH_DEG)
+	var pitch := clampf(base_pitch + deg_to_rad(float(Settings.get_value("view/camera_pitch"))),
+		deg_to_rad(5.0), deg_to_rad(85.0))
+	# Turning the camera down by an angle and its arm from the pivot up by the same angle
+	var arm := (TPV_OFFSET - pivot).rotated(Vector3.BACK, base_pitch - pitch)
+	view_mode[TPV][MODE_OFFSET] = pivot + arm * float(Settings.get_value("view/camera_distance"))
+	var tpv_rotation: Vector3 = view_mode[TPV][MODE_ROT]
+	tpv_rotation.x = -pitch
+	view_mode[TPV][MODE_ROT] = tpv_rotation
 
 # --- Initialization helpers (same behavior as original) ---
 func init_camera_rotation():
@@ -90,6 +116,10 @@ func set_camera_translation():
 	view_camera.set_position(_effective_camera_position())
 
 func _ready():
+	Settings.bind("view/camera_distance", _apply_tpv_view.unbind(1))
+	Settings.bind("view/camera_pitch", _apply_tpv_view.unbind(1))
+	view_camera.set_position(_effective_camera_position())
+	view_camera.set_rotation(_effective_camera_rotation())
 	Settings.bind("view/camera_auto_return", _on_camera_auto_return_toggle_toggled)
 	Settings.bind("view/adaptive_camera_work", _on_adaptive_camera_work_toggle_toggled)
 
