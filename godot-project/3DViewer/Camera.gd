@@ -90,6 +90,13 @@ func set_camera_translation():
 	view_camera.set_position(_effective_camera_position())
 
 func _ready():
+	var profile := VehicleProfile.current()
+	view_mode[0][MODE_OFFSET] = profile.tpv_camera_offset
+	var tpv_rotation: Vector3 = view_mode[0][MODE_ROT]
+	tpv_rotation.x = deg_to_rad(-profile.tpv_camera_pitch_deg)
+	view_mode[0][MODE_ROT] = tpv_rotation
+	view_camera.set_position(_effective_camera_position())
+	view_camera.set_rotation(_effective_camera_rotation())
 	Settings.bind("view/camera_auto_return", _on_camera_auto_return_toggle_toggled)
 	Settings.bind("view/adaptive_camera_work", _on_adaptive_camera_work_toggle_toggled)
 

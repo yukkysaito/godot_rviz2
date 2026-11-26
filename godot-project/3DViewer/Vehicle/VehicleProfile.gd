@@ -20,6 +20,10 @@ class_name VehicleProfile
 @export var head_beam_position: Vector3 = Vector3.ZERO
 # Near clip distance of the camera [m]
 @export var camera_near: float = 0.2
+# Position of the third-person view camera relative to base_link [m] and its downward pitch [deg];
+# a larger vehicle needs the camera farther back and higher to show it with its surroundings
+@export var tpv_camera_offset: Vector3 = Vector3(-9.0, 4.25, 0.0)
+@export var tpv_camera_pitch_deg: float = 25.0
 
 const DEFAULT_PATH := "res://3DViewer/Vehicle/RX450h/RX450h.tres"
 
