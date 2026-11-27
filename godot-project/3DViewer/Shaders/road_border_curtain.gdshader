@@ -5,7 +5,7 @@
 shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
 
-uniform vec4 color : source_color = vec4(0.55, 0.68, 1.0, 1.0);
+uniform vec4 color : source_color = vec4(0.767, 0.843, 1.0, 1.0);
 uniform float strength : hint_range(0.0, 1.0) = 0.45;
 uniform float base_line = 0.06;  // brighter line at the bottom, fraction of the height
 uniform float edge_on_fade = 0.35;  // |cos| of the view angle below which the curtain fades out

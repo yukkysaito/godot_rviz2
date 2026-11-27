@@ -94,11 +94,11 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var s := size.y / band_height
 	var middle := size.y * 0.5
-	draw_line(Vector2(0, middle), Vector2(size.x - 10 * s, middle), TRACK, maxf(1.0, 1.2 * s), true)
+	draw_line(Vector2(0, middle), Vector2(size.x - 10 * s, middle), TRACK, maxf(1.0, 2.4 * s), true)
 	var diamond := PackedVector2Array([Vector2(-6, 0), Vector2(0, -6), Vector2(6, 0), Vector2(0, 6)])
 	for i in diamond.size():
 		diamond[i] = diamond[i] * s + Vector2(0, middle)
-	draw_polyline(diamond + PackedVector2Array([diamond[0]]), Color(1, 1, 1, 0.5), maxf(1.0, 1.2 * s),
+	draw_polyline(diamond + PackedVector2Array([diamond[0]]), Color(1, 1, 1, 0.5), maxf(1.0, 2.4 * s),
 		true)
 	_draw_goal_pin(Vector2(size.x - 4 * s, middle), s)
 

@@ -11,7 +11,7 @@ extends Control
 @export var top: float = 100.0  # [px] from the top of the window
 @export var side_margin: float = 24.0  # [px] kept free at the window's sides
 @export var map_gap: float = 16.0  # [px] under the mini map
-@export var border_width: float = 1.5  # [px]
+@export var border_width: float = 2.7  # [px]
 @export var shadow_size: float = 16.0  # [px]
 
 # The mini map to keep clear of (set before the panel enters the tree)

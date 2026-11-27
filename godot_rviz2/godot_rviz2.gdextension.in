@@ -1,9 +1,9 @@
-; The ROS 2 / Autoware classes (godot_rviz2/ at the repository root), built by `colcon build` (or
-; CMake) into bin/ next to this file
+; The ROS 2 / Autoware classes, built with godot_rviz2/ (see its CMakeLists.txt, which generates
+; this file) into bin/ next to it
 [configuration]
 
 entry_symbol = "godot_rviz2_library_init"
-compatibility_minimum = "4.2"
+compatibility_minimum = "@GODOT_API_VERSION@"
 
 [libraries]
 

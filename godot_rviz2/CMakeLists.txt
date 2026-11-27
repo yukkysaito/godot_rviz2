@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(godot_rviz2 LANGUAGES CXX)
 
 # The GDExtension that gives Godot the ROS 2 / Autoware classes (see register_types.cpp). It is
-# built into godot-project/addons/godot_rviz2/bin/, where the godot_rviz2.gdextension next to it
-# loads it from.
+# built into godot-project/addons/godot_rviz2/: bin/ and the godot_rviz2.gdextension that loads it.
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -12,8 +11,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# godot-cpp, with exceptions (rclcpp and the libraries below throw them)
-set(GODOT_DISABLE_EXCEPTIONS OFF CACHE BOOL "" FORCE)
+# The Godot version (GODOT_VERSION at the repository root, which scripts/get_godot.sh downloads
+# too): the extension is built against the API of its <major>.<minor>
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../GODOT_VERSION" GODOT_VERSION LIMIT_COUNT 1)
+string(REGEX MATCH "^[0-9]+\\.[0-9]+" GODOT_API_VERSION "${GODOT_VERSION}")
+
+# godot-cpp for that API, with exceptions (rclcpp and the libraries below throw them) and with the
+# shared libstdc++ the ROS libraries use (a static copy breaks exceptions thrown across them)
+set(GODOTCPP_API_VERSION "${GODOT_API_VERSION}" CACHE STRING "" FORCE)
+set(GODOTCPP_TARGET template_release CACHE STRING "" FORCE)
+set(GODOTCPP_DISABLE_EXCEPTIONS OFF CACHE BOOL "" FORCE)
+set(GODOTCPP_USE_STATIC_CPP OFF CACHE BOOL "" FORCE)
 add_subdirectory(thirdparty/godot-cpp EXCLUDE_FROM_ALL)
 
 find_package(ament_cmake REQUIRED)
@@ -69,11 +77,12 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
 else()
   set(GODOT_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
-set(GODOT_ADDON_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../godot-project/addons/godot_rviz2/bin"
-  CACHE PATH "Where the library is put for the Godot project")
+set(GODOT_ADDON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../godot-project/addons/godot_rviz2"
+  CACHE PATH "Where the extension is put for the Godot project")
 set_target_properties(${PROJECT_NAME} PROPERTIES
   OUTPUT_NAME "${PROJECT_NAME}.linux.${GODOT_ARCH}"
-  LIBRARY_OUTPUT_DIRECTORY "${GODOT_ADDON_BIN_DIR}"
+  LIBRARY_OUTPUT_DIRECTORY "${GODOT_ADDON_DIR}/bin"
   SKIP_BUILD_RPATH ON)
+configure_file(godot_rviz2.gdextension.in "${GODOT_ADDON_DIR}/godot_rviz2.gdextension" @ONLY)
 
 ament_package()

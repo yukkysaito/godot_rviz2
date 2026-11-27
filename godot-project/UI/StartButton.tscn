@@ -12,7 +12,7 @@ content_margin_right = 90.0
 content_margin_bottom = 16.0
 bg_color = Color(0.16, 0.4, 0.95, 0.92)
 border_color = Color(0.6, 0.78, 1.0, 0.8)
-border_width = 1.5
+border_width = 2.7
 shadow_color = Color(0.3, 0.5, 1.0, 0.35)
 shadow_size = 22.0
 
@@ -24,7 +24,7 @@ content_margin_right = 90.0
 content_margin_bottom = 16.0
 bg_color = Color(0.22, 0.48, 1.0, 0.95)
 border_color = Color(0.7, 0.85, 1.0, 0.9)
-border_width = 1.5
+border_width = 2.7
 shadow_color = Color(0.3, 0.5, 1.0, 0.5)
 shadow_size = 22.0
 
@@ -36,7 +36,7 @@ content_margin_right = 90.0
 content_margin_bottom = 16.0
 bg_color = Color(0.1, 0.3, 0.8, 0.95)
 border_color = Color(0.5, 0.7, 1.0, 0.8)
-border_width = 1.5
+border_width = 2.7
 shadow_color = Color(0.3, 0.5, 1.0, 0.25)
 shadow_size = 22.0
 

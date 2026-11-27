@@ -268,7 +268,7 @@ func _draw_goal_direction(goal: Vector2, s: float) -> void:
 		at + direction * 9 * s, at - direction * 5 * s + side * 8 * s,
 		at - direction * 2 * s, at - direction * 5 * s - side * 8 * s])
 	_overlay.draw_colored_polygon(arrow, GOAL)
-	_overlay.draw_polyline(arrow + PackedVector2Array([arrow[0]]), Color.WHITE, 1.5 * s, true)
+	_overlay.draw_polyline(arrow + PackedVector2Array([arrow[0]]), Color.WHITE, 2.7 * s, true)
 
 	var meters := RosBridge.get_ego_position().distance_to(RosBridge.goal_position)
 	var text := "%d m" % roundi(meters) if meters < 1000.0 else "%.1f km" % (meters / 1000.0)
@@ -295,7 +295,7 @@ func _draw_ego(at: Vector2, heading: float, s: float) -> void:
 	_overlay.draw_circle(at, 15 * s, Color(ROUTE, 0.25))
 	# Blue in a white outline, to be seen on both the dark roads and the light tiles
 	_overlay.draw_colored_polygon(points, EGO)
-	_overlay.draw_polyline(points + PackedVector2Array([points[0]]), Color.WHITE, 1.5 * s, true)
+	_overlay.draw_polyline(points + PackedVector2Array([points[0]]), Color.WHITE, 2.7 * s, true)
 
 # Map pin with its tip on the goal: a round head and the sides tangent to it, a white dot inside
 func _draw_goal(tip: Vector2, s: float) -> void:
@@ -317,7 +317,7 @@ func _draw_close(s: float) -> void:
 	_overlay.draw_circle(center, 18 * s, Color(0.03, 0.05, 0.09, 0.75 * alpha))
 	for direction in [Vector2(1, 1), Vector2(1, -1)]:
 		_overlay.draw_line(center - direction * 6 * s, center + direction * 6 * s,
-			Color(1, 1, 1, alpha), 2.0 * s, true)
+			Color(1, 1, 1, alpha), 3.2 * s, true)
 
 # OpenStreetMap's tiles must be credited
 func _draw_attribution(s: float) -> void:

@@ -131,10 +131,10 @@ func _draw_cluster(center: Vector2, s: float) -> void:
 	var radius := 78 * s
 	var arc_center := center + Vector2(0, 8 * s)
 	var half_span := 0.55
-	draw_arc(arc_center, radius, -PI * 0.5 - half_span, -PI * 0.5 + half_span, 48, Color(1, 1, 1, 0.14), 2 * s, true)
+	draw_arc(arc_center, radius, -PI * 0.5 - half_span, -PI * 0.5 + half_span, 48, Color(1, 1, 1, 0.14), 3.2 * s, true)
 	var angle := -PI * 0.5 + _steer * half_span
 	if absf(_steer) > 0.01:  # the arc from the middle to the mark, colored
-		draw_arc(arc_center, radius, minf(-PI * 0.5, angle), maxf(-PI * 0.5, angle), 32, ACCENT, 2.5 * s, true)
+		draw_arc(arc_center, radius, minf(-PI * 0.5, angle), maxf(-PI * 0.5, angle), 32, ACCENT, 3.7 * s, true)
 	var mark := arc_center + Vector2(cos(angle), sin(angle)) * radius
 	_draw_dot(mark, 6 * s, Color(ACCENT, 0.18))
 	_draw_dot(mark, 3.5 * s, ACCENT)
@@ -176,11 +176,11 @@ func _draw_signal(at: Vector2, direction: float, on: bool, s: float) -> void:
 		at + Vector2(0, h * 0.2), at + Vector2(0, h * 0.5)])
 	_draw_shape(points, Color(SIGNAL, 0.85) if on else Color(1, 1, 1, 0.07))
 
-# Filled shapes with anti-aliased edges (the fill alone is drawn without anti-aliasing)
+# Filled shapes with anti-aliased edges
 func _draw_dot(center: Vector2, radius: float, color: Color) -> void:
-	draw_circle(center, radius - 0.5, color)
-	draw_arc(center, radius - 0.5, 0.0, TAU, 32, color, 1.0, true)
+	draw_circle(center, radius, color, true, -1.0, true)
 
+# (a polygon's fill alone is drawn without anti-aliasing)
 func _draw_shape(points: PackedVector2Array, color: Color) -> void:
 	draw_colored_polygon(points, color)
 	var outline := points.duplicate()
@@ -190,7 +190,7 @@ func _draw_shape(points: PackedVector2Array, color: Color) -> void:
 func _draw_pill(rect: Rect2, fill: Color, border: Color, s: float) -> void:
 	_pill.bg_color = fill
 	_pill.border_color = border
-	_pill.border_width = maxf(1.0, 1.2 * s)
+	_pill.border_width = maxf(1.0, 2.4 * s)
 	draw_style_box(_pill, rect)
 
 # `baseline` is the text's baseline

@@ -27,7 +27,7 @@
       git clone https://github.com/yukkysaito/godot_rviz2.git --recursive
       ```
 
-   1. build it against Autoware. The library is put in `godot-project/addons/godot_rviz2/bin/`.
+   1. build it against Autoware. It is put in `godot-project/addons/godot_rviz2/`.
 
       ```bash
       cd godot_rviz2
@@ -35,7 +35,7 @@
       colcon build --packages-select godot_rviz2 --cmake-args -DCMAKE_BUILD_TYPE=Release
       ```
 
-1. Download the official Godot editor of the version the extension is built for (the one godot-cpp is pinned to). It prints the editor's path, used as `<godot>` below.
+1. Download the official Godot editor of the version the extension is built for (`GODOT_VERSION`). It prints the editor's path, used as `<godot>` below.
 
    ```bash
    scripts/get_godot.sh
