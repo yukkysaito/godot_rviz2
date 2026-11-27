@@ -14,7 +14,12 @@
 //  limitations under the License.
 //
 
-#include "modules/register_module_types.h"
+#pragma once
 
-void initialize_godot_rviz2_module(ModuleInitializationLevel p_level);
-void uninitialize_godot_rviz2_module(ModuleInitializationLevel p_level);
+// The Godot API (godot-cpp) the classes of this extension are written against
+#include <godot_cpp/classes/os.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/variant.hpp>
+
+using namespace godot;

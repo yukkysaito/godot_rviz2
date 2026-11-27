@@ -16,8 +16,7 @@
 
 #pragma once
 
-#include "core/object/ref_counted.h"
-#include "core/variant/variant.h"
+#include "godot_api.hpp"
 #include "topic_subscriber.hpp"
 
 #include "autoware_planning_msgs/msg/lanelet_route.hpp"

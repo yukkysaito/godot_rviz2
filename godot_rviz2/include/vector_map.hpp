@@ -17,9 +17,7 @@
 #pragma once
 
 #include "autoware_lanelet2_extension/regulatory_elements/autoware_traffic_light.hpp"
-#include "core/object/ref_counted.h"
-#include "core/string/ustring.h"
-#include "core/variant/variant.h"
+#include "godot_api.hpp"
 #include "lanelet2_core/LaneletMap.h"
 #include "async_task.hpp"
 #include "topic_subscriber.hpp"

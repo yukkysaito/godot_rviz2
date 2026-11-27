@@ -17,7 +17,7 @@
 #include "pointcloud.hpp"
 
 #include "pcl_ros/transforms.hpp"
-#include "tf2_eigen/tf2_eigen.h"
+#include "tf2_eigen/tf2_eigen.hpp"
 #include "util.hpp"
 
 #include "sensor_msgs/msg/point_field.hpp"

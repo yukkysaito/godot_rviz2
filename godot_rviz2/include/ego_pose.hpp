@@ -15,7 +15,7 @@
 //
 
 #pragma once
-#include "core/object/ref_counted.h"
+#include "godot_api.hpp"
 #include "godot_rviz2.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "util.hpp"
