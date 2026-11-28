@@ -150,7 +150,7 @@ func _process(delta):
 
 func _unhandled_input(event):
 	# Toggle view mode and apply mode rotation/position, then reset rot/zoom as in original
-	if Input.is_action_just_pressed("ui_view_switch"):
+	if event.is_action_pressed("ui_view_switch"):  # once per key press (not per event)
 		current_view_mode = (current_view_mode + 1) % view_mode.size()
 		view_camera.set_position(_effective_camera_position())
 		view_camera.set_rotation(_effective_camera_rotation())

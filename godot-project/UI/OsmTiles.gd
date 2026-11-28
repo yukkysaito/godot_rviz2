@@ -83,7 +83,8 @@ func _load_wanted() -> void:
 			if disk_loads == MAX_DISK_LOADS:
 				continue
 			disk_loads += 1
-			_add_tile(key, FileAccess.get_file_as_bytes(path))
+			if not _add_tile(key, FileAccess.get_file_as_bytes(path)):
+				DirAccess.remove_absolute(path)  # broken (e.g. a cut write): downloaded again
 		elif not _idle_downloads.is_empty() and _now() >= _retry_time:
 			var download: HTTPRequest = _idle_downloads.pop_back()
 			var done := _on_downloaded.bind(download, key)
@@ -101,16 +102,18 @@ func _on_downloaded(result: int, code: int, _headers: PackedStringArray, body: P
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
 		_retry_time = _now() + RETRY_DELAY
 		return
+	if not _add_tile(key, body):
+		return  # not a tile: not cached
 	DirAccess.make_dir_recursive_absolute(_cache_path(key).get_base_dir())
 	var file := FileAccess.open(_cache_path(key), FileAccess.WRITE)
 	if file != null:
 		file.store_buffer(body)
-	_add_tile(key, body)
 
-func _add_tile(key: Vector3i, png: PackedByteArray) -> void:
+# False if png is not an image
+func _add_tile(key: Vector3i, png: PackedByteArray) -> bool:
 	var image := Image.new()
 	if image.load_png_from_buffer(png) != OK:
-		return
+		return false
 	image.generate_mipmaps()
 	var tile := Polygon2D.new()
 	tile.texture = ImageTexture.create_from_image(image)
@@ -125,6 +128,7 @@ func _add_tile(key: Vector3i, png: PackedByteArray) -> void:
 	tile.z_index = key.x - MAX_LEVEL - 1  # finer levels over coarser ones, all under the route
 	add_child(tile)
 	_tiles[key] = tile
+	return true
 
 # Position [m] in the 2D world of a point of a tile (corner: 0..1 across it)
 func _tile_corner(key: Vector3i, corner: Vector2) -> Vector2:
