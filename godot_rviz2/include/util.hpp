@@ -38,7 +38,7 @@
  * @brief Determines if a 2D polygon is defined in a clockwise manner.
  *
  * @param polygon_2d The 2D polygon to check.
- * @return True if the polygon is clockwise, false otherwise.
+ * @return True if the polygon is clockwise, false otherwise (also with fewer than 3 points).
  */
 bool is_clockwise(const std::vector<Vector2> & polygon_2d);
 
@@ -195,7 +195,7 @@ private:
 
 /**
  * @brief A strip of width [m] along line (positions in view's frame), as a triangle strip of
- * point dictionaries (see create_offset_point_dict()).
+ * point dictionaries (see create_offset_point_dict()). Empty for a line of fewer than 2 points.
  */
 Array calculate_line_as_triangle_strip(
   const std::vector<geometry_msgs::msg::Point> & line, float width, const ViewFrame & view);

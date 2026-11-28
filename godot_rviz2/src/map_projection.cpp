@@ -105,7 +105,11 @@ Vector2 MapProjection::to_lat_lon(const Vector3 & position)
       origin->scale_factor);
     projection.Reverse(origin->central_meridian, x, y, latitude, longitude);
   } else {
-    GeographicLib::UTMUPS::Reverse(origin->zone, origin->northp, x, y, latitude, longitude);
+    try {
+      GeographicLib::UTMUPS::Reverse(origin->zone, origin->northp, x, y, latitude, longitude);
+    } catch (const GeographicLib::GeographicErr &) {  // far outside the zone
+      return Vector2();
+    }
   }
   return Vector2(latitude, longitude);
 }
@@ -128,7 +132,12 @@ Vector3 MapProjection::from_lat_lon(double latitude, double longitude)
     bool northp = true;
     double gamma = 0.0;
     double k = 0.0;
-    GeographicLib::UTMUPS::Forward(latitude, longitude, zone, northp, x, y, gamma, k, origin->zone);
+    try {
+      GeographicLib::UTMUPS::Forward(
+        latitude, longitude, zone, northp, x, y, gamma, k, origin->zone);
+    } catch (const GeographicLib::GeographicErr &) {  // far outside the zone
+      return Vector3();
+    }
   }
   Vector3 position =
     ViewFrame(kMapFrame).to_godot(Eigen::Vector3d(x - origin->easting, y - origin->northing, 0.0));

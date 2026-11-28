@@ -48,12 +48,14 @@ public:
   int64_t get_revision();
 
   /**
-   * @brief Latitude and longitude [deg] (x, y) of a position in Godot's coordinate system.
+   * @brief Latitude and longitude [deg] (x, y) of a position in Godot's coordinate system; zero
+   * without a known projection, or far outside the map's UTM zone.
    */
   Vector2 to_lat_lon(const Vector3 & position);
 
   /**
-   * @brief Position in Godot's coordinate system (at height 0) of a latitude and longitude [deg].
+   * @brief Position in Godot's coordinate system (at height 0) of a latitude and longitude [deg];
+   * zero without a known projection, or far outside the map's UTM zone.
    */
   Vector3 from_lat_lon(double latitude, double longitude);
 

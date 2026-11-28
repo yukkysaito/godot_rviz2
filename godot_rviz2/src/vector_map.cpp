@@ -613,7 +613,13 @@ Array VectorMap::split_into_tiles(const LayerGeometry & geometry, double tile_si
 
 bool VectorMap::decode(const autoware_map_msgs::msg::LaneletMapBin & msg)
 {
-  lanelet::utils::conversion::fromBinMsg(msg, lanelet_map_);
+  try {
+    lanelet::utils::conversion::fromBinMsg(msg, lanelet_map_);
+  } catch (const std::exception & e) {  // e.g. a truncated message
+    RCLCPP_ERROR(rclcpp::get_logger("godot_rviz2"), "Cannot decode the vector map: %s", e.what());
+    lanelet_map_ = std::make_shared<lanelet::LaneletMap>();
+    return false;
+  }
   // The origin of the view, if this is the first map: the viewer frame, or where it would be
   map_origin::resolve([this]() {
     Eigen::Vector3d sum = Eigen::Vector3d::Zero();
@@ -866,8 +872,8 @@ void get_traffic_light_groups_from_lanelet_map(
   const ViewFrame view(kMapFrame);
   for (const auto & regulatory_element : regulatory_elements) {
     const auto reg_traffic_lights = regulatory_element->trafficLights();
-    std::unordered_map<int /* board id */, Board> boards_map;
-    std::unordered_map<int /* board id */, std::vector<LightBulb>> light_bulbs_map;
+    std::unordered_map<lanelet::Id /* board id */, Board> boards_map;
+    std::unordered_map<lanelet::Id /* board id */, std::vector<LightBulb>> light_bulbs_map;
 
     // board
     for (const auto & reg_traffic_light : reg_traffic_lights) {
@@ -876,10 +882,8 @@ void get_traffic_light_groups_from_lanelet_map(
       lanelet::ConstLineString3d linestring =
         static_cast<lanelet::ConstLineString3d>(reg_traffic_light);
 
-      float height = 0.7;
-      if (linestring.hasAttribute("height")) {
-        height = std::stof(linestring.attribute("height").value());
-      }
+      // A value that is not a number (a broken map) falls back to the default
+      const auto height = static_cast<float>(linestring.attributeOr("height", 0.7));
       Board board;
       const Eigen::Vector3f right_bottom =
         view.to_view(linestring.back().basicPoint()).cast<float>();
@@ -900,10 +904,12 @@ void get_traffic_light_groups_from_lanelet_map(
 
     // light bulbs
     for (auto linestring_light_bulbs : regulatory_element->lightBulbs()) {
-      if (!linestring_light_bulbs.hasAttribute("traffic_light_id")) {
-        continue;
+      const lanelet::Id board_id =
+        linestring_light_bulbs.attributeOr("traffic_light_id", lanelet::InvalId);
+      const auto board = boards_map.find(board_id);
+      if (board == boards_map.end()) {
+        continue;  // no id, or not a board of this group
       }
-      int board_id = std::stoi(linestring_light_bulbs.attribute("traffic_light_id").value());
       std::vector<LightBulb> light_bulbs;
 
       for (auto point_light_bulb : linestring_light_bulbs) {
@@ -919,10 +925,9 @@ void get_traffic_light_groups_from_lanelet_map(
         if (point_light_bulb.hasAttribute("arrow")) {
           light_bulb.arrow = point_light_bulb.attribute("arrow").value();
         }
-        if (point_light_bulb.hasAttribute("radius")) {
-          light_bulb.radius = std::stof(point_light_bulb.attribute("radius").value());
-        }
-        light_bulb.normal = boards_map[board_id].normal;
+        light_bulb.radius =
+          static_cast<float>(point_light_bulb.attributeOr("radius", double(light_bulb.radius)));
+        light_bulb.normal = board->second.normal;
         light_bulbs.push_back(light_bulb);
       }
 

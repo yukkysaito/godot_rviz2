@@ -55,7 +55,7 @@ struct TrafficLight
 struct TrafficLightGroup
 {
   std::vector<TrafficLight> traffic_lights;
-  int group_id;
+  int64_t group_id;
 };
 
 class VectorMap : public RefCounted
