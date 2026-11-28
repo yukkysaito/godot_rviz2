@@ -30,7 +30,6 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(pcl_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -57,7 +56,6 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2_ros
   tf2_eigen
   tf2_geometry_msgs
-  pcl_ros
   geometry_msgs
   sensor_msgs
   visualization_msgs
