@@ -88,6 +88,16 @@ The menu saves the choices to `~/.local/share/godot/app_userdata/godot_rviz2/set
 
 `-- --vehicle=<Name>` selects the vehicle model `godot-project/3DViewer/Vehicle/<Name>/<Name>.tres`.
 
+## Mini game
+
+Swipe from the right edge of the view to the left to open "Planner Challenge": you are the velocity planner of an automated vehicle. Drag up to accelerate, down to brake, and release to coast. Reach the goal fast while keeping the ride comfortable and safe, then stop on the line. You race a rival ghost, a rule-based planner whose time is the course's target. There is a daily course and random ones, and best scores are kept. Close the game with the button at the top right or with Esc.
+
+The game is a simulation only: it never sends anything to ROS. While it is open, the viewer's 3D view is not drawn, but the viewer keeps receiving data.
+
+The `real_vehicle` and `jetson` presets turn the game off with `[game] enabled=false`. You can also set this in `godot-project/Config/project.cfg`.
+
+The game is self-contained in `godot-project/Game/`. To remove it, delete that folder and the `MiniGame` autoload line in `godot-project/project.godot`.
+
 ## How to run from ROS2 launch
 
 1. Create godot_rviz2.py and modify the paths in `cmd`.
