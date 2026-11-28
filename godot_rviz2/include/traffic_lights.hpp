@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include "core/object/ref_counted.h"
-#include "core/string/ustring.h"
-#include "core/variant/variant.h"
+#include "godot_api.hpp"
 #include "topic_subscriber.hpp"
 
 #include "autoware_perception_msgs/msg/traffic_light_group_array.hpp"

@@ -1,0 +1,11 @@
+; The ROS 2 / Autoware classes (godot_rviz2/ at the repository root), built by `colcon build` (or
+; CMake) into bin/ next to this file
+[configuration]
+
+entry_symbol = "godot_rviz2_library_init"
+compatibility_minimum = "4.2"
+
+[libraries]
+
+linux.x86_64 = "res://addons/godot_rviz2/bin/libgodot_rviz2.linux.x86_64.so"
+linux.arm64 = "res://addons/godot_rviz2/bin/libgodot_rviz2.linux.arm64.so"

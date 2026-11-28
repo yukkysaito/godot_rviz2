@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "core/os/os.h"
+#include "godot_api.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 #include <tf2_ros/buffer.h>

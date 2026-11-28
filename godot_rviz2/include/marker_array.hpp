@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include "core/object/ref_counted.h"
-#include "core/string/ustring.h"
-#include "core/variant/variant.h"
+#include "godot_api.hpp"
 #include "topic_subscriber.hpp"
 
 #include "visualization_msgs/msg/marker_array.hpp"

@@ -14,13 +14,7 @@
 
 1. Autoware build following [here](https://autowarefoundation.github.io/autoware-documentation/main/installation/autoware/source-installation/).
 
-1. Build godot from source
-   1. install pre-requirements following [here](https://docs.godotengine.org/en/stable/development/compiling/compiling_for_x11.html#distro-specific-one-liners) by godot.
-
-      ```bash
-      sudo apt-get install build-essential scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
-      ```
-
+1. Build the godot_rviz2 GDExtension (the ROS 2 / Autoware classes Godot uses)
    1. install GeographicLib, used to place the map on OpenStreetMap (usually installed with Autoware).
 
       ```bash
@@ -33,28 +27,37 @@
       git clone https://github.com/yukkysaito/godot_rviz2.git --recursive
       ```
 
-   1. build godot with autoware and ros2 components.
+   1. build it against Autoware. The library is put in `godot-project/addons/godot_rviz2/bin/`.
 
       ```bash
-      cd godot_rviz2/godot
+      cd godot_rviz2
       source <autoware_path>/install/setup.bash
-      scons platform=linux -j8 custom_modules=../godot_rviz2
+      colcon build --packages-select godot_rviz2 --cmake-args -DCMAKE_BUILD_TYPE=Release
       ```
+
+1. Download the official Godot editor of the version the extension is built for (the one godot-cpp is pinned to). It prints the editor's path, used as `<godot>` below.
+
+   ```bash
+   scripts/get_godot.sh
+   ```
+
+1. Import the project once (the first import also registers the extension; errors about missing classes in it are expected)
+
+   ```bash
+   source <autoware_path>/install/setup.bash
+   <godot> --path godot-project --editor --quit
+   ```
 
 1. Run Autoware and Godot
    1. Run Autoware
-   1. Run Godot
+   1. Run Godot with the project (with Autoware's environment, which the extension needs)
 
       ```bash
-      ./bin/godot.linuxbsd.editor.x86_64
+      source <autoware_path>/install/setup.bash
+      <godot> --path godot-project
       ```
-   2. Import project and run.
-      1. Import and select the project.godot file. ![image](https://github.com/yukkysaito/godot_rviz2/assets/8327598/6f88317c-2d20-4853-9bbd-c171ab30d576)![image](https://github.com/yukkysaito/godot_rviz2/assets/8327598/19eabb4f-d78a-49f5-a8c0-eb1dabd6613a)
 
-
-      2. Click run button. ![image](https://github.com/yukkysaito/godot_rviz2/assets/8327598/54c56efe-0355-4228-94f7-55f585e9f544)
-
-
+      To edit the project instead, add `--editor` and click the run button on the top right.
 
 ## Key Config
 
@@ -62,33 +65,18 @@
 | ----- | ---------------- |
 | Tab   | Switch view mode |
 
-## How to customize
-
-1. Run Godot and import project from `godot_rviz2/godot-project`
-
-   ```bash
-   ./bin/godot.linuxbsd.editor.x86_64
-   ```
-
-1. Edit on Godot GUI editor
-
-1. Click run button on top right on Godot GUI.
-
 ## How to run from ROS2 launch
 
-1. Create godot_rviz2.py and modify path in `cmd`.
+1. Create godot_rviz2.py and modify paths in `cmd`.
 
 ```python
-from launch_ros.actions import Node
- 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
-from launch.substitutions import LaunchConfiguration
+from launch.actions import ExecuteProcess
 
 def generate_launch_description():
     godot_rviz2 = ExecuteProcess(
         cmd=[[
-            '~/workspace/godot_rviz2/godot/bin/godot.linuxbsd.editor.x86_64 --path ~/workspace/godot_rviz2/godot-project'
+            '<godot> --path ~/workspace/godot_rviz2/godot-project'
         ]],
         shell=True
     )
@@ -102,29 +90,15 @@ ros2 launch <path>/godot_rviz2.py
 ```
 
 ## How to Export Binary
-1. Create template
-   ```
-   scons platform=linux -j8 tools=no target=template_release custom_modules=../godot_rviz2
-   ```
-2. Run godot Editor and 
-   ```bash
-   cd godot_rviz2
-   ./bin/godot.linuxbsd.editor.x86_64
-   ```
-3. export with `godot.linuxbsd.template_release.x86_64`
-   <img width="1589" height="1009" alt="image" src="https://github.com/user-attachments/assets/95b7a65d-6019-4988-bc3f-3648149d617e" />
-   <img width="1438" height="1036" alt="image" src="https://github.com/user-attachments/assets/e7ecbd02-04ac-4a06-bf62-42ae8c413d64" />
-   <img width="1488" height="942" alt="image" src="https://github.com/user-attachments/assets/c8ae7e86-f3de-474c-b8d1-6510a025d129" />
-   <img width="1488" height="942" alt="image" src="https://github.com/user-attachments/assets/05045008-c45c-4536-91f9-6c79f4a1f2ca" />
-4. Run
-```bash
-cd godot_rviz2
-source <autoware_path>/install/setup.bash
-sample.x86_64
-```
 
-## TODO
-- Simplified description of ros dependencies on SCon build system
+1. Install the export templates: in the editor, Editor > Manage Export Templates > Download and Install.
+1. Export with the `Linux/X11` preset (Project > Export). The exported binary needs `libgodot_rviz2.linux.x86_64.so` next to it, which Godot copies there.
+1. Run
+
+   ```bash
+   source <autoware_path>/install/setup.bash
+   ./sample.x86_64
+   ```
 
 ## Videos
 [![](http://img.youtube.com/vi/LPzkEC5hBMo/0.jpg)](https://www.youtube.com/watch?v=LPzkEC5hBMo)

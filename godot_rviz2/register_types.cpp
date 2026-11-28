@@ -14,11 +14,8 @@
 //  limitations under the License.
 //
 
-#include "register_types.h"
-
 #include "behavior_path.hpp"
 #include "change_operation_mode_client.hpp"
-#include "core/object/class_db.h"
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
 #include "map_projection.hpp"
@@ -36,34 +33,50 @@
 #include "vehicle_status.hpp"
 #include "velocity_report.hpp"
 
-void initialize_godot_rviz2_module(ModuleInitializationLevel p_level)
+#include <gdextension_interface.h>
+#include <godot_cpp/godot.hpp>
+
+namespace
+{
+void initialize(ModuleInitializationLevel p_level)
 {
   if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
     return;
   }
-  ClassDB::register_class<GodotRviz2Spinner>();
-  ClassDB::register_class<MarkerArray>();
-  ClassDB::register_class<PointCloud>();
-  ClassDB::register_class<BehaviorPath>();
-  ClassDB::register_class<NavigationState>();
-  ClassDB::register_class<Route>();
-  ClassDB::register_class<MapProjection>();
-  ClassDB::register_class<OperationModeState>();
-  ClassDB::register_class<OperationModeChanger>();
-  ClassDB::register_class<Trajectory>();
-  ClassDB::register_class<TrafficLights>();
-  ClassDB::register_class<DynamicObjects>();
-  ClassDB::register_class<EgoPose>();
-  ClassDB::register_class<VehicleStatus>();
-  ClassDB::register_class<SteeringReport>();
-  ClassDB::register_class<VelocityReport>();
-  ClassDB::register_class<VectorMap>();
-  ClassDB::register_class<Parameter>();
+  GDREGISTER_CLASS(GodotRviz2Spinner);
+  GDREGISTER_CLASS(MarkerArray);
+  GDREGISTER_CLASS(PointCloud);
+  GDREGISTER_CLASS(BehaviorPath);
+  GDREGISTER_CLASS(NavigationState);
+  GDREGISTER_CLASS(Route);
+  GDREGISTER_CLASS(MapProjection);
+  GDREGISTER_CLASS(OperationModeState);
+  GDREGISTER_CLASS(OperationModeChanger);
+  GDREGISTER_CLASS(Trajectory);
+  GDREGISTER_CLASS(TrafficLights);
+  GDREGISTER_CLASS(DynamicObjects);
+  GDREGISTER_CLASS(EgoPose);
+  GDREGISTER_CLASS(VehicleStatus);
+  GDREGISTER_CLASS(SteeringReport);
+  GDREGISTER_CLASS(VelocityReport);
+  GDREGISTER_CLASS(VectorMap);
+  GDREGISTER_CLASS(Parameter);
 }
 
-void uninitialize_godot_rviz2_module(ModuleInitializationLevel p_level)
+void uninitialize(ModuleInitializationLevel p_level)
 {
-  if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-    return;
-  }
+  (void)p_level;
+}
+}  // namespace
+
+// The entry point godot-project/addons/godot_rviz2/godot_rviz2.gdextension names
+extern "C" GDExtensionBool GDE_EXPORT godot_rviz2_library_init(
+  GDExtensionInterfaceGetProcAddress p_get_proc_address, GDExtensionClassLibraryPtr p_library,
+  GDExtensionInitialization * r_initialization)
+{
+  GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
+  init_obj.register_initializer(initialize);
+  init_obj.register_terminator(uninitialize);
+  init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+  return init_obj.init();
 }
