@@ -16,7 +16,6 @@
 
 #include "pointcloud.hpp"
 
-#include "pcl_ros/transforms.hpp"
 #include "tf2_eigen/tf2_eigen.hpp"
 #include "util.hpp"
 
@@ -63,44 +62,6 @@ static std::optional<Eigen::Isometry3d> lookup_cloud_transform(
     RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
     return std::nullopt;
   }
-}
-
-/**
- * @brief Transforms a point cloud to a specified target frame.
- *
- * @param input The input point cloud.
- * @param target_frame The target frame to which the point cloud will be transformed.
- * @param output The output transformed point cloud.
- * @return bool True if the transformation is successful, false otherwise.
- */
-bool transform_pointcloud(
-  const sensor_msgs::msg::PointCloud2 & input, const std::string & target_frame,
-  sensor_msgs::msg::PointCloud2 & output)
-{
-  const auto transform = lookup_cloud_transform(input, target_frame);
-  if (!transform) return false;
-  Eigen::Matrix4f tf_matrix = transform->matrix().cast<float>();
-  pcl_ros::transformPointCloud(tf_matrix, input, output);
-  output.header.stamp = input.header.stamp;
-  output.header.frame_id = target_frame;
-  return true;
-}
-
-/**
- * @brief Returns the last message in frame_id (transformed if needed), or nullptr.
- */
-static sensor_msgs::msg::PointCloud2::ConstSharedPtr get_msg_in_frame(
-  const std::optional<sensor_msgs::msg::PointCloud2::ConstSharedPtr> & last_msg,
-  const std::string & frame_id)
-{
-  if (!last_msg) return nullptr;
-  if (frame_id == last_msg.value()->header.frame_id) return last_msg.value();
-
-  auto transformed_msg_ptr = std::make_shared<sensor_msgs::msg::PointCloud2>();
-  if (!transform_pointcloud(*(last_msg.value()), frame_id, *transformed_msg_ptr)) {
-    return nullptr;
-  }
-  return transformed_msg_ptr;
 }
 
 PackedVector3Array PointCloud::get_pointcloud(const String & frame_id)
@@ -243,11 +204,11 @@ static Eigen::Vector3d middle_of(const sensor_msgs::msg::PointCloud2 & msg)
 }
 
 /**
- * @brief Splits msg into tiles and downsamples each tile at every level, nearest to
+ * @brief Splits msg, in frame, into tiles and downsamples each tile at every level, nearest to
  * (origin_x, origin_y) [ROS axes, relative to the view] first, passing each tile to emit.
  */
 static void make_tiles(
-  const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr,
+  const sensor_msgs::msg::PointCloud2::ConstSharedPtr & msg_ptr, const std::string & frame,
   const std::vector<double> & voxel_sizes, double tile_size, double origin_x, double origin_y,
   const std::function<void(std::shared_ptr<const PointCloudTile>)> & emit)
 {
@@ -269,9 +230,20 @@ static void make_tiles(
     std::cerr << "[godot_rviz2] a point cloud has less data than its size says" << std::endl;
     return;
   }
+  // From the message's frame to frame, if they differ; in double: in the map frame, the points
+  // become large coordinates, which only become small again relative to the view
+  std::optional<Eigen::Isometry3d> to_frame;
+  if (frame != msg.header.frame_id) {
+    to_frame = lookup_cloud_transform(msg, frame);
+    if (!to_frame) return;
+  }
+  // (skipped when not needed: it would take about a tenth of the tiling)
+  auto in_frame = [&to_frame](const Eigen::Vector3d & point) -> Eigen::Vector3d {
+    return to_frame ? Eigen::Vector3d(*to_frame * point) : point;
+  };
   // The points relative to the view (the tiles too)
-  if (msg.header.frame_id == kMapFrame) map_origin::resolve([&msg]() { return middle_of(msg); });
-  const ViewFrame view(msg.header.frame_id);
+  if (frame == kMapFrame) map_origin::resolve([&]() { return in_frame(middle_of(msg)); });
+  const ViewFrame view(frame);
   const uint8_t * data = msg.data.data();
   auto point_at = [&](size_t i) {
     const size_t row = i / msg.width;
@@ -280,7 +252,7 @@ static void make_tiles(
     std::memcpy(&x, p + off_x, sizeof(float));
     std::memcpy(&y, p + off_y, sizeof(float));
     std::memcpy(&z, p + off_z, sizeof(float));
-    const Eigen::Vector3d v = view.to_view(Eigen::Vector3d(x, y, z));
+    const Eigen::Vector3d v = view.to_view(in_frame(Eigen::Vector3d(x, y, z)));
     return RosPoint{float(v.x()), float(v.y()), float(v.z())};
   };
 
@@ -406,16 +378,16 @@ bool PointCloud::start_tiles(
   // Godot -> ROS axes (see ros2_to_godot()), relative to the view like the tiles
   const double origin_x = origin.x;
   const double origin_y = -origin.z;
-  return tiles_task_.start([last_msg, frame = to_std(frame_id), voxels, tile_size, origin_x,
-                            origin_y, store]() {
-    make_tiles(
-      get_msg_in_frame(last_msg, frame), voxels, tile_size, origin_x, origin_y,
-      [&store](std::shared_ptr<const PointCloudTile> tile) {
-        std::lock_guard<std::mutex> lock(store->mutex);
-        store->tiles.push_back(std::move(tile));
-      });
-    return true;
-  });
+  return tiles_task_.start(
+    [last_msg, frame = to_std(frame_id), voxels, tile_size, origin_x, origin_y, store]() {
+      make_tiles(
+        last_msg.value(), frame, voxels, tile_size, origin_x, origin_y,
+        [&store](std::shared_ptr<const PointCloudTile> tile) {
+          std::lock_guard<std::mutex> lock(store->mutex);
+          store->tiles.push_back(std::move(tile));
+        });
+      return true;
+    });
 }
 
 bool PointCloud::is_tiling()
