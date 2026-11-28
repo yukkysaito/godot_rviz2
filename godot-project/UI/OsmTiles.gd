@@ -103,7 +103,9 @@ func _on_downloaded(result: int, code: int, _headers: PackedStringArray, body: P
 		_retry_time = _now() + RETRY_DELAY
 		return
 	if not _add_tile(key, body):
-		return  # not a tile: not cached
+		# Not a tile (e.g. an error page): not cached, and not asked for again at once
+		_retry_time = _now() + RETRY_DELAY
+		return
 	DirAccess.make_dir_recursive_absolute(_cache_path(key).get_base_dir())
 	var file := FileAccess.open(_cache_path(key), FileAccess.WRITE)
 	if file != null:

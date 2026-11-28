@@ -209,7 +209,7 @@ func _on_route_changed() -> void:
 func _on_map_ready() -> void:
 	for child in _roads.get_children():
 		child.queue_free()
-	_pending_road_tiles = RosBridge.map_geometry["layers"].get("road_surface", []).duplicate()
+	_pending_road_tiles = RosBridge.map_geometry.get("layers", {}).get("road_surface", []).duplicate()
 
 # Flattens the tiles of the 3D road surface into 2D meshes, a few per frame
 func _build_road_tiles() -> void:

@@ -43,5 +43,6 @@ func _process(_delta):
 	mesh.clear_surfaces()
 	if !left_line_verts.is_empty():
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, left_line_arr)
+	if !right_line_verts.is_empty():
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, right_line_arr)
 	path.set_old()
