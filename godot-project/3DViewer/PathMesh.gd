@@ -39,8 +39,9 @@ func _process(_delta):
 	right_line_arr[Mesh.ARRAY_NORMAL] = right_line_normals
 	right_line_arr[Mesh.ARRAY_COLOR] = right_line_colors
 
+	# A path without bounds clears the lines of the previous one
+	mesh.clear_surfaces()
 	if !left_line_verts.is_empty():
-		mesh.clear_surfaces()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, left_line_arr)
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLE_STRIP, right_line_arr)
 	path.set_old()

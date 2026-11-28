@@ -152,6 +152,8 @@ func _process(delta: float) -> void:
 	_since_update += delta
 	if not resizing and _since_update < 1.0 / update_rate:
 		return
+	if size.x < 1.0 or size.y < 1.0:
+		return  # a window too small for it: keep the last view (a zoom of 0 would never recover)
 	_update_view(minf(_since_update, 0.5))
 	_since_update = 0.0
 	if _mode == "osm":

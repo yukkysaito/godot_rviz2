@@ -93,6 +93,8 @@ func _process(delta: float) -> void:
 # the remaining distance
 func _draw() -> void:
 	var s := size.y / band_height
+	if s <= 0.0:
+		return  # no room (a window of no height)
 	var middle := size.y * 0.5
 	draw_line(Vector2(0, middle), Vector2(size.x - 10 * s, middle), TRACK, maxf(1.0, 2.4 * s), true)
 	var diamond := PackedVector2Array([Vector2(-6, 0), Vector2(0, -6), Vector2(6, 0), Vector2(0, 6)])

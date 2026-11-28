@@ -57,7 +57,8 @@ func measure_end(block_name: String) -> void:
 func _process(delta: float) -> void:
 	var ms := delta * 1000.0
 	_frame_ms.append(ms)
-	_all_frame_ms.append(ms)
+	if _duration > 0.0:
+		_all_frame_ms.append(ms)  # for the summary at the end only
 	_since_report += delta
 	if _since_report >= report_interval:
 		_report("frames", _frame_ms)

@@ -71,6 +71,7 @@ func _layout() -> void:
 	var full_width := text_width + 2.0 * padding.x
 	var s := window.y / 1080.0
 	s = minf(s, (window.x - 2.0 * side_margin * s) / full_width)  # a narrow window: fit its width
+	s = maxf(s, 0.01)  # narrower than its side margins
 
 	var size_px := maxi(1, roundi(font_size * s))
 	var height := font.get_height(size_px) + 2.0 * roundf(padding.y * s)

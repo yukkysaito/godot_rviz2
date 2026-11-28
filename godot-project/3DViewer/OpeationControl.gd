@@ -146,8 +146,9 @@ func _show_message(text: String) -> bool:
 func _hide_message() -> void:
 	if _msg_root == null or not is_instance_valid(_msg_root):
 		return
-	# MessagePanel.gd handles fade-out and free by itself
-	await _msg_root.hide_message()
+	# MessagePanel.gd handles fade-out and free by itself. It is let go of right away, so that a
+	# message shown during its fade-out gets a new panel (and is not freed with this one).
+	_msg_root.hide_message()
 	_msg_root = null
 
 # ===============================================================
