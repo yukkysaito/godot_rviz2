@@ -28,11 +28,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(tf2_eigen REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
 find_package(autoware_adapi_v1_msgs REQUIRED)
 find_package(autoware_map_msgs REQUIRED)
 find_package(autoware_perception_msgs REQUIRED)
@@ -54,11 +51,8 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   tf2
   tf2_ros
-  tf2_eigen
-  tf2_geometry_msgs
   geometry_msgs
   sensor_msgs
-  visualization_msgs
   autoware_adapi_v1_msgs
   autoware_map_msgs
   autoware_perception_msgs

@@ -19,7 +19,6 @@
 #include "dynamic_objects.hpp"
 #include "ego_pose.hpp"
 #include "map_projection.hpp"
-#include "marker_array.hpp"
 #include "navigation_state.hpp"
 #include "operation_mode_state.hpp"
 #include "parameter.hpp"
@@ -33,8 +32,9 @@
 #include "vehicle_status.hpp"
 #include "velocity_report.hpp"
 
-#include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
+
+#include <gdextension_interface.h>
 
 namespace
 {
@@ -44,7 +44,6 @@ void initialize(ModuleInitializationLevel p_level)
     return;
   }
   GDREGISTER_CLASS(GodotRviz2Spinner);
-  GDREGISTER_CLASS(MarkerArray);
   GDREGISTER_CLASS(PointCloud);
   GDREGISTER_CLASS(BehaviorPath);
   GDREGISTER_CLASS(NavigationState);

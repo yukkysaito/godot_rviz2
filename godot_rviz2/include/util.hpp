@@ -24,7 +24,6 @@
 #include "geometry_msgs/msg/polygon.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/transform.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 #include <functional>
 #include <optional>
