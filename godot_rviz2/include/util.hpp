@@ -83,7 +83,7 @@ std::optional<geometry_msgs::msg::Transform> get_transform(
  * @param godot_s The Godot String.
  * @return std::string A standard string.
  */
-inline std::string to_std(const String & godot_s) { return std::string(godot_s.utf8()); }
+inline std::string to_std(const String & godot_s) { return godot_s.utf8().get_data(); }
 
 /**
  * @brief Converts ROS 2 coordinates to Godot's coordinate system.

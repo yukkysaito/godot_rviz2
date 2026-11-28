@@ -2,13 +2,11 @@
 set -euo pipefail
 
 # Downloads the official Godot editor (and with --templates, the Linux export templates) of the
-# version godot-cpp is pinned to, into the cache, and prints the editor's path:
+# version in GODOT_VERSION (at the repository root, which the extension is built for too) into the
+# cache, and prints the editor's path:
 #   scripts/get_godot.sh [--templates]
-# The version comes from the godot-cpp submodule's tag (godot-<version>-stable), so that the editor
-# always matches the API the extension is built against.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GODOT_CPP="${REPO_ROOT}/godot_rviz2/thirdparty/godot-cpp"
 GODOT_CACHE="${GODOT_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/godot_rviz2}"
 
 fail() {
@@ -17,12 +15,11 @@ fail() {
 }
 
 godot_version() {
-  local tag=""
+  local version=""
 
-  tag="$(git -C "$GODOT_CPP" describe --tags --exact-match 2>/dev/null)" || \
-    fail "godot-cpp is not at a release tag (git submodule update --init?)"
-  [[ "$tag" =~ ^godot-(.+)-stable$ ]] || fail "unexpected godot-cpp tag: $tag"
-  printf '%s\n' "${BASH_REMATCH[1]}"
+  read -r version <"${REPO_ROOT}/GODOT_VERSION" || fail "cannot read ${REPO_ROOT}/GODOT_VERSION"
+  [[ "$version" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || fail "unexpected Godot version: $version"
+  printf '%s\n' "$version"
 }
 
 # Downloads release files into DIR and checks them against the release's SHA512 sums
