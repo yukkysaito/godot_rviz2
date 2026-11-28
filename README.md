@@ -62,15 +62,15 @@ A 3D viewer for [Autoware](https://github.com/autowarefoundation/autoware) made 
 
 ## Controls
 
-| Input                                  | Action                                                           |
-| -------------------------------------- | ---------------------------------------------------------------- |
-| Tab                                    | Switch the view (third person / bird's-eye)                      |
-| Left drag                              | Rotate the camera (it returns behind the vehicle after a while)  |
-| Mouse wheel                            | Zoom                                                             |
-| One-finger drag / two-finger pinch     | Rotate / zoom on a touch screen                                  |
-| Click the mini map                     | Expand it to the whole route, and back                           |
-| Click the `>` handle on the left edge  | Open the menu (display, view, data and HUD settings)             |
-| Double-click a slider in the menu      | Reset it to its default                                          |
+| Input                                                      | Action                                                                           |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Tab                                                        | Switch the view (third person / bird's-eye)                                      |
+| Left drag                                                  | Rotate the camera (it returns behind the vehicle after a while)                  |
+| Mouse wheel                                                | Zoom                                                                             |
+| One-finger drag / two-finger pinch                         | Rotate / zoom on a touch screen                                                  |
+| Click the mini map                                         | Expand it to the whole route, and back                                           |
+| Click the grabber on the left edge, or swipe from the edge | Open / close the menu (display, view, data and HUD settings); Esc also closes it |
+| Double-click a slider in the menu                          | Reset it to its default                                                          |
 
 ## Settings
 

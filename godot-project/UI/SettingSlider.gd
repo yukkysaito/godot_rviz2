@@ -11,7 +11,7 @@ class_name SettingSlider
 @export var step: float = 0.05
 @export var value_format: String = "%.2f"
 @export var value_scale: float = 1.0
-@export var slider_width: float = 110.0  # [px]
+@export var slider_width: float = 104.0  # [px], with the value as wide as the other choices
 
 var _slider := HSlider.new()
 var _value_label := Label.new()
@@ -26,6 +26,7 @@ func _ready() -> void:
 	_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	add_child(_slider)
 	_value_label.custom_minimum_size.x = 44
+	_value_label.theme_type_variation = &"SliderValue"
 	_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(_value_label)
 	Settings.bind(key, func(value):
