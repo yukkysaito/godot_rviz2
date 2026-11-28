@@ -254,9 +254,6 @@ static void make_tiles(
   if (!msg_ptr || tile_size <= 0.0 || voxel_sizes.empty()) return;
 
   const auto & msg = *msg_ptr;
-  // The points relative to the view (the tiles too)
-  if (msg.header.frame_id == kMapFrame) map_origin::resolve([&msg]() { return middle_of(msg); });
-  const ViewFrame view(msg.header.frame_id);
   const int off_x = float_field_offset(msg, "x");
   const int off_y = float_field_offset(msg, "y");
   const int off_z = float_field_offset(msg, "z");
@@ -272,6 +269,9 @@ static void make_tiles(
     std::cerr << "[godot_rviz2] a point cloud has less data than its size says" << std::endl;
     return;
   }
+  // The points relative to the view (the tiles too)
+  if (msg.header.frame_id == kMapFrame) map_origin::resolve([&msg]() { return middle_of(msg); });
+  const ViewFrame view(msg.header.frame_id);
   const uint8_t * data = msg.data.data();
   auto point_at = [&](size_t i) {
     const size_t row = i / msg.width;

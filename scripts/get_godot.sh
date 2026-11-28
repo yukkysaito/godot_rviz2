@@ -17,7 +17,10 @@ fail() {
 godot_version() {
   local version=""
 
-  read -r version <"${REPO_ROOT}/GODOT_VERSION" || fail "cannot read ${REPO_ROOT}/GODOT_VERSION"
+  # (read fails at a last line without a newline, after reading it)
+  read -r version <"${REPO_ROOT}/GODOT_VERSION" || [[ -n "$version" ]] || \
+    fail "cannot read ${REPO_ROOT}/GODOT_VERSION"
+  version="${version%$'\r'}"
   [[ "$version" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || fail "unexpected Godot version: $version"
   printf '%s\n' "$version"
 }
