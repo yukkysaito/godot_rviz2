@@ -2,32 +2,33 @@
 
 [![](https://github.com/user-attachments/assets/437755d1-6c20-449f-8da2-0ba3e8c42669)](https://youtu.be/mqZM1AkbA5A?si=EQV2JB2tUFsGdfVd)
 
+A 3D viewer for [Autoware](https://github.com/autowarefoundation/autoware) made with [Godot](https://godotengine.org/). The ROS 2 / Autoware side is a GDExtension (`godot_rviz2/`, C++), and the viewer is a Godot project (`godot-project/`).
 
 ## Environment
 
-- Ubuntu 22.04
-- GPU
-- Autoware (step1 in How to use)
+- Ubuntu 22.04, ROS 2 Humble
+- A GPU with Vulkan
+- Autoware (step 1 in How to use)
 - Internet connection (optional): the mini map shows OpenStreetMap tiles when online, and the vector map otherwise
 
 ## How to use
 
-1. Autoware build following [here](https://autowarefoundation.github.io/autoware-documentation/main/installation/autoware/source-installation/).
+1. Build Autoware following [here](https://autowarefoundation.github.io/autoware-documentation/main/installation/autoware/source-installation/).
 
 1. Build the godot_rviz2 GDExtension (the ROS 2 / Autoware classes Godot uses)
-   1. install GeographicLib, used to place the map on OpenStreetMap (usually installed with Autoware).
+   1. Install GeographicLib, used to place the map on OpenStreetMap (usually installed with Autoware).
 
       ```bash
       sudo apt-get install libgeographic-dev
       ```
 
-   1. clone godot_rviz2
+   1. Clone godot_rviz2 with its submodule, [godot-cpp](https://github.com/godotengine/godot-cpp) (the C++ bindings the extension is built with). In a clone without it, run `git submodule update --init`.
 
       ```bash
       git clone https://github.com/yukkysaito/godot_rviz2.git --recursive
       ```
 
-   1. build it against Autoware. It is put in `godot-project/addons/godot_rviz2/`.
+   1. Build it against Autoware. It is put in `godot-project/addons/godot_rviz2/`.
 
       ```bash
       cd godot_rviz2
@@ -35,13 +36,13 @@
       colcon build --packages-select godot_rviz2 --cmake-args -DCMAKE_BUILD_TYPE=Release
       ```
 
-1. Download the official Godot editor of the version the extension is built for (`GODOT_VERSION`). It prints the editor's path, used as `<godot>` below.
+1. Download Godot itself, which runs the project: the official editor of the version the extension is built for (`GODOT_VERSION`), checked against the release's checksums. The script prints the editor's path, used as `<godot>` below.
 
    ```bash
    scripts/get_godot.sh
    ```
 
-1. Import the project once (the first import also registers the extension; errors about missing classes in it are expected)
+1. Import the project once.
 
    ```bash
    source <autoware_path>/install/setup.bash
@@ -50,7 +51,7 @@
 
 1. Run Autoware and Godot
    1. Run Autoware
-   1. Run Godot with the project (with Autoware's environment, which the extension needs)
+   1. Run Godot with the project, with Autoware's environment, which the extension needs. Use the same RMW implementation and DDS settings as Autoware (for example `RMW_IMPLEMENTATION` and `CYCLONEDDS_URI`).
 
       ```bash
       source <autoware_path>/install/setup.bash
@@ -59,46 +60,76 @@
 
       To edit the project instead, add `--editor` and click the run button on the top right.
 
-## Key Config
+## Controls
 
-| key   | action           |
-| ----- | ---------------- |
-| Tab   | Switch view mode |
+| Input                                  | Action                                                           |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| Tab                                    | Switch the view (third person / bird's-eye)                      |
+| Left drag                              | Rotate the camera (it returns behind the vehicle after a while)  |
+| Mouse wheel                            | Zoom                                                             |
+| One-finger drag / two-finger pinch     | Rotate / zoom on a touch screen                                  |
+| Click the mini map                     | Expand it to the whole route, and back                           |
+| Click the `>` handle on the left edge  | Open the menu (display, view, data and HUD settings)             |
+| Double-click a slider in the menu      | Reset it to its default                                          |
+
+## Settings
+
+The menu saves the choices to `~/.local/share/godot/app_userdata/godot_rviz2/settings.cfg`. They are read in this order, and each layer overrides the previous one (see `godot-project/Core/Settings.gd`):
+
+1. the defaults in `Core/Settings.gd`
+1. `godot-project/Config/project.cfg` (optional), for a derived project to change the defaults
+1. a preset from `godot-project/Config/Presets/`, chosen on the command line: `real_vehicle` or `jetson` (full screen, lighter anti-aliasing)
+1. the user's `settings.cfg`
+1. command-line options, which are not saved
+
+```bash
+<godot> --path godot-project -- --preset=real_vehicle
+```
+
+`-- --vehicle=<Name>` selects the vehicle model `godot-project/3DViewer/Vehicle/<Name>/<Name>.tres`.
 
 ## How to run from ROS2 launch
 
-1. Create godot_rviz2.py and modify paths in `cmd`.
+1. Create godot_rviz2.py and modify the paths in `cmd`.
 
-```python
-from launch import LaunchDescription
-from launch.actions import ExecuteProcess
+   ```python
+   from launch import LaunchDescription
+   from launch.actions import ExecuteProcess
 
-def generate_launch_description():
-    godot_rviz2 = ExecuteProcess(
-        cmd=[[
-            '<godot> --path ~/workspace/godot_rviz2/godot-project'
-        ]],
-        shell=True
-    )
-    return LaunchDescription([godot_rviz2])
-```
+   def generate_launch_description():
+       godot_rviz2 = ExecuteProcess(
+           cmd=[[
+               '<godot> --path ~/workspace/godot_rviz2/godot-project'
+           ]],
+           shell=True
+       )
+       return LaunchDescription([godot_rviz2])
+   ```
 
-2. Run ros2 command.
+1. Run it with Autoware's environment.
 
-```bash
-ros2 launch <path>/godot_rviz2.py
-```
+   ```bash
+   ros2 launch <path>/godot_rviz2.py
+   ```
 
 ## How to Export Binary
 
 1. Install the export templates: in the editor, Editor > Manage Export Templates > Download and Install.
-1. Export with the `Linux/X11` preset (Project > Export). The exported binary needs `libgodot_rviz2.linux.x86_64.so` next to it, which Godot copies there.
-1. Run
+1. Export with the `Linux/X11` preset (Project > Export). Turn on Embed PCK in the preset to get a single binary instead of a binary and a `.pck`. Godot copies `libgodot_rviz2.linux.x86_64.so` next to the binary, which needs it there.
+1. Run it with Autoware's environment.
 
    ```bash
    source <autoware_path>/install/setup.bash
    ./sample.x86_64
    ```
+
+## Performance measurement
+
+`--perf` prints frame times and start-up timings, `--perf-duration=N` quits after N seconds with a summary, and `--perf-screenshot=T1,T2,...` saves screenshots at those times to `~/.local/share/godot/app_userdata/godot_rviz2/perf/` (see `godot-project/Debug/PerfMonitor.gd`).
+
+```bash
+<godot> --path godot-project -- --perf --perf-duration=60
+```
 
 ## Videos
 [![](http://img.youtube.com/vi/LPzkEC5hBMo/0.jpg)](https://www.youtube.com/watch?v=LPzkEC5hBMo)
@@ -108,7 +139,6 @@ ros2 launch <path>/godot_rviz2.py
 
 ## Reference
 
-- [font](https://github.com/adobe-fonts/source-code-pro)
-- [steering icon](https://icooon-mono.com/13897-%E3%83%8F%E3%83%B3%E3%83%89%E3%83%AB%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B31/)
-- [meter icon](https://icooon-mono.com/13350-%E3%83%A1%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B37/)
+- fonts: [Barlow](https://github.com/jpt/barlow) (SIL Open Font License, `godot-project/UI/Fonts/OFL.txt`) and [Source Code Pro](https://github.com/adobe-fonts/source-code-pro)
+- mini map tiles: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors
 - [vehicle 3D model](https://github.com/tier4/AWSIM/tree/v1.0.1/Assets/AWSIM/Models/Vehicles/Lexus%20RX450h%202015)
