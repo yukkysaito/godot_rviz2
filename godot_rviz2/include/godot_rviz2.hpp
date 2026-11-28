@@ -18,6 +18,7 @@
 
 #include "godot_api.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/version.h"
 
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -74,8 +75,12 @@ public:  // for singleton
   template <class ServiceT>
   typename rclcpp::Client<ServiceT>::SharedPtr create_client(const std::string & service_name)
   {
+#if RCLCPP_VERSION_GTE(21, 0, 0)  // Iron and later deprecate the rmw_qos_profile_t overload
+    return node_->create_client<ServiceT>(service_name, rclcpp::ServicesQoS(), callback_group_);
+#else
     return node_->create_client<ServiceT>(
       service_name, rmw_qos_profile_services_default, callback_group_);
+#endif
   }
 
 private:

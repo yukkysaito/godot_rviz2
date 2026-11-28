@@ -16,17 +16,21 @@
 
 #include "vector_map.hpp"
 
-#include "autoware_lanelet2_extension/utility/message_conversion.hpp"
 #include "autoware_lanelet2_extension/utility/query.hpp"
 #include "lanelet2_core/LaneletMap.h"
+#include "lanelet2_io/io_handlers/Serialize.h"
 #include "util.hpp"
 
 #include <mapbox/earcut.hpp>
 
+#include <boost/archive/binary_iarchive.hpp>
+
 #include <algorithm>
 #include <array>
-#include <set>
 #include <cmath>
+#include <set>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -611,10 +615,25 @@ Array VectorMap::split_into_tiles(const LayerGeometry & geometry, double tile_si
   return tiles;
 }
 
+// The map of a LaneletMapBin: a boost binary archive of the map and then of the next free lanelet
+// id, as lanelet::utils::conversion::fromBinMsg reads it (deprecated in the lanelet2 extension, and
+// its successor is in another package). The Autoware regulatory elements (e.g. traffic lights) are
+// registered by the autoware_lanelet2_extension library, which this links.
+static void read_lanelet_map(
+  const autoware_map_msgs::msg::LaneletMapBin & msg, lanelet::LaneletMap & map)
+{
+  std::istringstream stream(std::string(msg.data.begin(), msg.data.end()));
+  boost::archive::binary_iarchive archive(stream);
+  archive >> map;
+  lanelet::Id next_id = 0;
+  archive >> next_id;
+  lanelet::utils::registerId(next_id);
+}
+
 bool VectorMap::decode(const autoware_map_msgs::msg::LaneletMapBin & msg)
 {
   try {
-    lanelet::utils::conversion::fromBinMsg(msg, lanelet_map_);
+    read_lanelet_map(msg, *lanelet_map_);
   } catch (const std::exception & e) {  // e.g. a truncated message
     RCLCPP_ERROR(rclcpp::get_logger("godot_rviz2"), "Cannot decode the vector map: %s", e.what());
     lanelet_map_ = std::make_shared<lanelet::LaneletMap>();
