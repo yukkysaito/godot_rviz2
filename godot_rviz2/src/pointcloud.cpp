@@ -16,7 +16,6 @@
 
 #include "pointcloud.hpp"
 
-#include "tf2_eigen/tf2_eigen.hpp"
 #include "util.hpp"
 
 #include "sensor_msgs/msg/point_field.hpp"
@@ -56,8 +55,11 @@ static std::optional<Eigen::Isometry3d> lookup_cloud_transform(
   try {
     // Do not wait: this runs on the render loop. If the transform for this stamp is not
     // available yet, the cloud is skipped and the next message is used.
-    return tf2::transformToEigen(
-      tf_buffer->lookupTransform(target_frame, cloud.header.frame_id, cloud.header.stamp));
+    const auto transform =
+      tf_buffer->lookupTransform(target_frame, cloud.header.frame_id, cloud.header.stamp).transform;
+    const auto & t = transform.translation;
+    const auto & q = transform.rotation;
+    return Eigen::Translation3d(t.x, t.y, t.z) * Eigen::Quaterniond(q.w, q.x, q.y, q.z);
   } catch (const tf2::TransformException & ex) {
     RCLCPP_WARN_THROTTLE(rclcpp::get_logger("godot_rviz2"), clock, 5000, "%s", ex.what());
     return std::nullopt;
