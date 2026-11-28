@@ -157,7 +157,7 @@ func _process(delta: float) -> void:
 	_update_view(minf(_since_update, 0.5))
 	_since_update = 0.0
 	if _mode == "osm":
-		_tiles.update_view(_center, _zoom, size.length() * 0.5 / _zoom)
+		_tiles.update_view(_center, _zoom, _view_half_extent())
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	_overlay.queue_redraw()
 
@@ -189,6 +189,12 @@ func _update_view(delta: float) -> void:
 	_zoom = exp(lerpf(log(_zoom), log(target_zoom), t))
 	_viewport.canvas_transform = _world_to_map()
 	_route.width = ROUTE_WIDTH * _scale() / _zoom
+
+# Half the size [m] of the bounding box in the 2D world of the map's (rotated) view
+func _view_half_extent() -> Vector2:
+	var c := absf(cos(_rotation))
+	var s := absf(sin(_rotation))
+	return Vector2(size.x * c + size.y * s, size.x * s + size.y * c) * 0.5 / _zoom
 
 # Transform from the 2D world [m] to the map [px]
 func _world_to_map() -> Transform2D:

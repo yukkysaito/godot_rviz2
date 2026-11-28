@@ -12,7 +12,7 @@ const CACHE_DIR := "user://osm_tiles"
 const MAX_DOWNLOADS := 2  # at a time
 const RETRY_DELAY := 30.0  # [s] without downloads after a failed one
 const MAX_DISK_LOADS := 4  # per frame
-const MAX_TILES := 160  # kept in memory
+const MAX_TILES := 160  # kept in memory besides those in view
 const MAX_LEVEL := 19
 const TILE_PIXELS := 256.0
 const EARTH_CIRCUMFERENCE := 40075016.686  # [m] at the equator
@@ -37,9 +37,9 @@ func _ready() -> void:
 func is_showing_tiles() -> bool:
 	return _shown_in_view > 0
 
-# Loads the tiles within `radius` [m] of `center` [m], at the level whose pixels are about the
-# size of the map's pixels at `zoom` [px/m]
-func update_view(center: Vector2, zoom: float, radius: float) -> void:
+# Loads the tiles within `half_extent` [m] of `center` [m] (the view's bounding box), at the level
+# whose pixels are about the size of the map's pixels at `zoom` [px/m]
+func update_view(center: Vector2, zoom: float, half_extent: Vector2) -> void:
 	# Another map (projection) places the tiles elsewhere
 	if _projection.get_revision() != _projection_revision:
 		_projection_revision = _projection.get_revision()
@@ -54,15 +54,19 @@ func update_view(center: Vector2, zoom: float, radius: float) -> void:
 	var tile_size := ground_per_level0_pixel * TILE_PIXELS / count  # [m]
 	var middle := Vector2((lat_lon.y + 180.0) / 360.0,
 		(1.0 - log(tan(latitude) + 1.0 / cos(latitude)) / PI) * 0.5) * count
-	var reach := ceili(radius / tile_size)
+	# The tiles' x is east and y south, as the 2D world's x and y; one more tile around covers the
+	# small angle between the tile grid and the map's grid (e.g. the meridian convergence of UTM)
+	var reach := Vector2i((half_extent / tile_size).ceil()) + Vector2i.ONE
 
 	_wanted.clear()
 	_shown_in_view = 0
-	for y in range(floori(middle.y) - reach, floori(middle.y) + reach + 1):
-		for x in range(floori(middle.x) - reach, floori(middle.x) + reach + 1):
+	var in_view := {}
+	for y in range(floori(middle.y) - reach.y, floori(middle.y) + reach.y + 1):
+		for x in range(floori(middle.x) - reach.x, floori(middle.x) + reach.x + 1):
 			if y < 0 or y >= count:
 				continue
 			var key := Vector3i(level, posmod(x, count), y)
+			in_view[key] = true
 			if _tiles.get(key) == null:
 				_wanted.append(key)
 			else:
@@ -71,7 +75,7 @@ func update_view(center: Vector2, zoom: float, radius: float) -> void:
 		return middle.distance_squared_to(Vector2(key.y, key.z))
 	_wanted.sort_custom(func(a: Vector3i, b: Vector3i): return distance.call(a) < distance.call(b))
 	_load_wanted()
-	_evict(level, middle)
+	_evict(level, middle, in_view)
 
 func _load_wanted() -> void:
 	var disk_loads := 0
@@ -138,9 +142,12 @@ func _tile_corner(key: Vector3i, corner: Vector2) -> Vector2:
 	var position_3d := _projection.from_lat_lon(latitude, longitude)
 	return Vector2(position_3d.x, position_3d.z)
 
-# Frees the loaded tiles beyond MAX_TILES, those of other levels and the farthest first
-func _evict(level: int, middle: Vector2) -> void:
-	var loaded: Array = _tiles.keys().filter(func(key): return _tiles[key] != null)
+# Frees the loaded tiles out of view beyond MAX_TILES, those of other levels and the farthest
+# first. The tiles in view are kept however many there are (a large map, e.g. expanded on a wide
+# screen, needs more than MAX_TILES; freeing them loaded them again and again, and left a hole).
+func _evict(level: int, middle: Vector2, in_view: Dictionary) -> void:
+	var loaded: Array = _tiles.keys().filter(
+		func(key): return _tiles[key] != null and not in_view.has(key))
 	if loaded.size() <= MAX_TILES:
 		return
 	var cost := func(key: Vector3i) -> float:
