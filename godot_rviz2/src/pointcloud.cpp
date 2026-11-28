@@ -27,6 +27,7 @@
 #include <cmath>
 #include <cstring>
 #include <functional>
+#include <iostream>
 #include <optional>
 #include <unordered_map>
 #include <utility>
@@ -262,6 +263,15 @@ static void make_tiles(
   if (off_x < 0 || off_y < 0 || off_z < 0) return;
 
   const size_t num_points = static_cast<size_t>(msg.width) * msg.height;
+  if (num_points == 0) return;
+  // The data must hold the last point too (a broken publisher may send less)
+  const size_t end_of_last = static_cast<size_t>(msg.height - 1) * msg.row_step +
+                             static_cast<size_t>(msg.width - 1) * msg.point_step +
+                             static_cast<size_t>(std::max({off_x, off_y, off_z})) + sizeof(float);
+  if (end_of_last > msg.data.size()) {
+    std::cerr << "[godot_rviz2] a point cloud has less data than its size says" << std::endl;
+    return;
+  }
   const uint8_t * data = msg.data.data();
   auto point_at = [&](size_t i) {
     const size_t row = i / msg.width;

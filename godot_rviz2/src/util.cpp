@@ -44,6 +44,7 @@ bool is_clockwise(const std::vector<Vector2> & polygon_2d)
 {
   // Get the number of points in the polygon
   const int n = polygon_2d.size();
+  if (n < 3) return false;  // no area
 
   // Use the first point of the polygon as a reference point
   const double x_offset = polygon_2d.at(0).x;
@@ -101,6 +102,7 @@ Array calculate_line_as_triangle_strip(
   const std::vector<geometry_msgs::msg::Point> & line, float width, const ViewFrame & view)
 {
   Array line_triangle_points;
+  if (line.size() < 2) return line_triangle_points;  // no direction to widen it in
   Eigen::Vector2f previous_front_vec;
 
   for (size_t i = 0; i < line.size(); ++i) {
@@ -216,15 +218,12 @@ void generate_polygon3d(
   const Eigen::Quaternionf & quaternion, std::vector<Vector3> & vertices,
   std::vector<Vector3> & normals)
 {
+  // A polygon needs at least three vertices (e.g. an object's footprint can be empty)
+  if (polygon_2d.size() < 3) return;
+
   // Check if the polygon is defined in a clockwise direction
   if (!is_clockwise(polygon_2d)) {
     std::cerr << "Polygon is not clockwise" << std::endl;
-    return;
-  }
-
-  // Check if the polygon has at least three vertices
-  if (polygon_2d.size() < 3) {
-    std::cerr << "Polygon size is less than 3" << std::endl;
     return;
   }
 

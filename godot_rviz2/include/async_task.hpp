@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <functional>
+#include <iostream>
 #include <mutex>
 #include <thread>
 #include <utility>
@@ -43,6 +44,7 @@ public:
 
   /**
    * @brief Starts job on the worker thread. Returns false (and does nothing) while a job runs.
+   * A job that throws is logged and gives a default-constructed result.
    */
   bool start(std::function<ResultT()> job)
   {
@@ -51,13 +53,21 @@ public:
     running_ = true;
     done_ = false;
     thread_ = std::thread([this, job = std::move(job)]() {
-      ResultT result = job();
+      ResultT result{};
+      try {
+        result = job();
+      } catch (const std::exception & e) {  // would terminate the process on this thread
+        std::cerr << "[godot_rviz2] a background job failed: " << e.what() << std::endl;
+      } catch (...) {
+        std::cerr << "[godot_rviz2] a background job failed" << std::endl;
+      }
       {
         std::lock_guard<std::mutex> lock(mutex_);
         result_ = std::move(result);
       }
-      done_ = true;
+      // Not running anymore once the result is seen as done (e.g. a query right after take())
       running_ = false;
+      done_ = true;
     });
     return true;
   }
