@@ -24,6 +24,7 @@ config/icon="res://icon.png"
 PerfMonitor="*res://Debug/PerfMonitor.gd"
 Settings="*res://Core/Settings.gd"
 RosBridge="*res://Core/RosBridge.gd"
+MiniGame="*res://Game/MiniGame.gd"
 
 [input]
 
