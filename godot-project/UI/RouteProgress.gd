@@ -104,7 +104,7 @@ func _draw() -> void:
 
 	var baseline := middle + 26 * s
 	var distance := _distance_text
-	var font_size := int(20 * s)
+	var font_size := maxi(1, int(20 * s))  # text servers reject sizes below 1
 	var width := FONT_BOLD.get_string_size(distance, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	draw_string(FONT_BOLD, Vector2(size.x - width, baseline), distance, HORIZONTAL_ALIGNMENT_LEFT, -1,
 		font_size, TEXT)

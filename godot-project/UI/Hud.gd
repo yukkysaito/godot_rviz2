@@ -100,7 +100,7 @@ func _draw() -> void:
 # A pill with a glowing dot and AUTO / MANUAL: blue while autonomous, gray while manual
 func _draw_mode(origin: Vector2, s: float) -> void:
 	var text := _mode_text()
-	var font_size := int(15 * s)
+	var font_size := _font_px(15 * s)
 	var rect := _mode_rect(origin, s, text)
 	var color := ACCENT if _autonomous else MUTED
 	_draw_pill(rect, PANEL, Color(ACCENT, 0.5) if _autonomous else Color(1, 1, 1, 0.12), s)
@@ -116,7 +116,7 @@ func _mode_text() -> String:
 	return "AUTO" if _autonomous else "MANUAL"
 
 func _mode_rect(origin: Vector2, s: float, text: String) -> Rect2:
-	var width := _labels.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(15 * s)).x
+	var width := _labels.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_px(15 * s)).x
 	return Rect2(origin, Vector2(width + 52 * s, 36 * s))
 
 func _draw_cluster(center: Vector2, s: float) -> void:
@@ -146,7 +146,7 @@ func _draw_cluster(center: Vector2, s: float) -> void:
 	# Distance to the planned stop
 	if not _stop_text.is_empty():
 		var text := _stop_text
-		var font_size := int(14 * s)
+		var font_size := _font_px(14 * s)
 		var width := _labels.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 		var rect := Rect2(center + Vector2(-width * 0.5 - 18 * s, -126 * s), Vector2(width + 36 * s, 30 * s))
 		_draw_pill(rect, Color(STOP, 0.16), Color(STOP, 0.7), s)
@@ -195,9 +195,14 @@ func _draw_pill(rect: Rect2, fill: Color, border: Color, s: float) -> void:
 
 # `baseline` is the text's baseline
 func _draw_text_center(font: Font, text: String, baseline: Vector2, font_size: float, color: Color) -> void:
-	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size)).x
-	draw_string(font, baseline - Vector2(width * 0.5, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size), color)
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_px(font_size)).x
+	draw_string(font, baseline - Vector2(width * 0.5, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_px(font_size),
+		color)
 
 func _draw_text_right(font: Font, text: String, baseline: Vector2, font_size: float, color: Color) -> void:
-	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size)).x
-	draw_string(font, baseline - Vector2(width, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_size), color)
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_px(font_size)).x
+	draw_string(font, baseline - Vector2(width, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_px(font_size), color)
+
+# A scaled font size in pixels; text servers reject sizes below 1 (a very short window)
+static func _font_px(font_size: float) -> int:
+	return maxi(1, int(font_size))
