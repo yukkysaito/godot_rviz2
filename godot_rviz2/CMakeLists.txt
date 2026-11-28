@@ -37,6 +37,7 @@ find_package(autoware_planning_msgs REQUIRED)
 find_package(autoware_vehicle_msgs REQUIRED)
 find_package(autoware_lanelet2_extension REQUIRED)
 find_package(lanelet2_core REQUIRED)
+find_package(lanelet2_io REQUIRED)
 find_package(Eigen3 REQUIRED)
 list(APPEND CMAKE_MODULE_PATH /usr/share/cmake/geographiclib)  # FindGeographicLib.cmake (libgeographic-dev)
 find_package(GeographicLib REQUIRED)
@@ -59,7 +60,8 @@ ament_target_dependencies(${PROJECT_NAME}
   autoware_planning_msgs
   autoware_vehicle_msgs
   autoware_lanelet2_extension
-  lanelet2_core)
+  lanelet2_core
+  lanelet2_io)
 target_link_libraries(${PROJECT_NAME} godot::cpp Eigen3::Eigen ${GeographicLib_LIBRARIES})
 
 # libgodot_rviz2.linux.<x86_64|arm64>.so (the names godot_rviz2.gdextension lists). The ROS and

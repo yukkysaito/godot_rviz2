@@ -19,6 +19,7 @@
   <depend>geographiclib</depend>
   <depend>geometry_msgs</depend>
   <depend>lanelet2_core</depend>
+  <depend>lanelet2_io</depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
   <depend>tf2</depend>
