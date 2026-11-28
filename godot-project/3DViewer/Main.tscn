@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://cwhqdw3ex4dso"]
+[gd_scene load_steps=50 format=3 uid="uid://cwhqdw3ex4dso"]
 
 [ext_resource type="Script" path="res://3DViewer/EgoVehicle.gd" id="2"]
 [ext_resource type="Script" path="res://3DViewer/World.gd" id="2_e7vl0"]
@@ -21,13 +21,13 @@
 [ext_resource type="PackedScene" uid="uid://biwx0nd3tu8lg" path="res://3DViewer/TrafficLight/Board/TrafficLightBoard.tscn" id="15_3ypoo"]
 [ext_resource type="PackedScene" uid="uid://c1jhsuxmew4q7" path="res://3DViewer/TrafficLight/TrafficLightGroupActor.tscn" id="15_hw4ln"]
 [ext_resource type="Script" path="res://3DViewer/OpeationControl.gd" id="18_utxm1"]
-[ext_resource type="FontFile" uid="uid://bdcs1gylvx0io" path="res://SourceCodePro-Light.otf" id="22"]
 [ext_resource type="Script" path="res://3DViewer/VectorMap.gd" id="25"]
 [ext_resource type="Script" path="res://3DViewer/PathMesh.gd" id="26"]
 [ext_resource type="Script" path="res://Menu/MenuSlide.gd" id="36_jtj5y"]
 [ext_resource type="Script" path="res://Menu/Selection.gd" id="37_ow1tw"]
 [ext_resource type="Script" path="res://Menu/QuitButton.gd" id="38_d4rqi"]
 [ext_resource type="Script" path="res://UI/SettingOption.gd" id="ui_setting_option"]
+[ext_resource type="Script" path="res://UI/SettingSegmented.gd" id="ui_setting_segmented"]
 [ext_resource type="Script" path="res://UI/SettingToggle.gd" id="ui_setting_toggle"]
 [ext_resource type="Script" path="res://UI/SettingSlider.gd" id="ui_setting_slider"]
 
@@ -140,56 +140,6 @@ distance_fade_max_distance = 25.0
 
 [sub_resource type="ArrayMesh" id="27"]
 resource_name = "mesh"
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2kruo"]
-content_margin_left = 24.0
-content_margin_top = 24.0
-content_margin_right = 24.0
-content_margin_bottom = 20.0
-bg_color = Color(0.196078, 0.196078, 0.196078, 1)
-corner_radius_top_right = 30
-corner_radius_bottom_right = 30
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_065lq"]
-bg_color = Color(0.364706, 0, 0, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qkqfu"]
-bg_color = Color(0.909804, 0, 0, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0.380392, 0.380392, 0.380392, 0.6)
-shadow_size = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_usaqh"]
-bg_color = Color(0.721569, 0, 0, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0.305882, 0.305882, 0.305882, 0.6)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uddxr"]
-bg_color = Color(0.247059, 0.247059, 0.247059, 0.419608)
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gwddm"]
-bg_color = Color(0.443137, 0.443137, 0.443137, 0.694118)
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6yj7s"]
-bg_color = Color(0.364706, 0.364706, 0.364706, 0.694118)
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
 
 [node name="Main" type="Node3D"]
 script = ExtResource("3")
@@ -361,7 +311,6 @@ anchors_preset = 9
 anchor_bottom = 1.0
 offset_right = 400.0
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_2kruo")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Menu/MenuSlide/MenuPanel"]
 custom_minimum_size = Vector2(352, 0)
@@ -387,6 +336,7 @@ layout_mode = 2
 mouse_filter = 0
 script = ExtResource("37_ow1tw")
 title = "Display"
+icon = "display"
 
 [node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionDisplay"]
 layout_mode = 2
@@ -450,6 +400,7 @@ key = "display/always_on_top"
 layout_mode = 2
 script = ExtResource("37_ow1tw")
 title = "Data"
+icon = "data"
 
 [node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionData"]
 layout_mode = 2
@@ -496,6 +447,7 @@ key = "data/obstacle_segmentation"
 layout_mode = 2
 script = ExtResource("37_ow1tw")
 title = "3D Environment"
+icon = "view"
 
 [node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment"]
 layout_mode = 2
@@ -532,13 +484,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Object mode"
 
-[node name="ObjectModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
+[node name="ObjectModeOption" type="Control" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/ObjectModeContainer"]
 layout_mode = 2
-focus_mode = 0
-script = ExtResource("ui_setting_option")
+script = ExtResource("ui_setting_segmented")
 key = "view/object_mode"
 values = PackedStringArray("model", "model_plain", "geometry")
-labels = PackedStringArray("3D Model (Color)", "3D Model (Plain)", "Geometry")
+labels = PackedStringArray("Color", "Plain", "Shape")
 
 [node name="ObjectIconContainer" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body"]
 layout_mode = 2
@@ -562,10 +513,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Day mode"
 
-[node name="DayModeOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
+[node name="DayModeOption" type="Control" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/Selection3DEnvironment/Body/DayModeContainer"]
 layout_mode = 2
-focus_mode = 0
-script = ExtResource("ui_setting_option")
+script = ExtResource("ui_setting_segmented")
 key = "view/day_mode"
 values = PackedStringArray("day", "night")
 labels = PackedStringArray("Day", "Night")
@@ -670,6 +620,7 @@ value_scale = 1.0
 layout_mode = 2
 script = ExtResource("37_ow1tw")
 title = "HUD"
+icon = "hud"
 
 [node name="Header" type="HBoxContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD"]
 layout_mode = 2
@@ -748,27 +699,22 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Mini map"
 
-[node name="MiniMapOption" type="OptionButton" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/MiniMapContainer"]
+[node name="MiniMapOption" type="Control" parent="Menu/MenuSlide/MenuPanel/VBoxContainer/ScrollContainer/Content/SelectionHUD/Body/MiniMapContainer"]
 layout_mode = 2
-focus_mode = 0
-script = ExtResource("ui_setting_option")
+script = ExtResource("ui_setting_segmented")
 key = "hud/minimap"
 values = PackedStringArray("off", "lanelet", "osm")
-labels = PackedStringArray("Off", "Lanelet", "OpenStreetMap")
+labels = PackedStringArray("Off", "Lanelet", "OSM")
 
 [node name="MarginContainer2" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
 [node name="QuitButton" type="Button" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
-custom_minimum_size = Vector2(70, 28)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxFlat_065lq")
-theme_override_styles/hover = SubResource("StyleBoxFlat_qkqfu")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_usaqh")
-text = "QUIT"
+theme_type_variation = &"QuitButton"
+text = "Quit"
 script = ExtResource("38_d4rqi")
 
 [node name="MarginContainer3" type="MarginContainer" parent="Menu/MenuSlide/MenuPanel/VBoxContainer"]
@@ -786,8 +732,3 @@ offset_right = 18.0
 offset_bottom = 40.0
 grow_vertical = 2
 focus_mode = 0
-theme_override_fonts/font = ExtResource("22")
-theme_override_styles/normal = SubResource("StyleBoxFlat_uddxr")
-theme_override_styles/hover = SubResource("StyleBoxFlat_gwddm")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_6yj7s")
-text = ">"
